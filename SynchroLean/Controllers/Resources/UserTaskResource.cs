@@ -9,11 +9,5 @@ namespace SynchroLean.Controllers.Resources
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsRecurring { get; set; }
-        public ICollection<WeekdayResource> Weekdays { get; set; }
-
-        public UserTaskResource()
-        {
-            Weekdays = new Collection<WeekdayResource>();
-        }
     }
 }
