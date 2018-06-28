@@ -4,14 +4,24 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
 using SynchroLean.Models;
+using SynchroLean.Persistence;
 
 namespace SynchroLean.Controllers
 {
     [Route("api/[controller]")]
     public class TasksController : Controller
     {
+
+        private readonly SynchroLeanDbContext context;
+
+        public TasksController(SynchroLeanDbContext context)
+        {
+            this.context = context;    
+        }
+
         // POST api/tasks
         [HttpPost]
         public IActionResult AddUserTask([FromBody]UserTaskResource userTaskResource)
@@ -22,27 +32,30 @@ namespace SynchroLean.Controllers
             }
 
             // Map resource to model
-            var userTask = new UserTask();
-            userTask.Id = userTaskResource.Id;
-            userTask.Name = userTaskResource.Name;
-            userTask.Description = userTaskResource.Description;
-            userTask.IsRecurring = userTaskResource.IsRecurring;
-
-            var weekdays = new Collection<Weekday>();
-            foreach (WeekdayResource weekday in userTaskResource.Weekdays) {
-                var newWeekday = new Weekday {
-                    Id = weekday.Id,
-                    Name = weekday.Name
-                };
-                weekdays.Add(newWeekday);
-            }
-            userTask.Weekdays = weekdays;
+            var userTask = new UserTask {
+                Id = userTaskResource.Id,
+                Name = userTaskResource.Name,
+                Description = userTaskResource.Description,
+                IsRecurring = userTaskResource.IsRecurring
+            };
 
             // Save userTask to database
-            // Retrieve userTask from database
-            // Map userTask to UserTaskResource
+            context.Add(userTask);
+            context.SaveChanges();
 
-            return Ok(userTask);
+            // Retrieve userTask from database
+            userTask = context.UserTasks
+                .SingleOrDefault(ut => ut.Id == userTask.Id);
+
+            // Map userTask to UserTaskResource
+            var outResource = new UserTaskResource {
+                Id = userTask.Id,
+                Name = userTask.Name,
+                Description = userTask.Description,
+                IsRecurring = userTask.IsRecurring
+            };
+
+            return Ok(outResource);
         }
 
         // GET api/tasks     (fetch all tasks... will change to async)

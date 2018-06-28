@@ -12,11 +12,5 @@ namespace SynchroLean.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsRecurring { get; set; }
-        public ICollection<Weekday> Weekdays { get; set; }
-
-        public UserTask()
-        {
-            Weekdays = new Collection<Weekday>();
-        }
     }
 }
