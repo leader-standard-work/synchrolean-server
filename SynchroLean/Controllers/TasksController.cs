@@ -53,7 +53,7 @@ namespace SynchroLean.Controllers
               *  Something along the lines of:
               *  * var tasks = _context.Tasks.Get()
               *  * Check if the operation succeeded (if not return Bad response) else continue
-              *  * Maybe some light formatting of the tasks to beautify them
+              *  * Maybe some light formatting of the tasks to beautify them (map to task resource)
               *  * return Ok(tasks)
              **/
 
