@@ -24,7 +24,7 @@ namespace SynchroLean.Controllers
 
         // POST api/tasks
         [HttpPost]
-        public IActionResult AddUserTask([FromBody]UserTaskResource userTaskResource)
+        public async Task<IActionResult> AddUserTaskAsync([FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
             if(!ModelState.IsValid) {
@@ -40,12 +40,12 @@ namespace SynchroLean.Controllers
             };
 
             // Save userTask to database
-            context.Add(userTask);
-            context.SaveChanges();
+            await context.AddAsync(userTask);
+            await context.SaveChangesAsync();
 
             // Retrieve userTask from database
-            userTask = context.UserTasks
-                .SingleOrDefault(ut => ut.Id == userTask.Id);
+            userTask = await context.UserTasks
+                .SingleOrDefaultAsync(ut => ut.Id == userTask.Id);
 
             // Map userTask to UserTaskResource
             var outResource = new UserTaskResource {
