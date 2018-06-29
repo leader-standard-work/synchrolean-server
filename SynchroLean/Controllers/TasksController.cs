@@ -60,10 +60,10 @@ namespace SynchroLean.Controllers
 
         // GET api/tasks     (fetch all tasks... will change to async)
         [HttpGet]
-        public IActionResult GetTasks()
+        public async Task<IActionResult> GetTasks()
         {
             // Fetch all tasks from the DB
-            var tasks = context.UserTasks.ToList<UserTask>();
+            var tasks = await context.UserTasks.ToListAsync<UserTask>();
 
             // List of corresponding tasks as resources
             var resourceTasks = new List<UserTaskResource>();
