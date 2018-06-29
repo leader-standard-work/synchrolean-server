@@ -58,11 +58,11 @@ namespace SynchroLean.Controllers
             return Ok(outResource);
         }
 
-        // GET api/tasks     (fetch all tasks... will change to async)
+        // GET api/tasks
         [HttpGet]
-        public async Task<IActionResult> GetTasks()
+        public async Task<IActionResult> GetTasksAsync()
         {
-            // Fetch all tasks from the DB
+            // Fetch all tasks from the DB asyncronously
             var tasks = await context.UserTasks.ToListAsync<UserTask>();
 
             // List of corresponding tasks as resources
@@ -81,7 +81,7 @@ namespace SynchroLean.Controllers
                 // Add to resources list
                 resourceTasks.Add(resource);
             });
-            return Ok(resourceTasks); // List of UserTaskResources as 200OK response
+            return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
     }
 }
