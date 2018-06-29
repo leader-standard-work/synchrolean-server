@@ -24,7 +24,7 @@ namespace SynchroLean.Controllers
 
         // POST api/tasks
         [HttpPost]
-        public IActionResult AddUserTask([FromBody]UserTaskResource userTaskResource)
+        public async Task<IActionResult> AddUserTaskAsync([FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
             if(!ModelState.IsValid) {
@@ -40,12 +40,12 @@ namespace SynchroLean.Controllers
             };
 
             // Save userTask to database
-            context.Add(userTask);
-            context.SaveChanges();
+            await context.AddAsync(userTask);
+            await context.SaveChangesAsync();
 
             // Retrieve userTask from database
-            userTask = context.UserTasks
-                .SingleOrDefault(ut => ut.Id == userTask.Id);
+            userTask = await context.UserTasks
+                .SingleOrDefaultAsync(ut => ut.Id == userTask.Id);
 
             // Map userTask to UserTaskResource
             var outResource = new UserTaskResource {
@@ -56,6 +56,32 @@ namespace SynchroLean.Controllers
             };
 
             return Ok(outResource);
+        }
+
+        // GET api/tasks
+        [HttpGet]
+        public async Task<IActionResult> GetTasksAsync()
+        {
+            // Fetch all tasks from the DB asyncronously
+            var tasks = await context.UserTasks.ToListAsync<UserTask>();
+
+            // List of corresponding tasks as resources
+            var resourceTasks = new List<UserTaskResource>();
+
+            // Map each task to a corresponding resource
+            tasks.ForEach(task =>
+            {
+                // Create resource from model
+                var resource = new UserTaskResource {
+                    Id = task.Id,
+                    Name = task.Name,
+                    Description = task.Description,
+                    IsRecurring = task.IsRecurring
+                };
+                // Add to resources list
+                resourceTasks.Add(resource);
+            });
+            return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
     }
 }
