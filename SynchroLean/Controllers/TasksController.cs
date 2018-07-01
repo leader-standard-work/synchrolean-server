@@ -36,7 +36,14 @@ namespace SynchroLean.Controllers
                 Id = userTaskResource.Id,
                 Name = userTaskResource.Name,
                 Description = userTaskResource.Description,
-                IsRecurring = userTaskResource.IsRecurring
+                IsRecurring = userTaskResource.IsRecurring,
+                Weekdays = userTaskResource.Weekdays,
+                // We'll need to think about timezones here
+                CreationDate = DateTime.Now,
+                IsCompleted = false,
+                // Should we instead use a nullable datetime type?
+                CompletionDate = DateTime.MinValue,
+                IsRemoved = false
             };
 
             // Save userTask to database
@@ -52,7 +59,12 @@ namespace SynchroLean.Controllers
                 Id = userTask.Id,
                 Name = userTask.Name,
                 Description = userTask.Description,
-                IsRecurring = userTask.IsRecurring
+                IsRecurring = userTask.IsRecurring,
+                Weekdays = userTask.Weekdays,
+                CreationDate = userTask.CreationDate,
+                IsCompleted = userTask.IsCompleted,
+                CompletionDate = userTask.CompletionDate,
+                IsRemoved = userTask.IsRemoved
             };
 
             return Ok(outResource);
@@ -76,7 +88,12 @@ namespace SynchroLean.Controllers
                     Id = task.Id,
                     Name = task.Name,
                     Description = task.Description,
-                    IsRecurring = task.IsRecurring
+                    IsRecurring = task.IsRecurring,
+                    Weekdays = task.Weekdays,
+                    CreationDate = task.CreationDate,
+                    IsCompleted = task.IsCompleted,
+                    CompletionDate = task.CompletionDate,
+                    IsRemoved = task.IsRemoved
                 };
                 // Add to resources list
                 resourceTasks.Add(resource);
@@ -107,6 +124,13 @@ namespace SynchroLean.Controllers
             task.Name = userTaskResource.Name;
             task.Description = userTaskResource.Description;
             task.IsRecurring = userTaskResource.IsRecurring;
+            task.Weekdays = userTaskResource.Weekdays;
+            if (!task.IsCompleted && userTaskResource.IsCompleted) {
+                // We'll need to think about timezones here
+                task.CompletionDate = DateTime.Now;
+            }
+            task.IsCompleted = userTaskResource.IsCompleted;
+            task.IsRemoved = userTaskResource.IsRemoved;
 
             // Save updated userTask to database
             await context.SaveChangesAsync();
@@ -117,7 +141,12 @@ namespace SynchroLean.Controllers
                 Id = task.Id,
                 Name = task.Name,
                 Description = task.Description,
-                IsRecurring = task.IsRecurring
+                IsRecurring = task.IsRecurring,
+                Weekdays = task.Weekdays,
+                CreationDate = task.CreationDate,
+                IsCompleted = task.IsCompleted,
+                CompletionDate = task.CompletionDate,
+                IsRemoved = task.IsRemoved
             };
 
             return Ok(outResource);
