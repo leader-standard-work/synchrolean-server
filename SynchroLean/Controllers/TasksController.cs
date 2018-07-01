@@ -83,5 +83,44 @@ namespace SynchroLean.Controllers
             });
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
+
+        // PUT api/tasks
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditUserTaskAsync(int id, [FromBody]UserTaskResource userTaskResource)
+        {
+            // How does this validate against the UserTask model?
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var task = await context.UserTasks
+                .SingleOrDefaultAsync(ut => ut.Id == id);
+
+            // Nothing was retrieved, no id match
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            // Map resource to model
+            task.Name = userTaskResource.Name;
+            task.Description = userTaskResource.Description;
+            task.IsRecurring = userTaskResource.IsRecurring;
+
+            // Save updated userTask to database
+            await context.SaveChangesAsync();
+
+            // Map userTask to UserTaskResource
+            var outResource = new UserTaskResource
+            {
+                Id = task.Id,
+                Name = task.Name,
+                Description = task.Description,
+                IsRecurring = task.IsRecurring
+            };
+
+            return Ok(outResource);
+        }
     }
 }
