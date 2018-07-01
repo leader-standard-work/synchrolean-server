@@ -79,14 +79,11 @@ namespace SynchroLean.Models
 
         string IUserLogin.UserID { get { return this.SubjectID; } }
 
-        bool IUserLogin.Valid { 
-            get
-            {
-                var validRightNow = DateTime.Now <= ExpirationTime;
-                //Put in stuff here for validating that the token applies to us
-                // and is from one of our trusted providers...
-                return validRightNow;
-            }
+        bool IUserLogin.testValid() { 
+            var validRightNow = DateTime.Now <= ExpirationTime;
+            //Put in stuff here for validating that the token applies to us
+            // and is from one of our trusted providers...
+            return validRightNow;
         }
     }
 }

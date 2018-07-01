@@ -10,7 +10,7 @@ namespace SynchroLean
         /// <summary>
         /// Is the login valid, right now?
         /// </summary>
-        bool Valid { get; }
+        bool testValid();
         
         /// <summary>
         /// Get an ID for the user for use as a parameter.
