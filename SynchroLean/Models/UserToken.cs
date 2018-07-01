@@ -86,23 +86,5 @@ namespace SynchroLean.Models
             return validRightNow;
         }
 
-        IEnumerable<DayOfWeek> convertDaysOfWeekFromBits(sbyte bits)
-        {
-            for (int i = 0; i < 7; i++)
-            {
-                if ((bits & 1) > 0) yield return (DayOfWeek)i;
-                bits >>= 1;
-            }
-        }
-
-        sbyte convertDaysOfWeekToBits(IEnumerable<DayOfWeek> days)
-        {
-            sbyte result = 0;
-            foreach(DayOfWeek weekday in days)
-            {
-                result |= (sbyte)(1 << (sbyte)(weekday));
-            }
-            return result;
-        }
     }
 }
