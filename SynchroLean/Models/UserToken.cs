@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SynchroLean.Models
 {
-    public class UserToken
+    public class UserToken: IUserLogin
     {
         //These really should all be read only, we might want a code-facing interface
         //that exposes better types (enumerations for the methods, a URI for the issuer-id,
@@ -76,5 +76,17 @@ namespace SynchroLean.Models
         /// value, and it is only useful if the authorized party is different from the audience.
         /// </summary>
         string AuthorizedParty { get; }
+
+        string IUserLogin.UserID { get { return this.SubjectID; } }
+
+        bool IUserLogin.Valid { 
+            get
+            {
+                var validRightNow = DateTime.Now <= ExpirationTime;
+                //Put in stuff here for validating that the token applies to us
+                // and is from one of our trusted providers...
+                return validRightNow;
+            }
+        }
     }
 }
