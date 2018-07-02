@@ -85,5 +85,6 @@ namespace SynchroLean.Models
             // and is from one of our trusted providers...
             return validRightNow;
         }
+
     }
 }
