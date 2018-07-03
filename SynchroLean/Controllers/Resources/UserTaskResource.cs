@@ -15,5 +15,6 @@ namespace SynchroLean.Controllers.Resources
         public bool IsCompleted { get; set; }
         public DateTime CompletionDate { get; set; }
         public bool IsRemoved { get; set; }
+        public int OwnerId { get; set; }
     }
 }
