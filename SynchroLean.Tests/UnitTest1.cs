@@ -6,6 +6,7 @@ using SynchroLean.Models;
 using SynchroLean.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
+using Xunit.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
@@ -18,21 +19,27 @@ namespace SynchroLean.Tests
 {
     public class UnitTest1
     {
+        private readonly ITestOutputHelper output;
+
+        public UnitTest1(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         /// <summary>
         /// Add user task using in memory database model from
         /// "https://docs.microsoft.com/en-us/ef/core/miscellaneous/testing/in-memory".
         /// </summary>
         [Fact]
-        public void AddTaskInMemoryTest()
+        public async void AddTaskInMemoryTestAsync()
         {
             // Creates an InMemory database to be used for testing
             var options = new DbContextOptionsBuilder<SynchroLeanDbContext>()
                 .UseInMemoryDatabase(databaseName: "Add_task_to_database")
                 .Options;
 
-            // Create a UserTaskResource to send to HTTPPost method
+            // Create a userTaskOrigina to send to HTTPPost method
             var userTaskResource = new UserTaskResource {
-                Id = 0,
                 Name = "Unit test add",
                 Description = "Add a task using InMemory database",
                 IsRecurring = true,
@@ -42,21 +49,45 @@ namespace SynchroLean.Tests
                 CompletionDate = DateTime.Today.AddDays(2),
                 IsRemoved = false
             };
+            
+            var userTaskId = 0;
 
-            // Creates the TaskController with DbContext and adds userTaskResource to InMemory database
+            // Creates the TaskController with DbContext and adds userTaskOrigina to InMemory database
             using (var context = new SynchroLeanDbContext(options))
             {
                 var controller = new TasksController(context);
-                var result = controller.AddUserTaskAsync(userTaskResource);
+                var result = await controller.AddUserTaskAsync(userTaskResource);
+
+                //Assert
+                var okTaskResult = result as OkObjectResult;
+                Assert.NotNull(result);
+
+                var model = okTaskResult.Value as SynchroLean.Controllers.Resources.UserTaskResource;
+                Assert.NotNull(model);
+
+                userTaskId = model.Id;
+                //output.WriteLine("userTaskId = " + userTaskId);
             }
 
             // Used same context to verify changes are persistent
             using (var context = new SynchroLeanDbContext(options))
             {
                 Assert.Equal(1, context.UserTasks.Count());
+                var userTask = context.UserTasks.SingleOrDefault(ut => ut.Id.Equals(userTaskId));
+                Assert.NotNull(userTask);
 
-                // Not sure how to compare what's in the database to userTaskResource
-                //Assert.True(context.UserTasks.Single().Equals(userTaskResource), "User Tasks Match!!");
+                // Not sure why userTask.Name needs to be trimmed but userTask.Description doesn't
+                Assert.True(userTaskResource.Name == userTask.Name.Trim());
+                Assert.True(userTaskResource.Description == userTask.Description);
+                Assert.True(userTaskResource.IsRecurring.Equals(userTask.IsRecurring));
+                Assert.True(userTaskResource.Weekdays.Equals(userTask.Weekdays));
+
+                // It's a pain to test dates and I am le tired, I'll do it later
+                //Assert.True(userTaskResource.CreationDate.Equals(userTask.CreationDate));
+                //Assert.True(userTaskResource.CompletionDate.Equals(userTask.CompletionDate));
+                
+                Assert.True(userTaskResource.IsCompleted.Equals(userTask.IsCompleted));
+                Assert.True(userTaskResource.IsRemoved.Equals(userTask.IsRemoved));
             }
         }
 
@@ -65,7 +96,7 @@ namespace SynchroLean.Tests
         /// "https://docs.microsoft.com/en-us/ef/core/miscellaneous/testing/sqlite".
         /// </summary>
         [Fact]
-        public void AddTaskSQLiteTest()
+        public async void AddTaskSQLiteTestAsync()
         {
             // In-memory database only exists while the connection is open
             var connection = new SqliteConnection("DataSource=:memory:");
@@ -77,9 +108,8 @@ namespace SynchroLean.Tests
                     .UseSqlite(connection)
                     .Options;
 
-                /// Create a UserTaskResource to send to HTTPPost method
+                /// Create a userTaskResource to send to HTTPPost method
                 var userTaskResource = new UserTaskResource {
-                    Id = 0,
                     Name = "SQLite unit test add",
                     Description = "Add a task using SQLite database",
                     IsRecurring = true,
@@ -96,17 +126,44 @@ namespace SynchroLean.Tests
                     context.Database.EnsureCreated();
                 }
 
+                var userTaskId = 0;
+
                 // Run the test against one instance of the context
                 using (var context = new SynchroLeanDbContext(options))
                 { 
                     var service = new TasksController(context);
-                    var result = service.AddUserTaskAsync(userTaskResource);
+                    var result = await service.AddUserTaskAsync(userTaskResource);
+
+                    //Assert
+                    var okTaskResult = result as OkObjectResult;
+                    Assert.NotNull(result);
+
+                    var model = okTaskResult.Value as SynchroLean.Controllers.Resources.UserTaskResource;
+                    Assert.NotNull(model);
+
+                    userTaskId = model.Id;
+                    //output.WriteLine("userTaskId = " + userTaskId);
                 }
 
                 // Use a separate instance of the context to verify correct data was saved to database
                 using (var context = new SynchroLeanDbContext(options))
                 {
                     Assert.Equal(1, context.UserTasks.Count());
+                    var userTask = context.UserTasks.SingleOrDefault(ut => ut.Id.Equals(userTaskId));
+                    Assert.NotNull(userTask);
+
+                    // Not sure why userTask.Name needs to be trimmed but userTask.Description doesn't
+                    Assert.True(userTaskResource.Name == userTask.Name.Trim());
+                    Assert.True(userTaskResource.Description == userTask.Description);
+                    Assert.True(userTaskResource.IsRecurring.Equals(userTask.IsRecurring));
+                    Assert.True(userTaskResource.Weekdays.Equals(userTask.Weekdays));
+
+                    // It's a pain to test dates and I am le tired, I'll do it later
+                    //Assert.True(userTaskResource.CreationDate.Equals(userTask.CreationDate));
+                    //Assert.True(userTaskResource.CompletionDate.Equals(userTask.CompletionDate));
+                    
+                    Assert.True(userTaskResource.IsCompleted.Equals(userTask.IsCompleted));
+                    Assert.True(userTaskResource.IsRemoved.Equals(userTask.IsRemoved));
                 }
             }
             finally
