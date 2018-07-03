@@ -27,7 +27,7 @@ namespace SynchroLean
         {
             services.AddMvc();
 
-            services.AddDbContext<SynchroLeanDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SQLServer")));
+            services.AddDbContext<SynchroLeanDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("SQLite")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
