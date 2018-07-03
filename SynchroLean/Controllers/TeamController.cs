@@ -97,11 +97,11 @@ namespace SynchroLean.Controllers
          **/
         // GET api/team/tid
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserTeamAsync(int tid)
+        public async Task<IActionResult> GetUserTeamAsync(int id)
         {
             // Get the team for the currently logged in user
             var team = await context.Teams
-                .SingleOrDefaultAsync(ut => ut.Id.Equals(tid));
+                .SingleOrDefaultAsync(ut => ut.Id.Equals(id));
 
             // Check to see if a team corresponding to the given team id was found
             if (team == null)
