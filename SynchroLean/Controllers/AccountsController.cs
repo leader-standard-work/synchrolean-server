@@ -101,5 +101,44 @@ namespace SynchroLean.Controllers
 
             return Ok(resourceAccounts);
         }
+
+        // PUT api/accounts/{ownerId}
+        [HttpPut("{ownerId}")]
+        public async Task<IActionResult> EditAccountAsync(int ownerId, [FromBody]UserAccountResource userAccountResource)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var account = await context.UserAccounts
+                .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
+
+            if(account == null)
+            {
+                return NotFound();
+            }
+
+            //account.OwnerId = userAccountResource.OwnerId;
+            account.TeamId = userAccountResource.TeamId;
+            account.FirstName = userAccountResource.FirstName;
+            account.LastName = userAccountResource.LastName;
+            account.Email = userAccountResource.Email;
+            account.IsDeleted = userAccountResource.IsDeleted;
+
+            await context.SaveChangesAsync();
+
+            var outResource = new UserAccountResource
+            {
+                OwnerId = account.OwnerId,
+                TeamId = account.TeamId,
+                FirstName = account.FirstName,
+                LastName = account.LastName,
+                Email = account.Email,
+                IsDeleted = account.IsDeleted
+            };
+
+            return Ok(outResource);
+        }
     }
 }
