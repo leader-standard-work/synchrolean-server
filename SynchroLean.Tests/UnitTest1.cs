@@ -44,9 +44,9 @@ namespace SynchroLean.Tests
                 Description = "Add a task using InMemory database",
                 IsRecurring = true,
                 Weekdays = 40,
-                CreationDate = DateTime.Today,
+                //CreationDate = DateTime.Today,
                 IsCompleted = false,
-                CompletionDate = DateTime.Today.AddDays(2),
+                //CompletionDate = DateTime.MinValue,
                 IsRemoved = false
             };
             
@@ -82,10 +82,16 @@ namespace SynchroLean.Tests
                 Assert.True(userTaskResource.IsRecurring.Equals(userTask.IsRecurring));
                 Assert.True(userTaskResource.Weekdays.Equals(userTask.Weekdays));
 
-                // It's a pain to test dates and I am le tired, I'll do it later
-                //Assert.True(userTaskResource.CreationDate.Equals(userTask.CreationDate));
-                //Assert.True(userTaskResource.CompletionDate.Equals(userTask.CompletionDate));
-                
+                // Can't test dates without changing how UserTask POST method assigns them
+                /*
+                int result = DateTime.Compare(userTaskResource.CreationDate, userTask.CreationDate);
+                Assert.Equal(0, result);
+                output.WriteLine(userTaskResource.CreationDate + ", " + userTask.CreationDate);
+                result = DateTime.Compare(userTaskResource.CompletionDate, userTask.CompletionDate);
+                Assert.Equal(0, result);
+                output.WriteLine(userTaskResource.CompletionDate + ", " + userTask.CompletionDate);
+                */
+
                 Assert.True(userTaskResource.IsCompleted.Equals(userTask.IsCompleted));
                 Assert.True(userTaskResource.IsRemoved.Equals(userTask.IsRemoved));
             }
@@ -114,9 +120,9 @@ namespace SynchroLean.Tests
                     Description = "Add a task using SQLite database",
                     IsRecurring = true,
                     Weekdays = 40,
-                    CreationDate = DateTime.Today,
+                    //CreationDate = DateTime.Today,
                     IsCompleted = false,
-                    CompletionDate = DateTime.Today.AddDays(1),
+                    //CompletionDate = DateTime.MinValue,
                     IsRemoved = false
                 };
 
@@ -142,7 +148,6 @@ namespace SynchroLean.Tests
                     Assert.NotNull(model);
 
                     userTaskId = model.Id;
-                    //output.WriteLine("userTaskId = " + userTaskId);
                 }
 
                 // Use a separate instance of the context to verify correct data was saved to database
@@ -158,10 +163,16 @@ namespace SynchroLean.Tests
                     Assert.True(userTaskResource.IsRecurring.Equals(userTask.IsRecurring));
                     Assert.True(userTaskResource.Weekdays.Equals(userTask.Weekdays));
 
-                    // It's a pain to test dates and I am le tired, I'll do it later
-                    //Assert.True(userTaskResource.CreationDate.Equals(userTask.CreationDate));
-                    //Assert.True(userTaskResource.CompletionDate.Equals(userTask.CompletionDate));
-                    
+                    // Can't test dates without changing how UserTask POST method assigns them
+                    /*
+                    int result = DateTime.Compare(userTaskResource.CreationDate, userTask.CreationDate);
+                    Assert.Equal(0, result);
+                    output.WriteLine(userTaskResource.CreationDate + ", " + userTask.CreationDate);
+                    result = DateTime.Compare(userTaskResource.CompletionDate, userTask.CompletionDate);
+                    Assert.Equal(0, result);
+                    output.WriteLine(userTaskResource.CompletionDate + ", " + userTask.CompletionDate);
+                    */
+
                     Assert.True(userTaskResource.IsCompleted.Equals(userTask.IsCompleted));
                     Assert.True(userTaskResource.IsRemoved.Equals(userTask.IsRemoved));
                 }
