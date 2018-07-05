@@ -202,5 +202,27 @@ namespace SynchroLean.Controllers
             
             return Ok(outResource);
         }
+
+        /// <summary>
+        /// Get the completion rate for a user.
+        /// </summary>
+        /// <param name="ownerId">The key to identify the owner.</param>
+        /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
+        public async Task<IActionResult> GetUserCompletionRate(int ownerId)
+        {
+            var userTasks = from task in context.UserTasks
+                            where task.OwnerId == ownerId
+                            select task;
+            var num = 0.0;
+            var denom = 0.0;
+            foreach(var task in await userTasks.ToListAsync())
+            {
+                denom++;
+                num += task.IsCompleted ? 1 : 0;
+            }
+            //User doesn't exist or has no tasks
+            if (denom == 0) return NotFound();
+            else return Ok(num / denom);
+        }
     }
 }
