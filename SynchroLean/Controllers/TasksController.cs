@@ -236,5 +236,44 @@ namespace SynchroLean.Controllers
                 return Ok(Double.NaN);
             }
         }
+
+        /// <summary>
+        /// See how much of their tasks a team has completed.
+        /// </summary>
+        /// <param name="id">The key to identify the team.</param>
+        /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
+        [HttpGet("metrics/{Id}")]
+        public async Task<IActionResult> GetTeamCompletionRate(int id)
+        {
+
+            //Check if team exists
+            var teamExists = await context.Teams.AnyAsync(team => team.Id == id);
+            //Team doesn't exist
+            if (!teamExists) return NotFound();
+            //Team does exist
+            var groupTasks = await
+                (
+                    from task in context.UserTasks
+                    join member in (from user in context.UserAccounts
+                                    where user.TeamId == id
+                                    select user.OwnerId)
+                    on task.OwnerId equals member
+                    select task.IsCompleted ? 0.0 : 1.0
+                ).ToListAsync();
+            //Team has tasks
+            if(groupTasks.Count > 0)
+            {
+                return Ok(groupTasks.Average());
+            }
+            else
+            {
+                //NaN or 1 are the sensible values here, depending on interpretation
+                //If it is a mean, the empty average is 0/0, or NaN
+                //If it is a question about if the user completed all their tasks, then
+                // vacuously they did because they had none.
+                //Provisionally, I am using NaN, because it is distinct from 1
+                return Ok(Double.NaN);
+            }
+        }
     }
 }
