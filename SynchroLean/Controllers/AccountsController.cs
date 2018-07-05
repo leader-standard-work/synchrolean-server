@@ -72,21 +72,59 @@ namespace SynchroLean.Controllers
             return Ok(outResource);
         }
 
+        // GET api/accounts/owner/{ownerId}
+        /// <summary>
+        /// Retrieves specified account from UserAccount in Db
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>
+        /// User account from Db
+        /// </returns>
+        [HttpGet("owner/{ownerId}")]
+        public async Task<IActionResult> GetAccountAsync(int ownerId)
+        {
+            // Fetch account of ownerId
+            var account = await context.UserAccounts
+                .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(ownerId));
+
+            if(account == null)
+            {
+                return NotFound();
+            }
+
+            var accountResource = new UserAccountResource
+            {
+                OwnerId = account.OwnerId,
+                TeamId = account.TeamId,
+                FirstName = account.FirstName,
+                LastName = account.LastName,
+                Email = account.Email,
+                IsDeleted = account.IsDeleted
+            };
+
+            return Ok(accountResource);
+        }
+
         // GET api/accounts/{teamId}
         /// <summary>
-        /// Retrieves accounts from UserAccount table in Db
+        /// Retrieves specified team accounts from UserAccount table in Db
         /// </summary>
         /// <returns>
-        /// List of accounts from UserAccount
+        /// List of team accounts from UserAccount
         /// </returns>
-        [HttpGet("{teamId}")]
-        public async Task<IActionResult> GetAccountAsync(int teamId)
+        [HttpGet("member/{teamId}")]
+        public async Task<IActionResult> GetTeamAccountsAsync(int teamId)
         {
-            // Fetch all account from the DB asyncronously
-            //var accounts = await context.UserAccounts.ToListAsync<UserAccount>();
+            // Fetch all accounts from the DB asyncronously
             var accounts = await context.UserAccounts
                 .Where(ua => ua.TeamId.Equals(teamId))
                 .ToListAsync();
+
+            // Return error if no team exists
+            if(accounts.Count == 0)
+            {
+                return NotFound();
+            }
 
             // List of corresponding accounts as resources
             var resourceAccounts = new List<UserAccountResource>();
