@@ -95,17 +95,20 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
             // Fetch an account from the DB asynchronously
-            var account = await context.UserAccounts
-                .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
+            //var account = await context.UserAccounts
+            //    .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
 
             // Return not found exception if account doesn't exist
-            if(account == null)
-            {
-                return NotFound();
-            }
-            
+            //if(account == null)
+            //{
+            //    return NotFound();
+            //}
+
             // Fetch all tasks from the DB asyncronously
-            var tasks = await context.UserTasks.ToListAsync<UserTask>();
+            //var tasks = await context.UserTasks.ToListAsync<UserTask>();
+            var tasks = await context.UserTasks
+                .Where(ut => ut.OwnerId.Equals(ownerId))
+                .ToListAsync();
 
             // List of corresponding tasks as resources
             var resourceTasks = new List<UserTaskResource>();
@@ -113,8 +116,8 @@ namespace SynchroLean.Controllers
             // Map each task to a corresponding resource
             tasks.ForEach(task =>
             {
-                if(task.OwnerId == account.OwnerId)
-                {
+                //if(task.OwnerId == account.OwnerId)
+                //{
                     // Create resource from model
                     var resource = new UserTaskResource {
                         Id = task.Id,
@@ -130,7 +133,7 @@ namespace SynchroLean.Controllers
                     };
                     // Add to resources list
                     resourceTasks.Add(resource);
-                }
+                //}
             });
             
             return Ok(resourceTasks); // List of UserTaskResources 200OK
