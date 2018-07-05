@@ -208,7 +208,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/{ownerId}")]
+        [HttpGet("metrics/user/{ownerId}")]
         public async Task<IActionResult> GetUserCompletionRate(int ownerId)
         {
             //Check if user exists
@@ -242,7 +242,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="id">The key to identify the team.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/{Id}")]
+        [HttpGet("metrics/team/{Id}")]
         public async Task<IActionResult> GetTeamCompletionRate(int id)
         {
 
@@ -258,7 +258,7 @@ namespace SynchroLean.Controllers
                                     where user.TeamId == id
                                     select user.OwnerId)
                     on task.OwnerId equals member
-                    select task.IsCompleted ? 0.0 : 1.0
+                    select task.IsCompleted ? 1.0 : 0.0
                 ).ToListAsync();
             //Team has tasks
             if(groupTasks.Count > 0)
