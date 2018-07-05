@@ -94,18 +94,7 @@ namespace SynchroLean.Controllers
         [HttpGet("{ownerId}")]
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
-            // Fetch an account from the DB asynchronously
-            //var account = await context.UserAccounts
-            //    .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
-
-            // Return not found exception if account doesn't exist
-            //if(account == null)
-            //{
-            //    return NotFound();
-            //}
-
             // Fetch all tasks from the DB asyncronously
-            //var tasks = await context.UserTasks.ToListAsync<UserTask>();
             var tasks = await context.UserTasks
                 .Where(ut => ut.OwnerId.Equals(ownerId))
                 .ToListAsync();
@@ -116,26 +105,22 @@ namespace SynchroLean.Controllers
             // Map each task to a corresponding resource
             tasks.ForEach(task =>
             {
-                //if(task.OwnerId == account.OwnerId)
-                //{
-                    // Create resource from model
-                    var resource = new UserTaskResource {
-                        Id = task.Id,
-                        Name = task.Name,
-                        Description = task.Description,
-                        IsRecurring = task.IsRecurring,
-                        Weekdays = task.Weekdays,
-                        CreationDate = task.CreationDate,
-                        IsCompleted = task.IsCompleted,
-                        CompletionDate = task.CompletionDate,
-                        IsRemoved = task.IsRemoved,
-                        OwnerId = task.OwnerId
-                    };
-                    // Add to resources list
-                    resourceTasks.Add(resource);
-                //}
+                // Create resource from model
+                var resource = new UserTaskResource {
+                    Id = task.Id,
+                    Name = task.Name,
+                    Description = task.Description,
+                    IsRecurring = task.IsRecurring,
+                    Weekdays = task.Weekdays,
+                    CreationDate = task.CreationDate,
+                    IsCompleted = task.IsCompleted,
+                    CompletionDate = task.CompletionDate,
+                    IsRemoved = task.IsRemoved,
+                    OwnerId = task.OwnerId
+                };
+                // Add to resources list
+                resourceTasks.Add(resource);
             });
-            
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
