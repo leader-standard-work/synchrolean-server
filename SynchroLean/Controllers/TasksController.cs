@@ -210,19 +210,30 @@ namespace SynchroLean.Controllers
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
         public async Task<IActionResult> GetUserCompletionRate(int ownerId)
         {
-            var userTasks = from task in context.UserTasks
-                            where task.OwnerId == ownerId
-                            select task;
-            var num = 0.0;
-            var denom = 0.0;
-            foreach(var task in await userTasks.ToListAsync())
+            //Check if user exists
+            var userExists = await context.UserAccounts.AnyAsync(user => user.OwnerId == ownerId);
+            //User doesn't exist
+            if (!userExists) return NotFound();
+            //User exists
+            var userTasks = await
+                            (
+                                from task in context.UserTasks
+                                where task.OwnerId == ownerId
+                                select task.IsCompleted ? 1.0 : 0.0
+                            ).ToListAsync();
+            if (userTasks.Count > 0)
             {
-                denom++;
-                num += task.IsCompleted ? 1 : 0;
+                return Ok(userTasks.Average());
             }
-            //User doesn't exist or has no tasks
-            if (denom == 0) return NotFound();
-            else return Ok(num / denom);
+            else
+            {
+                //NaN or 1 are the sensible values here, depending on interpretation
+                //If it is a mean, the empty average is 0/0, or NaN
+                //If it is a question about if the user completed all their tasks, then
+                // vacuously they did because they had none.
+                //Provisionally, I am using NaN, because it is distinct from 1
+                return Ok(Double.NaN);
+            }
         }
     }
 }
