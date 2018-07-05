@@ -134,7 +134,7 @@ namespace SynchroLean.Controllers
         /// <returns>
         /// Updated user task
         /// </returns>
-        [HttpPut("{ownerId}/{id}")]
+        [HttpPut("{ownerId}/{taskId}")]
         public async Task<IActionResult> EditUserTaskAsync(int ownerId, int taskId, [FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
