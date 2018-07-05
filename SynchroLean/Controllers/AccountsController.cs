@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +32,7 @@ namespace SynchroLean.Controllers
         /// New account retrieved from Db
         /// </returns>
         [HttpPost]
-        public async Task<IActionResult> AddUserTaskAsync([FromBody]UserAccountResource userAccountResource)
+        public async Task<IActionResult> AddUserAccountAsync([FromBody]UserAccountResource userAccountResource)
         {
             // How does this validate against the UserAccount model?
             if(!ModelState.IsValid) {
@@ -71,18 +72,21 @@ namespace SynchroLean.Controllers
             return Ok(outResource);
         }
 
-        // GET api/accounts
+        // GET api/accounts/{teamId}
         /// <summary>
         /// Retrieves accounts from UserAccount table in Db
         /// </summary>
         /// <returns>
         /// List of accounts from UserAccount
         /// </returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAccountAsync()
+        [HttpGet("{teamId}")]
+        public async Task<IActionResult> GetAccountAsync(int teamId)
         {
             // Fetch all account from the DB asyncronously
-            var accounts = await context.UserAccounts.ToListAsync<UserAccount>();
+            //var accounts = await context.UserAccounts.ToListAsync<UserAccount>();
+            var accounts = await context.UserAccounts
+                .Where(ua => ua.TeamId.Equals(teamId))
+                .ToListAsync();
 
             // List of corresponding accounts as resources
             var resourceAccounts = new List<UserAccountResource>();
