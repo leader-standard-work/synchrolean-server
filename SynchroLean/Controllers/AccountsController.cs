@@ -9,7 +9,6 @@ using SynchroLean.Persistence;
 
 namespace SynchroLean.Controllers
 {
-    
     /// <summary>
     /// This class handles HTTP requests for accounts
     /// </summary>
@@ -34,11 +33,12 @@ namespace SynchroLean.Controllers
         [HttpPost]
         public async Task<IActionResult> AddUserTaskAsync([FromBody]UserAccountResource userAccountResource)
         {
-            // How does this validate against the UserTask model?
+            // How does this validate against the UserAccount model?
             if(!ModelState.IsValid) {
                 return BadRequest();
             }
 
+            // Map account resource to model
             var account = new UserAccount 
             {
                 OwnerId = userAccountResource.OwnerId,
@@ -49,12 +49,15 @@ namespace SynchroLean.Controllers
                 IsDeleted = userAccountResource.IsDeleted
             };
 
+            // Add model to database and save changes
             await context.AddAsync(account);
             await context.SaveChangesAsync();
 
+            // Retrieve account from database
             var accountModel = await context.UserAccounts
                 .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(account.OwnerId));
 
+            // Map account model to resource
             var outResource = new UserAccountResource
             {
                 OwnerId = accountModel.OwnerId,
@@ -64,7 +67,7 @@ namespace SynchroLean.Controllers
                 Email = accountModel.Email,
                 IsDeleted = accountModel.IsDeleted
             };
-
+            // Rerturn account resource
             return Ok(outResource);
         }
 
@@ -84,8 +87,10 @@ namespace SynchroLean.Controllers
             // List of corresponding accounts as resources
             var resourceAccounts = new List<UserAccountResource>();
 
+            // Retrive accounts from database
             accounts.ForEach(account =>
             {
+                // Map account model to resource
                 var resourceAccount = new UserAccountResource 
                 {
                     OwnerId = account.OwnerId,
@@ -95,10 +100,11 @@ namespace SynchroLean.Controllers
                     Email = account.Email,
                     IsDeleted = account.IsDeleted
                 };
+                // Add resource to account list
                 resourceAccounts.Add(resourceAccount);
-            }
-            );
+            });
 
+            // Return account resource
             return Ok(resourceAccounts);
         }
 
@@ -106,28 +112,33 @@ namespace SynchroLean.Controllers
         [HttpPut("{ownerId}")]
         public async Task<IActionResult> EditAccountAsync(int ownerId, [FromBody]UserAccountResource userAccountResource)
         {
+            // How does this validate against the UserAccount model?
             if(!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
+            // Retrieve ownerId account from database
             var account = await context.UserAccounts
                 .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
 
+            // No account matches ownerId
             if(account == null)
             {
                 return NotFound();
             }
 
-            //account.OwnerId = userAccountResource.OwnerId;
+            // Map account resource to model
             account.TeamId = userAccountResource.TeamId;
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
             account.Email = userAccountResource.Email;
             account.IsDeleted = userAccountResource.IsDeleted;
 
+            // Save updated account to database
             await context.SaveChangesAsync();
 
+            // Map account model to resource
             var outResource = new UserAccountResource
             {
                 OwnerId = account.OwnerId,
@@ -138,6 +149,7 @@ namespace SynchroLean.Controllers
                 IsDeleted = account.IsDeleted
             };
 
+            // Return resource
             return Ok(outResource);
         }
     }

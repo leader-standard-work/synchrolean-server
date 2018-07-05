@@ -94,7 +94,6 @@ namespace SynchroLean.Controllers
         [HttpGet("{ownerId}")]
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
-            
             // Fetch an account from the DB asynchronously
             var account = await context.UserAccounts
                 .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
