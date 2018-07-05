@@ -134,7 +134,7 @@ namespace SynchroLean.Controllers
         /// <returns>
         /// Updated user task
         /// </returns>
-        [HttpPut("{ownerId}/{id}")]
+        [HttpPut("{ownerId}/{taskId}")]
         public async Task<IActionResult> EditUserTaskAsync(int ownerId, int taskId, [FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
@@ -208,7 +208,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("{ownerId}")]
+        [HttpGet("metrics/{ownerId}")]
         public async Task<IActionResult> GetUserCompletionRate(int ownerId)
         {
             //Check if user exists
