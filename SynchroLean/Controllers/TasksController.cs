@@ -208,6 +208,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
+        [HttpGet("{ownerId}")]
         public async Task<IActionResult> GetUserCompletionRate(int ownerId)
         {
             //Check if user exists
