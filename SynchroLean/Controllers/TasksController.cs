@@ -258,7 +258,7 @@ namespace SynchroLean.Controllers
                                     where user.TeamId == id
                                     select user.OwnerId)
                     on task.OwnerId equals member
-                    select task.IsCompleted ? 0.0 : 1.0
+                    select task.IsCompleted ? 1.0 : 0.0
                 ).ToListAsync();
             //Team has tasks
             if(groupTasks.Count > 0)
