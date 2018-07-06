@@ -119,6 +119,67 @@ namespace SynchroLean.Controllers
             };
             return Ok(teamResource); // Return team to client
         }
+    
+        // PUT api/team/ownerId/teamId
+        [HttpPut("{ownerId}/{teamId}")]
+        public async Task<IActionResult> UpdateUserTeamAsync(int ownerId, int teamId, [FromBody]TeamResource teamResource)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            
+            // Fetch an account from the DB asynchronously
+            var account = await context.UserAccounts
+                .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
+            
+            // Return not found exception if account doesn't exist
+            if(account == null)
+            {
+                return NotFound("account not found");
+            } 
+            
+            // Get the team for the currently logged in user
+            var team = await context.Teams
+                .SingleOrDefaultAsync(ut => ut.Id.Equals(teamId));
+
+            // Nothing was retrieved, no id match
+            if (team == null)
+            {
+                return NotFound("team not found");
+            }
+
+            // Validates team belongs to correct user
+            if(team.OwnerId != account.OwnerId)
+            {
+                return BadRequest("prohibited user does not have edit rights");
+            } 
+
+            // Map resource to model
+            team.TeamName = teamResource.TeamName;
+            team.TeamDescription = teamResource.TeamDescription;
+            team.OwnerId = teamResource.OwnerId;
+
+            //this stops default edit team from giving teams to user 0
+            if(team.OwnerId == 0)
+            {
+                team.OwnerId = ownerId;
+            }
+
+            // Save updated team to database
+            await context.SaveChangesAsync();
+
+            // Map team to TeamResource
+            var outResource = new TeamResource
+            {
+                Id = team.Id,
+                TeamName = team.TeamName,
+                TeamDescription = team.TeamDescription,
+                OwnerId = team.OwnerId
+            };
+            
+            return Ok(outResource);
+        }
     }
 }
 
