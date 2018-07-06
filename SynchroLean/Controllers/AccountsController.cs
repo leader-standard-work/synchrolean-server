@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
@@ -18,10 +19,15 @@ namespace SynchroLean.Controllers
     public class AccountsController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly SynchroLeanDbContext context;
+        private readonly IMapper _mapper;
 
         public AccountsController(IUnitOfWork unitOfWork)
+        public AccountsController(SynchroLeanDbContext context, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.context = context;    
+            _mapper = mapper;
         }
 
         // Post api/accounts
@@ -40,15 +46,7 @@ namespace SynchroLean.Controllers
             }
 
             // Map account resource to model
-            var account = new UserAccount 
-            {
-                OwnerId = userAccountResource.OwnerId,
-                TeamId = userAccountResource.TeamId,
-                FirstName = userAccountResource.FirstName,
-                LastName = userAccountResource.LastName,
-                Email = userAccountResource.Email,
-                IsDeleted = userAccountResource.IsDeleted
-            };
+            var account = _mapper.Map<UserAccount>(userAccountResource);
 
             // Add model to database and save changes
             await unitOfWork.userAccountRepository.AddAsync(account);
@@ -70,6 +68,11 @@ namespace SynchroLean.Controllers
             };
             // Rerturn account resource
             return Ok(outResource);
+            var accountModel = await context.UserAccounts
+                .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(account.OwnerId));
+            
+            // Return mapped account resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
         // GET api/accounts/owner/{ownerId}
@@ -103,6 +106,8 @@ namespace SynchroLean.Controllers
                 IsDeleted = account.IsDeleted
             };
             return Ok(accountResource);
+            // Return mapped account resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
         // GET api/accounts/{teamId}
@@ -124,7 +129,7 @@ namespace SynchroLean.Controllers
             }
 
             // List of corresponding accounts as resources
-            var resourceAccounts = new List<UserAccountResource>();
+            var outResources = new List<UserAccountResource>();
 
             // Retrive accounts from database
             foreach (var account in accounts)
@@ -144,6 +149,12 @@ namespace SynchroLean.Controllers
             }
             // Return account resource
             return Ok(resourceAccounts);
+                // Add mapped resource to account list
+                outResources.Add(_mapper.Map<UserAccountResource>(account));
+            });
+
+            // Return account resources
+            return Ok(outResources);
         }
 
         // PUT api/accounts/{ownerId}
@@ -172,6 +183,7 @@ namespace SynchroLean.Controllers
                 return NotFound("No account found matching that ownerId.");
             }
 
+            // See UserTask PUT for issue of mapping back to UserAccountResource
             // Map account resource to model
             account.TeamId = userAccountResource.TeamId;
             account.FirstName = userAccountResource.FirstName;
@@ -182,19 +194,8 @@ namespace SynchroLean.Controllers
             // Save updated account to database
             await unitOfWork.CompleteAsync();
 
-            // Map account model to resource
-            var outResource = new UserAccountResource
-            {
-                OwnerId = account.OwnerId,
-                TeamId = account.TeamId,
-                FirstName = account.FirstName,
-                LastName = account.LastName,
-                Email = account.Email,
-                IsDeleted = account.IsDeleted
-            };
-
-            // Return resource
-            return Ok(outResource);
+            // Return mapped resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
         }
     }
 }

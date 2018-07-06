@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
@@ -21,8 +22,13 @@ namespace SynchroLean.Controllers
         private readonly IUnitOfWork unitOfWork;
 
         public TasksController(IUnitOfWork unitOfWork)
+        private readonly SynchroLeanDbContext context;
+        private readonly IMapper _mapper;
+        public TasksController(SynchroLeanDbContext context, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.context = context;
+            _mapper = mapper;
         }
 
         // POST api/tasks
@@ -41,21 +47,8 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Map resource to model
-            var userTask = new UserTask {
-                Id = userTaskResource.Id,
-                Name = userTaskResource.Name,
-                Description = userTaskResource.Description,
-                IsRecurring = userTaskResource.IsRecurring,
-                Weekdays = userTaskResource.Weekdays,
-                // We'll need to think about timezones here
-                CreationDate = DateTime.Now,
-                IsCompleted = false,
-                // Should we instead use a nullable datetime type?
-                CompletionDate = DateTime.MinValue,
-                IsRemoved = false,
-                OwnerId = userTaskResource.OwnerId
-            };
+            // Map object from UserTaskResource into UserTask
+            var userTask = _mapper.Map<UserTask>(userTaskResource);
 
             // Save userTask to database
             await unitOfWork.userTaskRepository.AddAsync(userTask);
@@ -65,21 +58,8 @@ namespace SynchroLean.Controllers
             userTask = await unitOfWork.userTaskRepository
                 .GetTaskAsync(userTask.Id);
 
-            // Map userTask to UserTaskResource
-            var outResource = new UserTaskResource {
-                Id = userTask.Id,
-                Name = userTask.Name,
-                Description = userTask.Description,
-                IsRecurring = userTask.IsRecurring,
-                Weekdays = userTask.Weekdays,
-                CreationDate = userTask.CreationDate,
-                IsCompleted = userTask.IsCompleted,
-                CompletionDate = userTask.CompletionDate,
-                IsRemoved = userTask.IsRemoved,
-                OwnerId = userTask.OwnerId
-            };
-
-            return Ok(outResource);
+            // Return mapped resource
+            return Ok(_mapper.Map<UserTaskResource>(userTask));
         }
 
         // GET api/tasks/{ownerId}
@@ -117,10 +97,14 @@ namespace SynchroLean.Controllers
                 // Add to resources list
                 resourceTasks.Add(resource);
             }
+                // Add mapped resource to resources list
+                resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
+            });
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
         // PUT api/tasks/{ownerId}/{taskId}
+        // PUT api/tasks/ownerId/taskId
         /// <summary>
         /// Updates a users task
         /// </summary>
@@ -163,6 +147,10 @@ namespace SynchroLean.Controllers
                 return BadRequest("Task does not belong to this account.");
             } 
 
+            // Don't know if it's possible to AutoMap without creating a new model
+            // This doesn't work but I'm trying to do something along this line
+            //task = _mapper.Map<UserTask>(userTaskResource);
+
             // Map resource to model
             task.Name = userTaskResource.Name;
             task.Description = userTaskResource.Description;
@@ -175,7 +163,7 @@ namespace SynchroLean.Controllers
             task.IsCompleted = userTaskResource.IsCompleted;
             task.IsRemoved = userTaskResource.IsRemoved;
             task.OwnerId = userTaskResource.OwnerId;
-
+            
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 
@@ -194,6 +182,10 @@ namespace SynchroLean.Controllers
                 OwnerId = task.OwnerId
             };
             return Ok(outResource);
+            await context.SaveChangesAsync();
+            
+            // Return mapped resource
+            return Ok(_mapper.Map<UserTaskResource>(task));
         }
 
         // GET api/tasks/metrics/user/{ownerId}

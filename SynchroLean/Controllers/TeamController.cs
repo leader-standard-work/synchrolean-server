@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
@@ -19,10 +20,15 @@ namespace SynchroLean.Controllers
     public class TeamController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly SynchroLeanDbContext context; // Added (DbSet<Team> Teams) to context
+        private readonly IMapper _mapper;
 
         public TeamController(IUnitOfWork unitOfWork)
+        public TeamController(SynchroLeanDbContext context, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -41,13 +47,7 @@ namespace SynchroLean.Controllers
             }
 
             // Map the team resource to a model
-            var teamModel = new Team
-            {
-                Id = teamResource.Id,
-                OwnerId = teamResource.OwnerId,
-                TeamName = teamResource.TeamName,
-                TeamDescription = teamResource.TeamDescription
-            };
+            var teamModel = _mapper.Map<Team>(teamResource);
 
             // Add the team to context and save changes
             await unitOfWork.userTeamRepository.AddAsync(teamModel);
@@ -66,6 +66,10 @@ namespace SynchroLean.Controllers
                 TeamDescription = teamModel.TeamDescription
             };
             return Ok(outResource); // Return newly created team resource to client
+            teamModel = await context.Teams
+                .SingleOrDefaultAsync(tm => tm.Id.Equals(teamModel.Id));
+            
+            return Ok(_mapper.Map<TeamResource>(teamModel)); // Return newly created mapped team resource to client
         }
 
         /// <summary>
@@ -100,6 +104,11 @@ namespace SynchroLean.Controllers
                 // Add resource to collection
                 resourceTeams.Add(rTeam);
             }
+            teams.ForEach(team => {
+                // Add mapped resource to collection
+                resourceTeams.Add(_mapper.Map<TeamResource>(team));
+            });
+
             return Ok(resourceTeams); // Return the collection of team resources
         }
 
@@ -122,16 +131,8 @@ namespace SynchroLean.Controllers
             {
                 return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
-
-            // Team was found so map that team to a team resource
-            var teamResource = new TeamResource
-            {
-                Id = team.Id,
-                OwnerId = team.OwnerId,
-                TeamName = team.TeamName,
-                TeamDescription = team.TeamDescription
-            };
-            return Ok(teamResource); // Return team to client
+           
+            return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
         }
 
         /// <summary>
@@ -198,8 +199,10 @@ namespace SynchroLean.Controllers
                 TeamDescription = team.TeamDescription,
                 OwnerId = team.OwnerId
             };
+            await context.SaveChangesAsync();
             
-            return Ok(outResource);
+            // Return mapped team resource
+            return Ok(_mapper.Map<UserTaskResource>(team));
         }
     }
 }
