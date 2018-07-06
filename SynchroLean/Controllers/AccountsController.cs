@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
@@ -17,10 +18,12 @@ namespace SynchroLean.Controllers
     public class AccountsController : Controller
     {
         private readonly SynchroLeanDbContext context;
+        private readonly IMapper _mapper;
 
-        public AccountsController(SynchroLeanDbContext context)
+        public AccountsController(SynchroLeanDbContext context, IMapper mapper)
         {
             this.context = context;    
+            _mapper = mapper;
         }
 
         // Post api/accounts
@@ -40,15 +43,7 @@ namespace SynchroLean.Controllers
             }
 
             // Map account resource to model
-            var account = new UserAccount 
-            {
-                OwnerId = userAccountResource.OwnerId,
-                TeamId = userAccountResource.TeamId,
-                FirstName = userAccountResource.FirstName,
-                LastName = userAccountResource.LastName,
-                Email = userAccountResource.Email,
-                IsDeleted = userAccountResource.IsDeleted
-            };
+            var account = _mapper.Map<UserAccount>(userAccountResource);
 
             // Add model to database and save changes
             await context.AddAsync(account);
@@ -57,19 +52,9 @@ namespace SynchroLean.Controllers
             // Retrieve account from database
             var accountModel = await context.UserAccounts
                 .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(account.OwnerId));
-
-            // Map account model to resource
-            var outResource = new UserAccountResource
-            {
-                OwnerId = accountModel.OwnerId,
-                TeamId = accountModel.TeamId,
-                FirstName = accountModel.FirstName,
-                LastName = accountModel.LastName,
-                Email = accountModel.Email,
-                IsDeleted = accountModel.IsDeleted
-            };
-            // Rerturn account resource
-            return Ok(outResource);
+            
+            // Return mapped account resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
         // GET api/accounts/owner/{ownerId}
@@ -92,17 +77,8 @@ namespace SynchroLean.Controllers
                 return NotFound();
             }
 
-            var accountResource = new UserAccountResource
-            {
-                OwnerId = account.OwnerId,
-                TeamId = account.TeamId,
-                FirstName = account.FirstName,
-                LastName = account.LastName,
-                Email = account.Email,
-                IsDeleted = account.IsDeleted
-            };
-
-            return Ok(accountResource);
+            // Return mapped account resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
         // GET api/accounts/{teamId}
@@ -127,27 +103,17 @@ namespace SynchroLean.Controllers
             }
 
             // List of corresponding accounts as resources
-            var resourceAccounts = new List<UserAccountResource>();
+            var outResources = new List<UserAccountResource>();
 
             // Retrive accounts from database
             accounts.ForEach(account =>
             {
-                // Map account model to resource
-                var resourceAccount = new UserAccountResource 
-                {
-                    OwnerId = account.OwnerId,
-                    TeamId = account.TeamId,
-                    FirstName = account.FirstName,
-                    LastName = account.LastName,
-                    Email = account.Email,
-                    IsDeleted = account.IsDeleted
-                };
-                // Add resource to account list
-                resourceAccounts.Add(resourceAccount);
+                // Add mapped resource to account list
+                outResources.Add(_mapper.Map<UserAccountResource>(account));
             });
 
-            // Return account resource
-            return Ok(resourceAccounts);
+            // Return account resources
+            return Ok(outResources);
         }
 
         // PUT api/accounts/{ownerId}
@@ -170,6 +136,7 @@ namespace SynchroLean.Controllers
                 return NotFound();
             }
 
+            // See UserTask PUT for issue of mapping back to UserAccountResource
             // Map account resource to model
             account.TeamId = userAccountResource.TeamId;
             account.FirstName = userAccountResource.FirstName;
@@ -180,19 +147,8 @@ namespace SynchroLean.Controllers
             // Save updated account to database
             await context.SaveChangesAsync();
 
-            // Map account model to resource
-            var outResource = new UserAccountResource
-            {
-                OwnerId = account.OwnerId,
-                TeamId = account.TeamId,
-                FirstName = account.FirstName,
-                LastName = account.LastName,
-                Email = account.Email,
-                IsDeleted = account.IsDeleted
-            };
-
-            // Return resource
-            return Ok(outResource);
+            // Return mapped resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
         }
     }
 }
