@@ -25,15 +25,13 @@ namespace SynchroLean.Controllers
             this.context = context;    
         }
 
-        // POST api/tasks/ownerId
+        // POST api/tasks
         /// <summary>
         /// Adds new task to DB
         /// </summary>
         /// <param name="ownerId"></param>
         /// <param name="userTaskResource"></param>
-        /// <returns>
-        /// New task retrieved from DB
-        /// </returns>
+        /// <returns>New task retrieved from DB</returns>
         [HttpPost]
         public async Task<IActionResult> AddUserTaskAsync([FromBody]UserTaskResource userTaskResource)
         {
@@ -83,14 +81,12 @@ namespace SynchroLean.Controllers
             return Ok(outResource);
         }
 
-        // GET api/tasks/ownerId
+        // GET api/tasks/{ownerId}
         /// <summary>
         /// Retrieves a users tasks
         /// </summary>
         /// <param name="ownerId"></param>
-        /// <returns>
-        /// List of a users tasks
-        /// </returns>
+        /// <returns>List of a users tasks</returns>
         [HttpGet("{ownerId}")]
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
@@ -124,16 +120,14 @@ namespace SynchroLean.Controllers
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
-        // PUT api/tasks/ownerId/id
+        // PUT api/tasks/{ownerId}/{taskId}
         /// <summary>
         /// Updates a users task
         /// </summary>
         /// <param name="ownerId"></param>
         /// <param name="taskId"></param>
         /// <param name="userTaskResource"></param>
-        /// <returns>
-        /// Updated user task
-        /// </returns>
+        /// <returns>Updated user task</returns>
         [HttpPut("{ownerId}/{taskId}")]
         public async Task<IActionResult> EditUserTaskAsync(int ownerId, int taskId, [FromBody]UserTaskResource userTaskResource)
         {
@@ -203,6 +197,7 @@ namespace SynchroLean.Controllers
             return Ok(outResource);
         }
 
+        // GET api/tasks/metrics/user/{ownerId}
         /// <summary>
         /// Get the completion rate for a user.
         /// </summary>

@@ -28,9 +28,7 @@ namespace SynchroLean.Controllers
         /// Adds new account to UserAccounts table in Db
         /// </summary>
         /// <param name="userAccountResource"></param>
-        /// <returns>
-        /// New account retrieved from Db
-        /// </returns>
+        /// <returns>New account retrieved from Db</returns>
         [HttpPost]
         public async Task<IActionResult> AddUserAccountAsync([FromBody]UserAccountResource userAccountResource)
         {
@@ -77,9 +75,7 @@ namespace SynchroLean.Controllers
         /// Retrieves specified account from UserAccount in Db
         /// </summary>
         /// <param name="ownerId"></param>
-        /// <returns>
-        /// User account from Db
-        /// </returns>
+        /// <returns>User account from Db</returns>
         [HttpGet("owner/{ownerId}")]
         public async Task<IActionResult> GetAccountAsync(int ownerId)
         {
@@ -87,11 +83,14 @@ namespace SynchroLean.Controllers
             var account = await context.UserAccounts
                 .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(ownerId));
 
-            if(account == null)
+            // Return error if account doesn't exist
+            // I imagine we'll need to move IsDeleted later if user wants to reactivate account
+            if(account == null || account.IsDeleted)
             {
                 return NotFound();
             }
 
+            // Map account model to resource
             var accountResource = new UserAccountResource
             {
                 OwnerId = account.OwnerId,
@@ -109,9 +108,7 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Retrieves specified team accounts from UserAccount table in Db
         /// </summary>
-        /// <returns>
-        /// List of team accounts from UserAccount
-        /// </returns>
+        /// <returns>List of team accounts from UserAccount</returns>
         [HttpGet("member/{teamId}")]
         public async Task<IActionResult> GetTeamAccountsAsync(int teamId)
         {
@@ -151,6 +148,12 @@ namespace SynchroLean.Controllers
         }
 
         // PUT api/accounts/{ownerId}
+        /// <summary>
+        /// Updates an existing account in Db
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="userAccountResource"></param>
+        /// <returns>A resource of the updated account</returns>
         [HttpPut("{ownerId}")]
         public async Task<IActionResult> EditAccountAsync(int ownerId, [FromBody]UserAccountResource userAccountResource)
         {

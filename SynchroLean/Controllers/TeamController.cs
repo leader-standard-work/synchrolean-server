@@ -11,6 +11,9 @@ using SynchroLean.Persistence;
 
 namespace SynchroLean.Controllers
 {
+    /// <summary>
+    /// This class handles HTTP requests for teams
+    /// </summary>
     [Route("api/[controller]")]
     public class TeamController : Controller
     {
@@ -21,6 +24,11 @@ namespace SynchroLean.Controllers
             this.context = context;
         }
 
+        /// <summary>
+        /// Adds a new team to the Db asynchronously
+        /// </summary>
+        /// <param name="teamResource"></param>
+        /// <returns>A resource of the new team</returns>
         // POST api/team
         [HttpPost]
         public async Task<IActionResult> AddTeamAsync([FromBody]TeamResource teamResource)
@@ -59,13 +67,14 @@ namespace SynchroLean.Controllers
             return Ok(outResource); // Return newly created team resource to client
         }
 
-        /** 
-         * Acts as a get all teams method. The reasoning for this is... if a user
-         * is supposed to be able to view aggregate metrics for other teams then
-         * they would have to be able to get all the teams. This can be modified
-         * for various scenarios... E.G. maybe a team owner can look at other 
-         * teams aggregate metrics...
-         **/
+        /// <summary>
+        /// Acts as a get all teams method. The reasoning for this is... if a user
+        /// is supposed to be able to view aggregate metrics for other teams then
+        /// they would have to be able to get all the teams. This can be modified
+        /// for various scenarios... E.G. maybe a team owner can look at other 
+        /// teams aggregate metrics...
+        /// </summary>
+        /// <returns>A list of all teams</returns>
         // GET api/team
         [HttpGet]
         public async Task<IActionResult> GetTeamsAsync()
@@ -91,10 +100,12 @@ namespace SynchroLean.Controllers
             return Ok(resourceTeams); // Return the collection of team resources
         }
 
-        /** 
-         * Handler to get the team for the currently logged in user. This is in case 
-         * we only want to fetch the team for the person who is currently logged in.
-         **/
+        /// <summary>
+        /// Handler to get the team for the currently logged in user. This is in case 
+        /// we only want to fetch the team for the person who is currently logged in.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>A team resource</returns>
         // GET api/team/tid
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserTeamAsync(int id)
@@ -119,7 +130,14 @@ namespace SynchroLean.Controllers
             };
             return Ok(teamResource); // Return team to client
         }
-    
+
+        /// <summary>
+        /// Updates an existing team in the Db
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="teamId"></param>
+        /// <param name="teamResource"></param>
+        /// <returns>A resource of updated team</returns>
         // PUT api/team/ownerId/teamId
         [HttpPut("{ownerId}/{teamId}")]
         public async Task<IActionResult> UpdateUserTeamAsync(int ownerId, int teamId, [FromBody]TeamResource teamResource)
