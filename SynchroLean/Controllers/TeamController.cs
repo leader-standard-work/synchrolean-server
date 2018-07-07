@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
 using SynchroLean.Models;
 using SynchroLean.Persistence;
+using SynchroLean.Core;
 
 namespace SynchroLean.Controllers
 {
@@ -18,10 +19,12 @@ namespace SynchroLean.Controllers
     public class TeamController : Controller
     {
         private readonly SynchroLeanDbContext context; // Added (DbSet<Team> Teams) to context
+        private readonly IUnitOfWork unitOfWork;
 
-        public TeamController(SynchroLeanDbContext context)
+        public TeamController(SynchroLeanDbContext context, IUnitOfWork unitOfWork)
         {
             this.context = context;
+            this.unitOfWork = unitOfWork;
         }
 
         /// <summary>
@@ -36,7 +39,7 @@ namespace SynchroLean.Controllers
             // Validate against the team model
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             // Map the team resource to a model
@@ -49,12 +52,16 @@ namespace SynchroLean.Controllers
             };
 
             // Add the team to context and save changes
-            await context.AddAsync(teamModel);
-            await context.SaveChangesAsync();
+            //await context.AddAsync(teamModel);
+            //await context.SaveChangesAsync();
+            await unitOfWork.userTeamRepository.AddAsync(teamModel);
+            await unitOfWork.CompleteAsync();
 
             // Fetch the newly created team from the DB
-            teamModel = await context.Teams
-                .SingleOrDefaultAsync(tm => tm.Id.Equals(teamModel.Id));
+            //teamModel = await context.Teams
+            //    .SingleOrDefaultAsync(tm => tm.Id.Equals(teamModel.Id));
+            teamModel = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamModel.Id);
 
             // Create resource to serve back to client
             var outResource = new TeamResource
@@ -80,13 +87,16 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTeamsAsync()
         {
             // Fetch all teams from the database
-            var teams = await context.Teams.ToListAsync<Team>();
+            //var teams = await context.Teams.ToListAsync<Team>();
+            var teams = await unitOfWork.userTeamRepository
+                .GetAllTeamsAsync();
 
             // List of resource versions of teams
             var resourceTeams = new List<TeamResource>();
 
             // Map each team to a resource
-            teams.ForEach(team => {
+            foreach (var team in teams)
+            { 
                 var rTeam = new TeamResource
                 {
                     Id = team.Id,
@@ -96,7 +106,7 @@ namespace SynchroLean.Controllers
                 };
                 // Add resource to collection
                 resourceTeams.Add(rTeam);
-            });
+            }
             return Ok(resourceTeams); // Return the collection of team resources
         }
 
@@ -104,20 +114,22 @@ namespace SynchroLean.Controllers
         /// Handler to get the team for the currently logged in user. This is in case 
         /// we only want to fetch the team for the person who is currently logged in.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="teamId"></param>
         /// <returns>A team resource</returns>
         // GET api/team/tid
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserTeamAsync(int id)
+        [HttpGet("{teamId}")]
+        public async Task<IActionResult> GetUserTeamAsync(int teamId)
         {
             // Get the team for the currently logged in user
-            var team = await context.Teams
-                .SingleOrDefaultAsync(ut => ut.Id.Equals(id));
+            //var team = await context.Teams
+            //    .SingleOrDefaultAsync(ut => ut.Id.Equals(id));
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
 
             // Check to see if a team corresponding to the given team id was found
             if (team == null)
             {
-                return NotFound(); // Team wasn't found
+                return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
 
             // Team was found so map that team to a team resource
@@ -144,27 +156,31 @@ namespace SynchroLean.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
-            
+
             // Fetch an account from the DB asynchronously
-            var account = await context.UserAccounts
-                .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
-            
+            //var account = await context.UserAccounts
+            //    .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
+            var account = await unitOfWork.userAccountRepository
+                .GetUserAccountAsync(ownerId);
+
             // Return not found exception if account doesn't exist
             if(account == null)
             {
-                return NotFound("account not found");
-            } 
-            
+                return NotFound("Couldn't find an account matching that ownerId.");
+            }
+
             // Get the team for the currently logged in user
-            var team = await context.Teams
-                .SingleOrDefaultAsync(ut => ut.Id.Equals(teamId));
+            //var team = await context.Teams
+            //    .SingleOrDefaultAsync(ut => ut.Id.Equals(teamId));
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
 
             // Nothing was retrieved, no id match
             if (team == null)
             {
-                return NotFound("team not found");
+                return NotFound("Couldn't find a team matching that teamId.");
             }
 
             // Validates team belongs to correct user
@@ -176,7 +192,7 @@ namespace SynchroLean.Controllers
             // Map resource to model
             team.TeamName = teamResource.TeamName;
             team.TeamDescription = teamResource.TeamDescription;
-            team.OwnerId = teamResource.OwnerId;
+            team.OwnerId = teamResource.OwnerId; // Should we really be changing the owner id?
 
             //this stops default edit team from giving teams to user 0
             if(team.OwnerId == 0)
@@ -185,7 +201,8 @@ namespace SynchroLean.Controllers
             }
 
             // Save updated team to database
-            await context.SaveChangesAsync();
+            //await context.SaveChangesAsync();
+            await unitOfWork.CompleteAsync();
 
             // Map team to TeamResource
             var outResource = new TeamResource
