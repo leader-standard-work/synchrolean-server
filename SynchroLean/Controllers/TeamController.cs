@@ -18,12 +18,10 @@ namespace SynchroLean.Controllers
     [Route("api/[controller]")]
     public class TeamController : Controller
     {
-        private readonly SynchroLeanDbContext context; // Added (DbSet<Team> Teams) to context
         private readonly IUnitOfWork unitOfWork;
 
-        public TeamController(SynchroLeanDbContext context, IUnitOfWork unitOfWork)
+        public TeamController(IUnitOfWork unitOfWork)
         {
-            this.context = context;
             this.unitOfWork = unitOfWork;
         }
 
@@ -52,14 +50,10 @@ namespace SynchroLean.Controllers
             };
 
             // Add the team to context and save changes
-            //await context.AddAsync(teamModel);
-            //await context.SaveChangesAsync();
             await unitOfWork.userTeamRepository.AddAsync(teamModel);
             await unitOfWork.CompleteAsync();
 
             // Fetch the newly created team from the DB
-            //teamModel = await context.Teams
-            //    .SingleOrDefaultAsync(tm => tm.Id.Equals(teamModel.Id));
             teamModel = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamModel.Id);
 
@@ -87,7 +81,6 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTeamsAsync()
         {
             // Fetch all teams from the database
-            //var teams = await context.Teams.ToListAsync<Team>();
             var teams = await unitOfWork.userTeamRepository
                 .GetAllTeamsAsync();
 
@@ -121,8 +114,6 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetUserTeamAsync(int teamId)
         {
             // Get the team for the currently logged in user
-            //var team = await context.Teams
-            //    .SingleOrDefaultAsync(ut => ut.Id.Equals(id));
             var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamId);
 
@@ -160,8 +151,6 @@ namespace SynchroLean.Controllers
             }
 
             // Fetch an account from the DB asynchronously
-            //var account = await context.UserAccounts
-            //    .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
             var account = await unitOfWork.userAccountRepository
                 .GetUserAccountAsync(ownerId);
 
@@ -172,8 +161,6 @@ namespace SynchroLean.Controllers
             }
 
             // Get the team for the currently logged in user
-            //var team = await context.Teams
-            //    .SingleOrDefaultAsync(ut => ut.Id.Equals(teamId));
             var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamId);
 
@@ -201,7 +188,6 @@ namespace SynchroLean.Controllers
             }
 
             // Save updated team to database
-            //await context.SaveChangesAsync();
             await unitOfWork.CompleteAsync();
 
             // Map team to TeamResource

@@ -17,12 +17,10 @@ namespace SynchroLean.Controllers
     [Route("api/[controller]")]
     public class AccountsController : Controller
     {
-        private readonly SynchroLeanDbContext context;
         private readonly IUnitOfWork unitOfWork;
 
-        public AccountsController(SynchroLeanDbContext context, IUnitOfWork unitOfWork)
+        public AccountsController(IUnitOfWork unitOfWork)
         {
-            this.context = context;
             this.unitOfWork = unitOfWork;
         }
 
@@ -53,14 +51,10 @@ namespace SynchroLean.Controllers
             };
 
             // Add model to database and save changes
-            //await context.AddAsync(account);
-            //await context.SaveChangesAsync();
             await unitOfWork.userAccountRepository.AddAsync(account);
             await unitOfWork.CompleteAsync();
 
             // Retrieve account from database
-            //var accountModel = await context.UserAccounts
-            //    .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(account.OwnerId));
             var accountModel = await unitOfWork.userAccountRepository
                 .GetUserAccountAsync(account.OwnerId);
 
@@ -88,8 +82,6 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetAccountAsync(int ownerId)
         {
             // Fetch account of ownerId
-            //var account = await context.UserAccounts
-            //    .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(ownerId));
             var account = await unitOfWork.userAccountRepository
                 .GetUserAccountAsync(ownerId);
 
@@ -110,7 +102,6 @@ namespace SynchroLean.Controllers
                 Email = account.Email,
                 IsDeleted = account.IsDeleted
             };
-
             return Ok(accountResource);
         }
 
@@ -123,9 +114,6 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTeamAccountsAsync(int teamId)
         {
             // Fetch all accounts from the DB asyncronously
-            //var accounts = await context.UserAccounts
-            //    .Where(ua => ua.TeamId.Equals(teamId))
-            //    .ToListAsync();
             var accounts = await unitOfWork.userAccountRepository
                 .GetTeamAccountsAsync(teamId);
 
@@ -175,8 +163,6 @@ namespace SynchroLean.Controllers
             }
 
             // Retrieve ownerId account from database
-            //var account = await context.UserAccounts
-            //    .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
             var account = await unitOfWork.userAccountRepository
                 .GetUserAccountAsync(ownerId);
 
@@ -194,7 +180,6 @@ namespace SynchroLean.Controllers
             account.IsDeleted = userAccountResource.IsDeleted;
 
             // Save updated account to database
-            //await context.SaveChangesAsync();
             await unitOfWork.CompleteAsync();
 
             // Map account model to resource
