@@ -20,14 +20,12 @@ namespace SynchroLean.Controllers
     public class TasksController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
-
-        public TasksController(IUnitOfWork unitOfWork)
-        private readonly SynchroLeanDbContext context;
         private readonly IMapper _mapper;
-        public TasksController(SynchroLeanDbContext context, IMapper mapper)
+
+        public TasksController(IUnitOfWork unitOfWork, IMapper mapper)
         {
+            
             this.unitOfWork = unitOfWork;
-            this.context = context;
             _mapper = mapper;
         }
 
@@ -81,25 +79,10 @@ namespace SynchroLean.Controllers
             // Map each task to a corresponding resource
             foreach (var task in tasks)
             {
-                // Create resource from model
-                var resource = new UserTaskResource {
-                    Id = task.Id,
-                    Name = task.Name,
-                    Description = task.Description,
-                    IsRecurring = task.IsRecurring,
-                    Weekdays = task.Weekdays,
-                    CreationDate = task.CreationDate,
-                    IsCompleted = task.IsCompleted,
-                    CompletionDate = task.CompletionDate,
-                    IsRemoved = task.IsRemoved,
-                    OwnerId = task.OwnerId
-                };
-                // Add to resources list
-                resourceTasks.Add(resource);
-            }
                 // Add mapped resource to resources list
                 resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
-            });
+            }
+                
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
@@ -167,23 +150,6 @@ namespace SynchroLean.Controllers
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 
-            // Map userTask to UserTaskResource
-            var outResource = new UserTaskResource
-            {
-                Id = task.Id,
-                Name = task.Name,
-                Description = task.Description,
-                IsRecurring = task.IsRecurring,
-                Weekdays = task.Weekdays,
-                CreationDate = task.CreationDate,
-                IsCompleted = task.IsCompleted,
-                CompletionDate = task.CompletionDate,
-                IsRemoved = task.IsRemoved,
-                OwnerId = task.OwnerId
-            };
-            return Ok(outResource);
-            await context.SaveChangesAsync();
-            
             // Return mapped resource
             return Ok(_mapper.Map<UserTaskResource>(task));
         }
