@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using SynchroLean.Controllers;
 using SynchroLean.Controllers.Resources;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
