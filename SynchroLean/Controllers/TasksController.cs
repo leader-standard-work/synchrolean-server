@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
 using SynchroLean.Models;
 using SynchroLean.Persistence;
+using SynchroLean.Core;
 
 namespace SynchroLean.Controllers
 {
@@ -17,12 +18,11 @@ namespace SynchroLean.Controllers
     [Route("api/[controller]")]
     public class TasksController : Controller
     {
+        private readonly IUnitOfWork unitOfWork;
 
-        private readonly SynchroLeanDbContext context;
-
-        public TasksController(SynchroLeanDbContext context)
+        public TasksController(IUnitOfWork unitOfWork)
         {
-            this.context = context;    
+            this.unitOfWork = unitOfWork;
         }
 
         // POST api/tasks
@@ -36,8 +36,9 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> AddUserTaskAsync([FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
-            if(!ModelState.IsValid) {
-                return BadRequest();
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             // Map resource to model
@@ -57,12 +58,12 @@ namespace SynchroLean.Controllers
             };
 
             // Save userTask to database
-            await context.AddAsync(userTask);
-            await context.SaveChangesAsync();
+            await unitOfWork.userTaskRepository.AddAsync(userTask);
+            await unitOfWork.CompleteAsync();
 
             // Retrieve userTask from database
-            userTask = await context.UserTasks
-                .SingleOrDefaultAsync(ut => ut.Id == userTask.Id);
+            userTask = await unitOfWork.userTaskRepository
+                .GetTaskAsync(userTask.Id);
 
             // Map userTask to UserTaskResource
             var outResource = new UserTaskResource {
@@ -91,15 +92,14 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
             // Fetch all tasks from the DB asyncronously
-            var tasks = await context.UserTasks
-                .Where(ut => ut.OwnerId.Equals(ownerId))
-                .ToListAsync();
+            var tasks = await unitOfWork.userTaskRepository
+                .GetTasksAsync(ownerId);
 
             // List of corresponding tasks as resources
             var resourceTasks = new List<UserTaskResource>();
 
             // Map each task to a corresponding resource
-            tasks.ForEach(task =>
+            foreach (var task in tasks)
             {
                 // Create resource from model
                 var resource = new UserTaskResource {
@@ -116,7 +116,7 @@ namespace SynchroLean.Controllers
                 };
                 // Add to resources list
                 resourceTasks.Add(resource);
-            });
+            }
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
@@ -136,31 +136,31 @@ namespace SynchroLean.Controllers
             {
                 return BadRequest();
             }
-            
+
             // Fetch an account from the DB asynchronously
-            var account = await context.UserAccounts
-                .SingleOrDefaultAsync(ua => ua.OwnerId == ownerId);
-            
+            var account = await unitOfWork.userAccountRepository
+                .GetUserAccountAsync(ownerId);
+
             // Return not found exception if account doesn't exist
             if(account == null)
             {
-                return NotFound();
-            } 
-            
+                return NotFound("Couldn't find account matching that ownerId.");
+            }
+
             // Retrieves task from UserTasks table
-            var task = await context.UserTasks
-                .SingleOrDefaultAsync(ut => ut.Id == taskId);
+            var task = await unitOfWork.userTaskRepository
+                .GetTaskAsync(taskId);
 
             // Nothing was retrieved, no id match
             if (task == null)
             {
-                return NotFound();
+                return NotFound("Task couldn't be found.");
             }
 
             // Validates task belongs to correct user
             if(task.OwnerId != account.OwnerId)
             {
-                return BadRequest();
+                return BadRequest("Task does not belong to this account.");
             } 
 
             // Map resource to model
@@ -177,7 +177,7 @@ namespace SynchroLean.Controllers
             task.OwnerId = userTaskResource.OwnerId;
 
             // Save updated userTask to database
-            await context.SaveChangesAsync();
+            await unitOfWork.CompleteAsync();
 
             // Map userTask to UserTaskResource
             var outResource = new UserTaskResource
@@ -193,7 +193,6 @@ namespace SynchroLean.Controllers
                 IsRemoved = task.IsRemoved,
                 OwnerId = task.OwnerId
             };
-            
             return Ok(outResource);
         }
 
@@ -207,29 +206,13 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetUserCompletionRate(int ownerId)
         {
             //Check if user exists
-            var userExists = await context.UserAccounts.AnyAsync(user => user.OwnerId == ownerId);
+            var userExists = await unitOfWork.userAccountRepository
+                .UserAccountExists(ownerId);
             //User doesn't exist
-            if (!userExists) return NotFound();
+            if (!userExists) return NotFound("Couldn't find user.");
             //User exists
-            var userTasks = await
-                            (
-                                from task in context.UserTasks
-                                where task.OwnerId == ownerId
-                                select task.IsCompleted ? 1.0 : 0.0
-                            ).ToListAsync();
-            if (userTasks.Count > 0)
-            {
-                return Ok(userTasks.Average());
-            }
-            else
-            {
-                //NaN or 1 are the sensible values here, depending on interpretation
-                //If it is a mean, the empty average is 0/0, or NaN
-                //If it is a question about if the user completed all their tasks, then
-                // vacuously they did because they had none.
-                //Provisionally, I am using NaN, because it is distinct from 1
-                return Ok(Double.NaN);
-            }
+            Double completionRate = await unitOfWork.userTaskRepository.GetUserCompletionRate(ownerId);
+            return Ok(completionRate);
         }
 
         /// <summary>
@@ -242,33 +225,14 @@ namespace SynchroLean.Controllers
         {
 
             //Check if team exists
-            var teamExists = await context.Teams.AnyAsync(team => team.Id == id);
+            //var teamExists = await context.Teams.AnyAsync(team => team.Id == id);
+            var teamExists = await unitOfWork.userTeamRepository
+                .TeamExists(id);
             //Team doesn't exist
             if (!teamExists) return NotFound();
             //Team does exist
-            var groupTasks = await
-                (
-                    from task in context.UserTasks
-                    join member in (from user in context.UserAccounts
-                                    where user.TeamId == id
-                                    select user.OwnerId)
-                    on task.OwnerId equals member
-                    select task.IsCompleted ? 1.0 : 0.0
-                ).ToListAsync();
-            //Team has tasks
-            if(groupTasks.Count > 0)
-            {
-                return Ok(groupTasks.Average());
-            }
-            else
-            {
-                //NaN or 1 are the sensible values here, depending on interpretation
-                //If it is a mean, the empty average is 0/0, or NaN
-                //If it is a question about if the user completed all their tasks, then
-                // vacuously they did because they had none.
-                //Provisionally, I am using NaN, because it is distinct from 1
-                return Ok(Double.NaN);
-            }
+            Double completionRate = await unitOfWork.userTaskRepository.GetTeamCompletionRate(id);
+            return Ok(completionRate);
         }
     }
 }
