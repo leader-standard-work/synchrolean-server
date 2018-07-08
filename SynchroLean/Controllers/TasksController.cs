@@ -8,27 +8,37 @@ using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
 using SynchroLean.Models;
 using SynchroLean.Persistence;
+using SynchroLean.Core;
 
 namespace SynchroLean.Controllers
 {
+    /// <summary>
+    /// This class handles HTTP requests for tasks
+    /// </summary>
     [Route("api/[controller]")]
     public class TasksController : Controller
     {
+        private readonly IUnitOfWork unitOfWork;
 
-        private readonly SynchroLeanDbContext context;
-
-        public TasksController(SynchroLeanDbContext context)
+        public TasksController(IUnitOfWork unitOfWork)
         {
-            this.context = context;    
+            this.unitOfWork = unitOfWork;
         }
 
         // POST api/tasks
+        /// <summary>
+        /// Adds new task to DB
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="userTaskResource"></param>
+        /// <returns>New task retrieved from DB</returns>
         [HttpPost]
         public async Task<IActionResult> AddUserTaskAsync([FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
-            if(!ModelState.IsValid) {
-                return BadRequest();
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             // Map resource to model
@@ -43,16 +53,17 @@ namespace SynchroLean.Controllers
                 IsCompleted = false,
                 // Should we instead use a nullable datetime type?
                 CompletionDate = DateTime.MinValue,
-                IsRemoved = false
+                IsRemoved = false,
+                OwnerId = userTaskResource.OwnerId
             };
 
             // Save userTask to database
-            await context.AddAsync(userTask);
-            await context.SaveChangesAsync();
+            await unitOfWork.userTaskRepository.AddAsync(userTask);
+            await unitOfWork.CompleteAsync();
 
             // Retrieve userTask from database
-            userTask = await context.UserTasks
-                .SingleOrDefaultAsync(ut => ut.Id == userTask.Id);
+            userTask = await unitOfWork.userTaskRepository
+                .GetTaskAsync(userTask.Id);
 
             // Map userTask to UserTaskResource
             var outResource = new UserTaskResource {
@@ -64,24 +75,31 @@ namespace SynchroLean.Controllers
                 CreationDate = userTask.CreationDate,
                 IsCompleted = userTask.IsCompleted,
                 CompletionDate = userTask.CompletionDate,
-                IsRemoved = userTask.IsRemoved
+                IsRemoved = userTask.IsRemoved,
+                OwnerId = userTask.OwnerId
             };
 
             return Ok(outResource);
         }
 
-        // GET api/tasks
-        [HttpGet]
-        public async Task<IActionResult> GetTasksAsync()
+        // GET api/tasks/{ownerId}
+        /// <summary>
+        /// Retrieves a users tasks
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>List of a users tasks</returns>
+        [HttpGet("{ownerId}")]
+        public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
             // Fetch all tasks from the DB asyncronously
-            var tasks = await context.UserTasks.ToListAsync<UserTask>();
+            var tasks = await unitOfWork.userTaskRepository
+                .GetTasksAsync(ownerId);
 
             // List of corresponding tasks as resources
             var resourceTasks = new List<UserTaskResource>();
 
             // Map each task to a corresponding resource
-            tasks.ForEach(task =>
+            foreach (var task in tasks)
             {
                 // Create resource from model
                 var resource = new UserTaskResource {
@@ -93,17 +111,25 @@ namespace SynchroLean.Controllers
                     CreationDate = task.CreationDate,
                     IsCompleted = task.IsCompleted,
                     CompletionDate = task.CompletionDate,
-                    IsRemoved = task.IsRemoved
+                    IsRemoved = task.IsRemoved,
+                    OwnerId = task.OwnerId
                 };
                 // Add to resources list
                 resourceTasks.Add(resource);
-            });
+            }
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
-        // PUT api/tasks
-        [HttpPut("{id}")]
-        public async Task<IActionResult> EditUserTaskAsync(int id, [FromBody]UserTaskResource userTaskResource)
+        // PUT api/tasks/{ownerId}/{taskId}
+        /// <summary>
+        /// Updates a users task
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="taskId"></param>
+        /// <param name="userTaskResource"></param>
+        /// <returns>Updated user task</returns>
+        [HttpPut("{ownerId}/{taskId}")]
+        public async Task<IActionResult> EditUserTaskAsync(int ownerId, int taskId, [FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
             if (!ModelState.IsValid)
@@ -111,14 +137,31 @@ namespace SynchroLean.Controllers
                 return BadRequest();
             }
 
-            var task = await context.UserTasks
-                .SingleOrDefaultAsync(ut => ut.Id == id);
+            // Fetch an account from the DB asynchronously
+            var account = await unitOfWork.userAccountRepository
+                .GetUserAccountAsync(ownerId);
+
+            // Return not found exception if account doesn't exist
+            if(account == null)
+            {
+                return NotFound("Couldn't find account matching that ownerId.");
+            }
+
+            // Retrieves task from UserTasks table
+            var task = await unitOfWork.userTaskRepository
+                .GetTaskAsync(taskId);
 
             // Nothing was retrieved, no id match
             if (task == null)
             {
-                return NotFound();
+                return NotFound("Task couldn't be found.");
             }
+
+            // Validates task belongs to correct user
+            if(task.OwnerId != account.OwnerId)
+            {
+                return BadRequest("Task does not belong to this account.");
+            } 
 
             // Map resource to model
             task.Name = userTaskResource.Name;
@@ -131,9 +174,10 @@ namespace SynchroLean.Controllers
             }
             task.IsCompleted = userTaskResource.IsCompleted;
             task.IsRemoved = userTaskResource.IsRemoved;
+            task.OwnerId = userTaskResource.OwnerId;
 
             // Save updated userTask to database
-            await context.SaveChangesAsync();
+            await unitOfWork.CompleteAsync();
 
             // Map userTask to UserTaskResource
             var outResource = new UserTaskResource
@@ -146,10 +190,49 @@ namespace SynchroLean.Controllers
                 CreationDate = task.CreationDate,
                 IsCompleted = task.IsCompleted,
                 CompletionDate = task.CompletionDate,
-                IsRemoved = task.IsRemoved
+                IsRemoved = task.IsRemoved,
+                OwnerId = task.OwnerId
             };
-
             return Ok(outResource);
+        }
+
+        // GET api/tasks/metrics/user/{ownerId}
+        /// <summary>
+        /// Get the completion rate for a user.
+        /// </summary>
+        /// <param name="ownerId">The key to identify the owner.</param>
+        /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
+        [HttpGet("metrics/user/{ownerId}")]
+        public async Task<IActionResult> GetUserCompletionRate(int ownerId)
+        {
+            //Check if user exists
+            var userExists = await unitOfWork.userAccountRepository
+                .UserAccountExists(ownerId);
+            //User doesn't exist
+            if (!userExists) return NotFound("Couldn't find user.");
+            //User exists
+            Double completionRate = await unitOfWork.userTaskRepository.GetUserCompletionRate(ownerId);
+            return Ok(completionRate);
+        }
+
+        /// <summary>
+        /// See how much of their tasks a team has completed.
+        /// </summary>
+        /// <param name="id">The key to identify the team.</param>
+        /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
+        [HttpGet("metrics/team/{Id}")]
+        public async Task<IActionResult> GetTeamCompletionRate(int id)
+        {
+
+            //Check if team exists
+            //var teamExists = await context.Teams.AnyAsync(team => team.Id == id);
+            var teamExists = await unitOfWork.userTeamRepository
+                .TeamExists(id);
+            //Team doesn't exist
+            if (!teamExists) return NotFound();
+            //Team does exist
+            Double completionRate = await unitOfWork.userTaskRepository.GetTeamCompletionRate(id);
+            return Ok(completionRate);
         }
     }
 }

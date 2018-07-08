@@ -13,6 +13,7 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+SynchroLean/Persistence/synchrolean.db
 
 # Build results
 [Dd]ebug/

@@ -2,45 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SynchroLean.Persistence;
 
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    partial class SynchroLeanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180703225826_AddTeamModel")]
+    partial class AddTeamModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.1.1-rtm-30846");
-
-            modelBuilder.Entity("SynchroLean.Models.UserAccount", b =>
-                {
-                    b.Property<int>("OwnerId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(50);
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50);
-
-                    b.Property<bool>("IsDeleted");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50);
-
-                    b.Property<int>("TeamId");
-
-                    b.HasKey("OwnerId");
-
-                    b.ToTable("UserAccounts");
-                });
 
             modelBuilder.Entity("SynchroLean.Models.Team", b =>
                 {
@@ -81,8 +57,6 @@ namespace SynchroLean.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255);
-
-                    b.Property<int>("OwnerId");
 
                     b.Property<byte>("Weekdays");
 

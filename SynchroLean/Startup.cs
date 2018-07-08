@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SynchroLean.Persistence;
+using SynchroLean.Core;
 
 namespace SynchroLean
 {
@@ -27,7 +28,13 @@ namespace SynchroLean
         {
             services.AddMvc();
 
-            services.AddDbContext<SynchroLeanDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SQLServer")));
+            services.AddDbContext<SynchroLeanDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("SQLite")));
+
+            // Some research needs to be done in terms of managing instances...
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<IUserAccountRepository, UserAccountRepository>();
+            services.AddSingleton<IUserTaskRepository, UserTaskRepository>();
+            services.AddSingleton<IUserTeamRepository, UserTeamRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
