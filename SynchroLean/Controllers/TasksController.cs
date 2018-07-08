@@ -24,7 +24,6 @@ namespace SynchroLean.Controllers
 
         public TasksController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            
             this.unitOfWork = unitOfWork;
             _mapper = mapper;
         }
