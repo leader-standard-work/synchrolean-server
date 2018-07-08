@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 
@@ -42,7 +42,7 @@ namespace SynchroLean.Controllers
             // Map account resource to model
             var account = new UserAccount 
             {
-                OwnerId = userAccountResource.OwnerId,
+                //OwnerId = userAccountResource.OwnerId,
                 TeamId = userAccountResource.TeamId,
                 FirstName = userAccountResource.FirstName,
                 LastName = userAccountResource.LastName,
