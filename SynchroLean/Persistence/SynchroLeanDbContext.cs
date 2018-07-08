@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 
 namespace SynchroLean.Persistence
 {

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SynchroLean.Models
+namespace SynchroLean.Core.Models
 {
     public class UserToken: IUserLogin
     {

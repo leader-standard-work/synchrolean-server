@@ -3,6 +3,7 @@ using System.Linq;
 using SynchroLean.Controllers;
 using SynchroLean.Controllers.Resources;
 using SynchroLean.Core.Models;
+using SynchroLean.Core;
 using SynchroLean.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -51,6 +52,8 @@ namespace SynchroLean.Tests
             };
             
             var userTaskId = 0;
+
+            IUnitOfWork unitOfWork;
 
             // Creates the TaskController with DbContext and adds userTaskOrigina to InMemory database
             using (var context = new SynchroLeanDbContext(options))
