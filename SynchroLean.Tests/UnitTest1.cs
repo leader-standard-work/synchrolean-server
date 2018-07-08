@@ -40,7 +40,7 @@ namespace SynchroLean.Tests
                 .Options;
 
             // Create a userTaskOrigina to send to HTTPPost method
-            var userTaskResource = new UserTaskResource {
+            var newUserTask = new UserTask {
                 Name = "Unit test add",
                 Description = "Add a task using InMemory database",
                 IsRecurring = true,
@@ -51,52 +51,51 @@ namespace SynchroLean.Tests
                 IsRemoved = false
             };
             
-            var userTaskId = 0;
-
             IUnitOfWork unitOfWork;
 
-            // Creates the TaskController with DbContext and adds userTaskOrigina to InMemory database
+            // Creates the TaskController with DbContext and adds newUserTask to InMemory database
             using (var context = new SynchroLeanDbContext(options))
             {
-                var controller = new TasksController(context);
-                var result = await controller.AddUserTaskAsync(userTaskResource);
+                // Bind the context to the UnitOfWork object
+                unitOfWork = new UnitOfWork(context);
 
-                //Assert
-                var okTaskResult = result as OkObjectResult;
-                Assert.NotNull(result);
-
-                var model = okTaskResult.Value as SynchroLean.Controllers.Resources.UserTaskResource;
-                Assert.NotNull(model);
-
-                userTaskId = model.Id;
-                //output.WriteLine("userTaskId = " + userTaskId);
+                // Add the task to the Db asynchronously
+                await unitOfWork.userTaskRepository.AddAsync(newUserTask);
+                await unitOfWork.CompleteAsync();
             }
 
             // Used same context to verify changes are persistent
             using (var context = new SynchroLeanDbContext(options))
             {
+                // Assert that UserTasks table contains one entry
                 Assert.Equal(1, context.UserTasks.Count());
-                var userTask = context.UserTasks.SingleOrDefault(ut => ut.Id.Equals(userTaskId));
+                
+                // Bind the context to the UnitOfWork object
+                unitOfWork = new UnitOfWork(context);
+
+                // Retrieve the task from the Db asynchronously
+                var userTask = await unitOfWork.userTaskRepository.GetTaskAsync(newUserTask.Id);
+                await unitOfWork.CompleteAsync();
                 Assert.NotNull(userTask);
 
                 // Not sure why userTask.Name needs to be trimmed but userTask.Description doesn't
-                Assert.True(userTaskResource.Name == userTask.Name.Trim());
-                Assert.True(userTaskResource.Description == userTask.Description);
-                Assert.True(userTaskResource.IsRecurring.Equals(userTask.IsRecurring));
-                Assert.True(userTaskResource.Weekdays.Equals(userTask.Weekdays));
+                Assert.True(newUserTask.Name == userTask.Name.Trim());
+                Assert.True(newUserTask.Description == userTask.Description);
+                Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
+                Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
 
                 // Can't test dates without changing how UserTask POST method assigns them
                 /*
-                int result = DateTime.Compare(userTaskResource.CreationDate, userTask.CreationDate);
+                int result = DateTime.Compare(newUserTask.CreationDate, userTask.CreationDate);
                 Assert.Equal(0, result);
-                output.WriteLine(userTaskResource.CreationDate + ", " + userTask.CreationDate);
-                result = DateTime.Compare(userTaskResource.CompletionDate, userTask.CompletionDate);
+                output.WriteLine(newUserTask.CreationDate + ", " + userTask.CreationDate);
+                result = DateTime.Compare(newUserTask.CompletionDate, userTask.CompletionDate);
                 Assert.Equal(0, result);
-                output.WriteLine(userTaskResource.CompletionDate + ", " + userTask.CompletionDate);
+                output.WriteLine(newUserTask.CompletionDate + ", " + userTask.CompletionDate);
                 */
 
-                Assert.True(userTaskResource.IsCompleted.Equals(userTask.IsCompleted));
-                Assert.True(userTaskResource.IsRemoved.Equals(userTask.IsRemoved));
+                Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
+                Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
             }
         }
 
@@ -117,8 +116,8 @@ namespace SynchroLean.Tests
                     .UseSqlite(connection)
                     .Options;
 
-                /// Create a userTaskResource to send to HTTPPost method
-                var userTaskResource = new UserTaskResource {
+                /// Create a newUserTask to send to HTTPPost method
+                var newUserTask = new UserTask {
                     Name = "SQLite unit test add",
                     Description = "Add a task using SQLite database",
                     IsRecurring = true,
@@ -135,49 +134,53 @@ namespace SynchroLean.Tests
                     context.Database.EnsureCreated();
                 }
 
-                var userTaskId = 0;
+                var userTaskId = newUserTask.Id;
+
+                IUnitOfWork unitOfWork;
 
                 // Run the test against one instance of the context
                 using (var context = new SynchroLeanDbContext(options))
                 { 
-                    var service = new TasksController(context);
-                    var result = await service.AddUserTaskAsync(userTaskResource);
+                    // Bind the context to the UnitOfWork object
+                    unitOfWork = new UnitOfWork(context);
 
-                    //Assert
-                    var okTaskResult = result as OkObjectResult;
-                    Assert.NotNull(result);
-
-                    var model = okTaskResult.Value as SynchroLean.Controllers.Resources.UserTaskResource;
-                    Assert.NotNull(model);
-
-                    userTaskId = model.Id;
+                    // Add newUserTask to UserTasks table in Db asynchronously
+                    await unitOfWork.userTaskRepository.AddAsync(newUserTask);
+                    await unitOfWork.CompleteAsync();
                 }
 
                 // Use a separate instance of the context to verify correct data was saved to database
                 using (var context = new SynchroLeanDbContext(options))
                 {
+                    // Assert that UserTasks table in Db contains 1 entry
                     Assert.Equal(1, context.UserTasks.Count());
-                    var userTask = context.UserTasks.SingleOrDefault(ut => ut.Id.Equals(userTaskId));
+                    
+                    // Bind the Db context to the UnitOfWork object
+                    unitOfWork = new UnitOfWork(context);
+
+                    // Retrieve the task from the Db asynchronously
+                    var userTask = await unitOfWork.userTaskRepository.GetTaskAsync(newUserTask.Id);
+                    await unitOfWork.CompleteAsync();
                     Assert.NotNull(userTask);
 
                     // Not sure why userTask.Name needs to be trimmed but userTask.Description doesn't
-                    Assert.True(userTaskResource.Name == userTask.Name.Trim());
-                    Assert.True(userTaskResource.Description == userTask.Description);
-                    Assert.True(userTaskResource.IsRecurring.Equals(userTask.IsRecurring));
-                    Assert.True(userTaskResource.Weekdays.Equals(userTask.Weekdays));
+                    Assert.True(newUserTask.Name == userTask.Name.Trim());
+                    Assert.True(newUserTask.Description == userTask.Description);
+                    Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
+                    Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
 
                     // Can't test dates without changing how UserTask POST method assigns them
                     /*
-                    int result = DateTime.Compare(userTaskResource.CreationDate, userTask.CreationDate);
+                    int result = DateTime.Compare(newUserTask.CreationDate, userTask.CreationDate);
                     Assert.Equal(0, result);
-                    output.WriteLine(userTaskResource.CreationDate + ", " + userTask.CreationDate);
-                    result = DateTime.Compare(userTaskResource.CompletionDate, userTask.CompletionDate);
+                    output.WriteLine(newUserTask.CreationDate + ", " + userTask.CreationDate);
+                    result = DateTime.Compare(newUserTask.CompletionDate, userTask.CompletionDate);
                     Assert.Equal(0, result);
-                    output.WriteLine(userTaskResource.CompletionDate + ", " + userTask.CompletionDate);
+                    output.WriteLine(newUserTask.CompletionDate + ", " + userTask.CompletionDate);
                     */
 
-                    Assert.True(userTaskResource.IsCompleted.Equals(userTask.IsCompleted));
-                    Assert.True(userTaskResource.IsRemoved.Equals(userTask.IsRemoved));
+                    Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
+                    Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
                 }
             }
             finally
