@@ -27,12 +27,12 @@ namespace SynchroLean.Controllers
             _mapper = mapper;
         }
 
+        // POST api/team
         /// <summary>
         /// Adds a new team to the Db asynchronously
         /// </summary>
         /// <param name="teamResource"></param>
         /// <returns>A resource of the new team</returns>
-        // POST api/team
         [HttpPost]
         public async Task<IActionResult> AddTeamAsync([FromBody]TeamResource teamResource)
         {
@@ -50,10 +50,10 @@ namespace SynchroLean.Controllers
             await unitOfWork.CompleteAsync();
 
             // Fetch the newly created team from the DB
-            teamModel = await unitOfWork.userTeamRepository
+            var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamModel.Id);
             
-            return Ok(_mapper.Map<TeamResource>(teamModel)); // Return newly created mapped team resource to client
+            return Ok(_mapper.Map<TeamResource>(team)); // Return newly created mapped team resource to client
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace SynchroLean.Controllers
             await unitOfWork.CompleteAsync();
             
             // Return mapped team resource
-            return Ok(_mapper.Map<UserTaskResource>(team));
+            return Ok(_mapper.Map<TeamResource>(team));
         }
     }
 }
