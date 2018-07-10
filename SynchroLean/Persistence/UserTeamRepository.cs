@@ -25,7 +25,7 @@ namespace SynchroLean.Persistence
         public async Task<Team> GetUserTeamAsync(int teamId)
         {
             return await context.Teams
-                .SingleOrDefaultAsync(ut => ut.OwnerId.Equals(teamId));
+                .SingleOrDefaultAsync(ut => ut.Id.Equals(teamId));
         }
 
         /// <summary>
