@@ -26,8 +26,8 @@ namespace SynchroLean
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             services.AddMvc();
-
             services.AddDbContext<SynchroLeanDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("SQLite")));
 
             // Some research needs to be done in terms of managing instances...
@@ -44,6 +44,13 @@ namespace SynchroLean
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(builder =>
+                builder.AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+            );
 
             app.UseMvc();
         }
