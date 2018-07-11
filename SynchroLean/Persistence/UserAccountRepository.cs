@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SynchroLean.Core;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

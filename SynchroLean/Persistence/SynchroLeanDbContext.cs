@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 
 namespace SynchroLean.Persistence
 {
@@ -8,6 +8,7 @@ namespace SynchroLean.Persistence
         public DbSet<UserTask> UserTasks { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<UserAccount> UserAccounts { get; set; }
+        public DbSet<AddUserRequest> AddUserRequests { get; set; }
 
         public SynchroLeanDbContext(DbContextOptions<SynchroLeanDbContext> options) : base(options)
         {

@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SynchroLean.Models
+namespace SynchroLean.Core.Models
 {
     /// <summary>
     /// This class contains fields for client identification information

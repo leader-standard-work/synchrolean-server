@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SynchroLean.Models
+namespace SynchroLean.Core.Models
 {
     public class Team
     {
