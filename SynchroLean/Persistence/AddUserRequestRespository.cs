@@ -23,7 +23,7 @@ namespace SynchroLean.Persistence
 
         async Task<bool> IAddUserRequestRepository.AddUserRequestExists(int addUserRequestId)
         {
-            return await this.context.AddUserRequests.AnyAsync(request => request.AddUserRequestId == addUserRequestId);
+            return await this.context.AddUserRequests.AnyAsync(request => request.Id == addUserRequestId);
         }
 
         async Task IAddUserRequestRepository.DeleteAddUserRequestAsync(int addUserRequestId)
@@ -37,7 +37,7 @@ namespace SynchroLean.Persistence
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.AddUserRequestId == addUserRequestId
+                where request.Id == addUserRequestId
                 select request
             ).SingleOrDefaultAsync();
         }
@@ -52,7 +52,7 @@ namespace SynchroLean.Persistence
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.Invitee.OwnerId == ownerId && request.IsAuthorized
+                where request.OwnerId == ownerId && request.IsAuthorized
                 select request
             ).ToListAsync();
         }
@@ -66,9 +66,9 @@ namespace SynchroLean.Persistence
                 (
                     from team in this.context.Teams
                     where team.OwnerId == ownerId
-                    select team
+                    select team.Id
                 )
-                on request.DestinationTeam equals ownedteam
+                on request.TeamId equals ownedteam
                 where !request.IsAuthorized
                 select request
             ).ToListAsync();
