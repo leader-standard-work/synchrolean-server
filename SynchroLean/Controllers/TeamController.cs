@@ -43,7 +43,6 @@ namespace SynchroLean.Controllers
             // Map the team resource to a model
             var teamModel = new Team
             {
-                Id = teamResource.Id,
                 OwnerId = teamResource.OwnerId,
                 TeamName = teamResource.TeamName,
                 TeamDescription = teamResource.TeamDescription
