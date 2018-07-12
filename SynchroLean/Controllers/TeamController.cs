@@ -201,6 +201,36 @@ namespace SynchroLean.Controllers
             
             return Ok(outResource);
         }
+
+        /// <summary>
+        /// Create a new invite for a user.
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="creatorId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        // PUT api/team/invite/teamId
+        [HttpPut("invite/{ownerId}/{creatorId}/{teamId}")]
+        public async Task<IActionResult> InviteUserToTeamAsync(int ownerId, int creatorId, int teamId)
+        {
+            var teamExists = await unitOfWork.userTeamRepository.TeamExists(teamId);
+            if (!teamExists) return NotFound();
+            var creatorExists = await unitOfWork.userAccountRepository.UserAccountExists(creatorId);
+            if (!creatorExists) return NotFound();
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
+            //TODO: Check if creator is in the team creator is being invited into
+            //blocked by the fact that teams aren't implemented yet
+            var creatorIsTeamOwner = team.OwnerId == creatorId;
+            await unitOfWork.addUserRequestRepository.AddAsync(
+                new AddUserRequest
+                {
+                    OwnerId = ownerId,
+                    CreatorId = creatorId,
+                    IsAuthorized = creatorIsTeamOwner,
+                    TeamId = teamId
+                });
+            return Ok();
+        }
     }
 }
 
