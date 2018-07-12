@@ -246,6 +246,69 @@ namespace SynchroLean.Controllers
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
             if (!(invite.OwnerId == ownerId)) return Forbid();
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Rescind an invitation you gave someone.
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="creatorId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/rescind/{addUserRequestId}/{creatorId}")]
+        public async Task<IActionResult> RescindTeamInvite(int addUserRequestId, int creatorId)
+        {
+            var inviteExists = await unitOfWork.addUserRequestRepository.AddUserRequestExists(addUserRequestId);
+            if (!inviteExists) return NotFound();
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (!(invite.CreatorId == creatorId)) return Forbid();
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Authorize an invitation by a team member
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="creatorId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/authorize/{addUserRequestId}/{ownerId}")]
+        public async Task<IActionResult> AuthorizeTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var inviteExists = await unitOfWork.addUserRequestRepository.AddUserRequestExists(addUserRequestId);
+            if (!inviteExists) return NotFound();
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
+            var teamExists = await unitOfWork.userTeamRepository.TeamExists(invite.TeamId);
+            if (!teamExists) return NotFound();
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(invite.TeamId);
+            if (!(team.OwnerId == ownerId)) return Forbid();
+            invite.IsAuthorized = true;
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Veto an invitation by a team member
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="creatorId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/veto/{addUserRequestId}/{ownerId}")]
+        public async Task<IActionResult> VetoTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var inviteExists = await unitOfWork.addUserRequestRepository.AddUserRequestExists(addUserRequestId);
+            if (!inviteExists) return NotFound();
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
+            var teamExists = await unitOfWork.userTeamRepository.TeamExists(invite.TeamId);
+            if (!teamExists) return NotFound();
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(invite.TeamId);
+            if (!(team.OwnerId == ownerId)) return Forbid();
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.CompleteAsync();
             return Ok();
         }
     }
