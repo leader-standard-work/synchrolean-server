@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SynchroLean.Core
 {
-    interface IAddUserRequestRepository
+    public interface IAddUserRequestRepository
     {
         /// <summary>
         /// Add a new invitation to the database.
