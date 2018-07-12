@@ -231,6 +231,23 @@ namespace SynchroLean.Controllers
                 });
             return Ok();
         }
+
+        /// <summary>
+        /// Reject a specific invitation for your account
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="ownerId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/reject/{addUserRequestId}/{creatorId}")]
+        public async Task<IActionResult> RejectTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var inviteExists = await unitOfWork.addUserRequestRepository.AddUserRequestExists(addUserRequestId);
+            if (!inviteExists) return NotFound();
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (!(invite.OwnerId == ownerId)) return Forbid();
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            return Ok();
+        }
     }
 }
 
