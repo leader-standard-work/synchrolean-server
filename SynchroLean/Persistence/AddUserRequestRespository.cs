@@ -26,29 +26,52 @@ namespace SynchroLean.Persistence
             return await this.context.AddUserRequests.AnyAsync(request => request.AddUserRequestId == addUserRequestId);
         }
 
-        Task IAddUserRequestRepository.DeleteAddUserRequestAsync(int addUserRequestId)
+        async Task IAddUserRequestRepository.DeleteAddUserRequestAsync(int addUserRequestId)
         {
-            throw new NotImplementedException();
+            var toDelete = await ((IAddUserRequestRepository)this).GetAddUserRequestAsync(addUserRequestId);
+            this.context.AddUserRequests.Remove(toDelete);
         }
 
-        Task<AddUserRequest> IAddUserRequestRepository.GetAddUserRequestAsync(int addUserRequestId)
+        async Task<AddUserRequest> IAddUserRequestRepository.GetAddUserRequestAsync(int addUserRequestId)
         {
-            throw new NotImplementedException();
+            return await
+            (
+                from request in this.context.AddUserRequests
+                where request.AddUserRequestId == addUserRequestId
+                select request
+            ).SingleOrDefaultAsync();
         }
 
-        Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsAsync()
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsAsync()
         {
-            throw new NotImplementedException();
+            return await this.context.AddUserRequests.ToListAsync();
         }
 
-        Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(int ownerId)
         {
-            throw new NotImplementedException();
+            return await
+            (
+                from request in this.context.AddUserRequests
+                where request.Invitee.OwnerId == ownerId && request.IsAuthorized
+                select request
+            ).ToListAsync();
         }
 
-        Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(int ownerId)
         {
-            throw new NotImplementedException();
+            return await
+            (
+                from request in this.context.AddUserRequests
+                join ownedteam in
+                (
+                    from team in this.context.Teams
+                    where team.OwnerId == ownerId
+                    select team
+                )
+                on request.DestinationTeam equals ownedteam
+                where !request.IsAuthorized
+                select request
+            ).ToListAsync();
         }
     }
 }
