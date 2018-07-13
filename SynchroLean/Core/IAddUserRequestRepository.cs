@@ -43,6 +43,13 @@ namespace SynchroLean.Core
         Task<IEnumerable<AddUserRequest>> GetAddUserRequestsPendingAcceptanceAsync(int ownerId);
 
         /// <summary>
+        /// Get all invitations a user has created.
+        /// </summary>
+        /// <param name="ownerId">The key for the user.</param>
+        /// <returns></returns>
+        Task<IEnumerable<AddUserRequest>> GetMySentAddUserRequestsAsync(int ownerId);
+
+        /// <summary>
         /// Check if an invitation exists.
         /// </summary>
         /// <param name="addUserRequestId">The key for the invitation.</param>

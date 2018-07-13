@@ -73,5 +73,15 @@ namespace SynchroLean.Persistence
                 select request
             ).ToListAsync();
         }
+
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetMySentAddUserRequestsAsync(int ownerId)
+        {
+            return await
+            (
+                from request in this.context.AddUserRequests
+                where request.Inviter.OwnerId == ownerId
+                select request
+            ).ToListAsync();
+        }
     }
 }

@@ -311,6 +311,33 @@ namespace SynchroLean.Controllers
             await unitOfWork.CompleteAsync();
             return Ok();
         }
+
+        [HttpGet("invite/incoming/accept/{ownerId}")]
+        public async Task<IActionResult> GetInvitesToAccept(int ownerId)
+        {
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!userExists) return NotFound();
+            var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(ownerId);
+            return Ok(invites);
+        }
+
+        [HttpGet("invite/incoming/authorize/{ownerId}")]
+        public async Task<IActionResult> GetInvitesToAuthorize(int ownerId)
+        {
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!userExists) return NotFound();
+            var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(ownerId);
+            return Ok(invites);
+        }
+
+        [HttpGet("invite/outgoing/{ownerId}")]
+        public async Task<IActionResult> GetCreatedInvites(int ownerId)
+        {
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!userExists) return NotFound();
+            var invites = await unitOfWork.addUserRequestRepository.GetMySentAddUserRequestsAsync(ownerId);
+            return Ok(invites);
+        }
     }
 }
 
