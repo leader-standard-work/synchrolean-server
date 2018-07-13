@@ -42,8 +42,8 @@ namespace SynchroLean.Controllers
             }
 
             // Map resource to model
-            var userTask = new UserTask {
-                Id = userTaskResource.Id,
+            var userTask = new UserTask 
+            {
                 Name = userTaskResource.Name,
                 Description = userTaskResource.Description,
                 IsRecurring = userTaskResource.IsRecurring,
@@ -66,7 +66,8 @@ namespace SynchroLean.Controllers
                 .GetTaskAsync(userTask.Id);
 
             // Map userTask to UserTaskResource
-            var outResource = new UserTaskResource {
+            var outResource = new UserTaskResource 
+            {
                 Id = userTask.Id,
                 Name = userTask.Name,
                 Description = userTask.Description,
@@ -102,7 +103,8 @@ namespace SynchroLean.Controllers
             foreach (var task in tasks)
             {
                 // Create resource from model
-                var resource = new UserTaskResource {
+                var resource = new UserTaskResource 
+                {
                     Id = task.Id,
                     Name = task.Name,
                     Description = task.Description,
