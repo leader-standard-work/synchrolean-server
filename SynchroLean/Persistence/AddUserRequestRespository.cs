@@ -11,7 +11,7 @@ namespace SynchroLean.Persistence
     public class AddUserRequestRespository: IAddUserRequestRepository
     {
         SynchroLeanDbContext context;
-        AddUserRequestRespository(SynchroLeanDbContext context)
+        public AddUserRequestRespository(SynchroLeanDbContext context)
         {
             this.context = context;
         }
