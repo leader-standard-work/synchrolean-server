@@ -312,6 +312,11 @@ namespace SynchroLean.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Get all the pending invites that can be accepted by a given user.
+        /// </summary>
+        /// <param name="ownerId">The id for the user.</param>
+        /// <returns>All invites that the user may accept.</returns>
         [HttpGet("invite/incoming/accept/{ownerId}")]
         public async Task<IActionResult> GetInvitesToAccept(int ownerId)
         {
@@ -321,6 +326,11 @@ namespace SynchroLean.Controllers
             return Ok(invites);
         }
 
+        /// <summary>
+        /// Get all the pending invites a user can authorize.
+        /// </summary>
+        /// <param name="ownerId">The id for the user.</param>
+        /// <returns>All invites that the user may authorize.</returns>
         [HttpGet("invite/incoming/authorize/{ownerId}")]
         public async Task<IActionResult> GetInvitesToAuthorize(int ownerId)
         {
@@ -330,6 +340,11 @@ namespace SynchroLean.Controllers
             return Ok(invites);
         }
 
+        /// <summary>
+        /// Get all the pending invites a user has created and can rescind.
+        /// </summary>
+        /// <param name="ownerId">The id for the user.</param>
+        /// <returns>All invites that the user has created and may rescind.</returns>
         [HttpGet("invite/outgoing/{ownerId}")]
         public async Task<IActionResult> GetCreatedInvites(int ownerId)
         {
