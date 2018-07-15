@@ -215,6 +215,8 @@ namespace SynchroLean.Controllers
             if (!teamExists) return NotFound();
             var creatorExists = await unitOfWork.userAccountRepository.UserAccountExists(creatorId);
             if (!creatorExists) return NotFound();
+            var ownerExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!ownerExists) return NotFound();
             var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
             //TODO: Check if creator is in the team creator is being invited into
             //blocked by the fact that teams aren't implemented yet
