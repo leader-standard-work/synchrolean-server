@@ -69,6 +69,7 @@ namespace SynchroLean.Tests
             {
                 // Assert that UserTasks table contains one entry
                 Assert.Equal(1, context.UserTasks.Count());
+                //output.WriteLine("context.UserTasks.Count() = " + context.UserTasks.Count().ToString());
                 
                 // Bind the context to the UnitOfWork object
                 unitOfWork = new UnitOfWork(context);
