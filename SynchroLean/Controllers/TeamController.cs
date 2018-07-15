@@ -356,6 +356,54 @@ namespace SynchroLean.Controllers
             var invites = await unitOfWork.addUserRequestRepository.GetMySentAddUserRequestsAsync(ownerId);
             return Ok(invites);
         }
+
+        /// <summary>
+        /// Permit a team to see detailed stats on one of a user's teams.
+        /// </summary>
+        /// <param name="ownerId">The user granting permissions.</param>
+        /// <param name="subjectId">The team for which permissions will be granted.</param>
+        /// <param name="objectId">The user's team.</param>
+        /// <returns></returns>
+        [HttpPut("permissions/grant/{objectId}/{subjectId}/{ownerId}")]
+        public async Task<IActionResult> PermitTeamToSee(int ownerId, int subjectId, int objectId)
+        {
+            var ownerExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!ownerExists) return NotFound();
+            var subjectExists = await unitOfWork.userTeamRepository.TeamExists(subjectId);
+            if (!subjectExists) return NotFound();
+            var objectExists = await unitOfWork.userTeamRepository.TeamExists(objectId);
+            if (!objectExists) return NotFound();
+            var owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
+            var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
+            if (ownerId != objectTeam.OwnerId) return Forbid();
+            await unitOfWork.teamPermissionRepository.Permit(subjectId, objectId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Forbid a team from seeing detailed stats on one of a user's teams.
+        /// </summary>
+        /// <param name="ownerId">The user revoking permissions.</param>
+        /// <param name="subjectId">The team for which permissions will be revoking.</param>
+        /// <param name="objectId">The user's team.</param>
+        /// <returns></returns>
+        [HttpPut("permissions/revoke/{objectId}/{subjectId}/{ownerId}")]
+        public async Task<IActionResult> ForbidTeamToSee(int ownerId, int subjectId, int objectId)
+        {
+            var ownerExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!ownerExists) return NotFound();
+            var subjectExists = await unitOfWork.userTeamRepository.TeamExists(subjectId);
+            if (!subjectExists) return NotFound();
+            var objectExists = await unitOfWork.userTeamRepository.TeamExists(objectId);
+            if (!objectExists) return NotFound();
+            var owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
+            var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
+            if (ownerId != objectTeam.OwnerId) return Forbid();
+            await unitOfWork.teamPermissionRepository.Forbid(subjectId, objectId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
     }
 }
 
