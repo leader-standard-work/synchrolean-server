@@ -12,24 +12,24 @@ namespace SynchroLean.Core.Models
         /// The identity of this invitation to a team.
         /// </summary>
         [Key]
-        public int Id { get; set; }
+        public int AddUserRequestId { get; set; }
 
         /// <summary>
         /// Which team the user will be added to.
         /// </summary>
         [Required]
-        public int TeamId { get; set; }
+        public Team DestinationTeam { get; set; }
 
         /// <summary>
         /// Who will join the team.
         /// </summary>
         [Required]
-        public int OwnerId { get; set; }
+        public UserAccount Invitee { get; set; }
 
         /// <summary>
         /// Who sent out the invitation.
         /// </summary>
-        public int CreatorId { get; set; }
+        public UserAccount Inviter { get; set; }
 
         /// <summary>
         /// Check if the owner of the group approved the invitation.

@@ -11,7 +11,7 @@ namespace SynchroLean.Persistence
     public class AddUserRequestRespository: IAddUserRequestRepository
     {
         SynchroLeanDbContext context;
-        AddUserRequestRespository(SynchroLeanDbContext context)
+        public AddUserRequestRespository(SynchroLeanDbContext context)
         {
             this.context = context;
         }
@@ -23,7 +23,7 @@ namespace SynchroLean.Persistence
 
         async Task<bool> IAddUserRequestRepository.AddUserRequestExists(int addUserRequestId)
         {
-            return await this.context.AddUserRequests.AnyAsync(request => request.Id == addUserRequestId);
+            return await this.context.AddUserRequests.AnyAsync(request => request.AddUserRequestId == addUserRequestId);
         }
 
         async Task IAddUserRequestRepository.DeleteAddUserRequestAsync(int addUserRequestId)
@@ -37,7 +37,7 @@ namespace SynchroLean.Persistence
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.Id == addUserRequestId
+                where request.AddUserRequestId == addUserRequestId
                 select request
             ).SingleOrDefaultAsync();
         }
@@ -52,7 +52,7 @@ namespace SynchroLean.Persistence
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.OwnerId == ownerId && request.IsAuthorized
+                where request.Invitee.OwnerId == ownerId && request.IsAuthorized
                 select request
             ).ToListAsync();
         }
@@ -66,10 +66,20 @@ namespace SynchroLean.Persistence
                 (
                     from team in this.context.Teams
                     where team.OwnerId == ownerId
-                    select team.Id
+                    select team
                 )
-                on request.TeamId equals ownedteam
+                on request.DestinationTeam equals ownedteam
                 where !request.IsAuthorized
+                select request
+            ).ToListAsync();
+        }
+
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetMySentAddUserRequestsAsync(int ownerId)
+        {
+            return await
+            (
+                from request in this.context.AddUserRequests
+                where request.Inviter.OwnerId == ownerId
                 select request
             ).ToListAsync();
         }

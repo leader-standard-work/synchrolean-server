@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SynchroLean.Core
 {
-    interface IAddUserRequestRepository
+    public interface IAddUserRequestRepository
     {
         /// <summary>
         /// Add a new invitation to the database.
@@ -41,6 +41,13 @@ namespace SynchroLean.Core
         /// <param name="ownerId">The key for the user.</param>
         /// <returns></returns>
         Task<IEnumerable<AddUserRequest>> GetAddUserRequestsPendingAcceptanceAsync(int ownerId);
+
+        /// <summary>
+        /// Get all invitations a user has created.
+        /// </summary>
+        /// <param name="ownerId">The key for the user.</param>
+        /// <returns></returns>
+        Task<IEnumerable<AddUserRequest>> GetMySentAddUserRequestsAsync(int ownerId);
 
         /// <summary>
         /// Check if an invitation exists.
