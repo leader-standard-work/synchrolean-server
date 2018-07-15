@@ -229,6 +229,7 @@ namespace SynchroLean.Controllers
                     IsAuthorized = creatorIsTeamOwner,
                     DestinationTeam = team
                 });
+            await unitOfWork.CompleteAsync();
             return Ok();
         }
 
