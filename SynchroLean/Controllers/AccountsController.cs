@@ -42,6 +42,7 @@ namespace SynchroLean.Controllers
             // Map account resource to model
             var account = new UserAccount 
             {
+                //OwnerId = userAccountResource.OwnerId
                 TeamId = userAccountResource.TeamId,
                 FirstName = userAccountResource.FirstName,
                 LastName = userAccountResource.LastName,
