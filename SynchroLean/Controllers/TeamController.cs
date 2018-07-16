@@ -317,7 +317,7 @@ namespace SynchroLean.Controllers
             var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             if (!userExists) return NotFound("No such user");
             var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(ownerId);
-            return Ok(invites);
+            return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace SynchroLean.Controllers
             var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             if (!userExists) return NotFound("No such user");
             var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(ownerId);
-            return Ok(invites);
+            return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
         /// <summary>
@@ -345,7 +345,7 @@ namespace SynchroLean.Controllers
             var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             if (!userExists) return NotFound("No such user");
             var invites = await unitOfWork.addUserRequestRepository.GetMySentAddUserRequestsAsync(ownerId);
-            return Ok(invites);
+            return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
         /// <summary>
