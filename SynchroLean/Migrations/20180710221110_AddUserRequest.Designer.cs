@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SynchroLean.Persistence;
 
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    partial class SynchroLeanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180710221110_AddUserRequest")]
+    partial class AddUserRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,19 +59,6 @@ namespace SynchroLean.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Teams");
-                });
-
-            modelBuilder.Entity("SynchroLean.Core.Models.TeamPermission", b =>
-                {
-                    b.Property<int>("SubjectTeamId");
-
-                    b.Property<int>("ObjectTeamId");
-
-                    b.HasKey("SubjectTeamId", "ObjectTeamId");
-
-                    b.HasIndex("ObjectTeamId");
-
-                    b.ToTable("TeamPermissions");
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.UserAccount", b =>
@@ -143,19 +132,6 @@ namespace SynchroLean.Migrations
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Inviter")
                         .WithMany()
                         .HasForeignKey("InviterOwnerId");
-                });
-
-            modelBuilder.Entity("SynchroLean.Core.Models.TeamPermission", b =>
-                {
-                    b.HasOne("SynchroLean.Core.Models.Team", "ObjectTeam")
-                        .WithMany()
-                        .HasForeignKey("ObjectTeamId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SynchroLean.Core.Models.Team", "SubjectTeam")
-                        .WithMany()
-                        .HasForeignKey("SubjectTeamId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

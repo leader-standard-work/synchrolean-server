@@ -7,7 +7,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 
@@ -165,6 +165,199 @@ namespace SynchroLean.Controllers
             
             // Return mapped team resource
             return Ok(_mapper.Map<TeamResource>(team));
+        }
+        /// <summary>
+        /// Create a new invite for a user.
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="creatorId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        // PUT api/team/invite/teamId
+        [HttpPut("invite/{ownerId}/{creatorId}/{teamId}")]
+        public async Task<IActionResult> InviteUserToTeamAsync(int ownerId, int creatorId, int teamId)
+        {
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
+            if (team == null) return NotFound("No such team");
+            //TODO: Check if creator is in the team creator is being invited into
+            //blocked by the fact that teams aren't implemented yet
+            var creatorIsTeamOwner = team.OwnerId == creatorId;
+            var creator = await unitOfWork.userAccountRepository.GetUserAccountAsync(creatorId);
+            if (creator == null) return NotFound("User doesn't exist");
+            var owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
+            if (owner == null) return NotFound("User doesn't exist");
+            await unitOfWork.addUserRequestRepository.AddAsync(
+                new AddUserRequest
+                {
+                    Invitee = owner,
+                    Inviter = creator,
+                    IsAuthorized = creatorIsTeamOwner,
+                    DestinationTeam = team
+                });
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Reject a specific invitation for your account
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="ownerId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/reject/{addUserRequestId}/{creatorId}")]
+        public async Task<IActionResult> RejectTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (invite == null) return NotFound("No such invite");
+            if (!(invite.Invitee.OwnerId == ownerId)) return Forbid();
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Rescind an invitation you gave someone.
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="creatorId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/rescind/{addUserRequestId}/{creatorId}")]
+        public async Task<IActionResult> RescindTeamInvite(int addUserRequestId, int creatorId)
+        {
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (invite == null) return NotFound("No such invite");
+            if (!(invite.Inviter.OwnerId == creatorId)) return Forbid();
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Authorize an invitation by a team member
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="creatorId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/authorize/{addUserRequestId}/{ownerId}")]
+        public async Task<IActionResult> AuthorizeTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (invite == null) return NotFound("No such invite");
+            // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
+            if (team == null) return NotFound("No such team");
+            if (!(team.OwnerId == ownerId)) return Forbid();
+            invite.IsAuthorized = true;
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Veto an invitation by a team member
+        /// </summary>
+        /// <param name="addUserRequestId"></param>
+        /// <param name="creatorId"></param>
+        /// <returns></returns>
+        [HttpPut("invite/veto/{addUserRequestId}/{ownerId}")]
+        public async Task<IActionResult> VetoTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (invite == null) return NotFound("No such invite");
+            // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
+            if (team == null) return NotFound("No such team");
+            if (!(team.OwnerId == ownerId)) return Forbid();
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Get all the pending invites that can be accepted by a given user.
+        /// </summary>
+        /// <param name="ownerId">The id for the user.</param>
+        /// <returns>All invites that the user may accept.</returns>
+        [HttpGet("invite/incoming/accept/{ownerId}")]
+        public async Task<IActionResult> GetInvitesToAccept(int ownerId)
+        {
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!userExists) return NotFound("No such user");
+            var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(ownerId);
+            return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
+        }
+
+        /// <summary>
+        /// Get all the pending invites a user can authorize.
+        /// </summary>
+        /// <param name="ownerId">The id for the user.</param>
+        /// <returns>All invites that the user may authorize.</returns>
+        [HttpGet("invite/incoming/authorize/{ownerId}")]
+        public async Task<IActionResult> GetInvitesToAuthorize(int ownerId)
+        {
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!userExists) return NotFound("No such user");
+            var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(ownerId);
+            return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
+        }
+
+        /// <summary>
+        /// Get all the pending invites a user has created and can rescind.
+        /// </summary>
+        /// <param name="ownerId">The id for the user.</param>
+        /// <returns>All invites that the user has created and may rescind.</returns>
+        [HttpGet("invite/outgoing/{ownerId}")]
+        public async Task<IActionResult> GetCreatedInvites(int ownerId)
+        {
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            if (!userExists) return NotFound("No such user");
+            var invites = await unitOfWork.addUserRequestRepository.GetMySentAddUserRequestsAsync(ownerId);
+            return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
+        }
+
+        /// <summary>
+        /// Permit a team to see detailed stats on one of a user's teams.
+        /// </summary>
+        /// <param name="ownerId">The user granting permissions.</param>
+        /// <param name="subjectId">The team for which permissions will be granted.</param>
+        /// <param name="objectId">The user's team.</param>
+        /// <returns></returns>
+        [HttpPut("permissions/grant/{objectId}/{subjectId}/{ownerId}")]
+        public async Task<IActionResult> PermitTeamToSee(int ownerId, int subjectId, int objectId)
+        {
+            // -- We don't need to actually check who the user is, but if you want to, uncomment this
+            //var ownerExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            //if (!ownerExists) return NotFound("No such user");
+            var subjectExists = await unitOfWork.userTeamRepository.TeamExists(subjectId);
+            if (!subjectExists) return NotFound("No such team (subjectId)");
+            var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
+            if (objectTeam == null) return NotFound("No such team (objectId)");
+            if (ownerId != objectTeam.OwnerId) return Forbid();
+            await unitOfWork.teamPermissionRepository.Permit(subjectId, objectId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Forbid a team from seeing detailed stats on one of a user's teams.
+        /// </summary>
+        /// <param name="ownerId">The user revoking permissions.</param>
+        /// <param name="subjectId">The team for which permissions will be revoking.</param>
+        /// <param name="objectId">The user's team.</param>
+        /// <returns></returns>
+        [HttpPut("permissions/revoke/{objectId}/{subjectId}/{ownerId}")]
+        public async Task<IActionResult> ForbidTeamToSee(int ownerId, int subjectId, int objectId)
+        {
+            // -- We don't need to actually check who the user is, but if you want to, uncomment this
+            //var ownerExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            //if (!ownerExists) return NotFound("No such user");
+            var subjectExists = await unitOfWork.userTeamRepository.TeamExists(subjectId);
+            if (!subjectExists) return NotFound();
+            var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
+            if (objectTeam == null) return NotFound("No such team (objectId)");
+            if (ownerId != objectTeam.OwnerId) return Forbid();
+            await unitOfWork.teamPermissionRepository.Forbid(subjectId, objectId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
         }
     }
 }
