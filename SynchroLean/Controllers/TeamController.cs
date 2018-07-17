@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SynchroLean.Controllers.Resources;
@@ -19,18 +20,19 @@ namespace SynchroLean.Controllers
     public class TeamController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
-
-        public TeamController(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public TeamController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
+        // POST api/team
         /// <summary>
         /// Adds a new team to the Db asynchronously
         /// </summary>
         /// <param name="teamResource"></param>
         /// <returns>A resource of the new team</returns>
-        // POST api/team
         [HttpPost]
         public async Task<IActionResult> AddTeamAsync([FromBody]TeamResource teamResource)
         {
@@ -41,30 +43,17 @@ namespace SynchroLean.Controllers
             }
 
             // Map the team resource to a model
-            var teamModel = new Team
-            {
-                OwnerId = teamResource.OwnerId,
-                TeamName = teamResource.TeamName,
-                TeamDescription = teamResource.TeamDescription
-            };
+            var teamModel = _mapper.Map<Team>(teamResource);
 
             // Add the team to context and save changes
             await unitOfWork.userTeamRepository.AddAsync(teamModel);
             await unitOfWork.CompleteAsync();
 
             // Fetch the newly created team from the DB
-            teamModel = await unitOfWork.userTeamRepository
+            var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamModel.Id);
-
-            // Create resource to serve back to client
-            var outResource = new TeamResource
-            {
-                Id = teamModel.Id,
-                OwnerId = teamModel.OwnerId,
-                TeamName = teamModel.TeamName,
-                TeamDescription = teamModel.TeamDescription
-            };
-            return Ok(outResource); // Return newly created team resource to client
+            
+            return Ok(_mapper.Map<TeamResource>(team)); // Return newly created mapped team resource to client
         }
 
         /// <summary>
@@ -89,16 +78,9 @@ namespace SynchroLean.Controllers
             // Map each team to a resource
             foreach (var team in teams)
             { 
-                var rTeam = new TeamResource
-                {
-                    Id = team.Id,
-                    OwnerId = team.OwnerId,
-                    TeamName = team.TeamName,
-                    TeamDescription = team.TeamDescription
-                };
-                // Add resource to collection
-                resourceTeams.Add(rTeam);
+                resourceTeams.Add(_mapper.Map<TeamResource>(team));
             }
+
             return Ok(resourceTeams); // Return the collection of team resources
         }
 
@@ -121,18 +103,11 @@ namespace SynchroLean.Controllers
             {
                 return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
-
-            // Team was found so map that team to a team resource
-            var teamResource = new TeamResource
-            {
-                Id = team.Id,
-                OwnerId = team.OwnerId,
-                TeamName = team.TeamName,
-                TeamDescription = team.TeamDescription
-            };
-            return Ok(teamResource); // Return team to client
+           
+            return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
         }
 
+        // PUT api/team/ownerId/teamId
         /// <summary>
         /// Updates an existing team in the Db
         /// </summary>
@@ -140,7 +115,6 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"></param>
         /// <param name="teamResource"></param>
         /// <returns>A resource of updated team</returns>
-        // PUT api/team/ownerId/teamId
         [HttpPut("{ownerId}/{teamId}")]
         public async Task<IActionResult> UpdateUserTeamAsync(int ownerId, int teamId, [FromBody]TeamResource teamResource)
         {
@@ -188,17 +162,9 @@ namespace SynchroLean.Controllers
 
             // Save updated team to database
             await unitOfWork.CompleteAsync();
-
-            // Map team to TeamResource
-            var outResource = new TeamResource
-            {
-                Id = team.Id,
-                TeamName = team.TeamName,
-                TeamDescription = team.TeamDescription,
-                OwnerId = team.OwnerId
-            };
             
-            return Ok(outResource);
+            // Return mapped team resource
+            return Ok(_mapper.Map<TeamResource>(team));
         }
         /// <summary>
         /// Create a new invite for a user.
