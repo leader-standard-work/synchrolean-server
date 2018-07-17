@@ -1,4 +1,4 @@
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 using SynchroLean.Controllers.Resources;
 
 namespace SynchroLean.Profile

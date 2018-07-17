@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SynchroLean.Controllers.Resources;
-using SynchroLean.Models;
+using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 using SynchroLean.Profile;
