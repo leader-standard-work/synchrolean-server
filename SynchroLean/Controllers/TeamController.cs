@@ -52,7 +52,7 @@ namespace SynchroLean.Controllers
             // Fetch the newly created team from the DB
             var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamModel.Id);
-            
+
             return Ok(_mapper.Map<TeamResource>(team)); // Return newly created mapped team resource to client
         }
 
@@ -77,7 +77,7 @@ namespace SynchroLean.Controllers
 
             // Map each team to a resource
             foreach (var team in teams)
-            { 
+            {
                 resourceTeams.Add(_mapper.Map<TeamResource>(team));
             }
 
@@ -103,8 +103,30 @@ namespace SynchroLean.Controllers
             {
                 return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
-           
+
             return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
+        }
+
+        /// <summary>
+        /// Get a list of all members for a team.
+        /// </summary>
+        /// <param name="teamId">The team for which to get members.</param>
+        /// <returns></returns>
+        [HttpGet("members/{teamId}")]
+        public async Task<IActionResult> GetTeamMembers(int teamId)
+        {
+            // Get the team for the currently logged in user
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
+
+            // Check to see if a team corresponding to the given team id was found
+            if (team == null)
+            {
+                return NotFound("Couldn't find a team matching that id."); // Team wasn't found
+            }
+
+            var teamMembers = await unitOfWork.teamMemberRepository.GetAllUsersForTeam(teamId);
+            return Ok(teamMembers.Select(member => _mapper.Map<UserAccountResource>(member)));
         }
 
         // PUT api/team/ownerId/teamId
@@ -128,7 +150,7 @@ namespace SynchroLean.Controllers
                 .GetUserAccountAsync(ownerId);
 
             // Return not found exception if account doesn't exist
-            if(account == null)
+            if (account == null)
             {
                 return NotFound("Couldn't find an account matching that ownerId.");
             }
@@ -144,10 +166,10 @@ namespace SynchroLean.Controllers
             }
 
             // Validates team belongs to correct user
-            if(team.OwnerId != account.OwnerId)
+            if (team.OwnerId != account.OwnerId)
             {
                 return BadRequest("prohibited user does not have edit rights");
-            } 
+            }
 
             // Map resource to model
             team.TeamName = teamResource.TeamName;
@@ -155,14 +177,14 @@ namespace SynchroLean.Controllers
             team.OwnerId = teamResource.OwnerId; // Should we really be changing the owner id?
 
             //this stops default edit team from giving teams to user 0
-            if(team.OwnerId == 0)
+            if (team.OwnerId == 0)
             {
                 team.OwnerId = ownerId;
             }
 
             // Save updated team to database
             await unitOfWork.CompleteAsync();
-            
+
             // Return mapped team resource
             return Ok(_mapper.Map<TeamResource>(team));
         }
@@ -194,6 +216,24 @@ namespace SynchroLean.Controllers
                     IsAuthorized = creatorIsTeamOwner,
                     DestinationTeam = team
                 });
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Accept a user's authorized invite.
+        /// </summary>
+        /// <param name="addUserRequestId">The invite being accepted.</param>
+        /// <param name="ownerId">The user accepting the invite.</param>
+        /// <returns></returns>
+        [HttpPut("invite/accept/{addUserRequestId}/{creatorId}")]
+        public async Task<IActionResult> AcceptTeamInvite(int addUserRequestId, int ownerId)
+        {
+            var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            if (invite == null) return NotFound("No such invite");
+            if (!(invite.Invitee.OwnerId == ownerId)) return Forbid();
+            await unitOfWork.teamMemberRepository.AddUserToTeam(invite.DestinationTeam.Id, invite.Invitee.OwnerId);
+            await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
             return Ok();
         }
@@ -359,6 +399,7 @@ namespace SynchroLean.Controllers
             await unitOfWork.CompleteAsync();
             return Ok();
         }
+
     }
 }
 

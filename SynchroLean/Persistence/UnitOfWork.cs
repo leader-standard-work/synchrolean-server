@@ -22,7 +22,7 @@ namespace SynchroLean.Persistence
         public IUserTeamRepository userTeamRepository { get; }
         public IAddUserRequestRepository addUserRequestRepository { get; }
         public ITeamPermissionRepository teamPermissionRepository { get; }
-
+        public ITeamMemberRepository teamMemberRepository { get; }
         public UnitOfWork(SynchroLeanDbContext context)
         {
             this.context = context;
@@ -31,6 +31,7 @@ namespace SynchroLean.Persistence
             userTeamRepository = new UserTeamRepository(context);
             addUserRequestRepository = new AddUserRequestRespository(context);
             teamPermissionRepository = new TeamPermissionRepository(context);
+            teamMemberRepository = new TeamMemberRepository(context);
         }
 
         public async Task CompleteAsync()

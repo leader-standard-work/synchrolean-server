@@ -12,6 +12,7 @@ namespace SynchroLean.Core
         IUserTaskRepository userTaskRepository { get; }
         IAddUserRequestRepository addUserRequestRepository { get; }
         ITeamPermissionRepository teamPermissionRepository { get; }
+        ITeamMemberRepository teamMemberRepository { get; }
         Task CompleteAsync();
     }
 }

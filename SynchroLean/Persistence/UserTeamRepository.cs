@@ -45,6 +45,7 @@ namespace SynchroLean.Persistence
         public async Task AddAsync(Team team)
         {
             await context.Teams.AddAsync(team);
+            await context.TeamMembers.AddAsync(new TeamMember { TeamId = team.Id, MemberId = team.OwnerId });
         }
 
         /// <summary>

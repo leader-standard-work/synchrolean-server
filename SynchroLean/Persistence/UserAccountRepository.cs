@@ -29,18 +29,6 @@ namespace SynchroLean.Persistence
         }
 
         /// <summary>
-        /// Retrieves a teams UserAccounts from the database
-        /// </summary>
-        /// <param name="teamId">The key to identify the team</param>
-        /// <returns>A list of UserAccounts for the given team id</returns>
-        public async Task<IEnumerable<UserAccount>> GetTeamAccountsAsync(int teamId)
-        {
-            return await context.UserAccounts
-                .Where(ua => ua.TeamId.Equals(teamId))
-                .ToListAsync();
-        }
-
-        /// <summary>
         /// Adds a UserAccount to the database
         /// </summary>
         /// <param name="account">Account to be added</param>
