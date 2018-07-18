@@ -43,13 +43,13 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="objectId">The id of the object team.</param>
         /// <returns>The ids of all subject teams that can see the object team.</returns>
-        Task<IEnumerable<int>> GetTeamsThatCanSee(int objectId);
+        Task<IEnumerable<Team>> GetTeamsThatCanSee(int objectId);
 
         /// <summary>
         /// Get all the teams which the input team can see.
         /// </summary>
         /// <param name="subjectId">The id of the subject team.</param>
         /// <returns>The ids of all object teams that the subject team can see.</returns>
-        Task<IEnumerable<int>> GetTeamsThatItSees(int subjectId);
+        Task<IEnumerable<Team>> GetTeamsThatItSees(int subjectId);
     }
 }
