@@ -107,6 +107,28 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
         }
 
+        /// <summary>
+        /// Get a list of all members for a team.
+        /// </summary>
+        /// <param name="teamId">The team for which to get members.</param>
+        /// <returns></returns>
+        [HttpGet("members/{teamId}")]
+        public async Task<IActionResult> GetTeamMembers(int teamId)
+        {
+            // Get the team for the currently logged in user
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
+
+            // Check to see if a team corresponding to the given team id was found
+            if (team == null)
+            {
+                return NotFound("Couldn't find a team matching that id."); // Team wasn't found
+            }
+
+            var teamMembers = await unitOfWork.teamMemberRepository.GetAllUserIdsForTeam(teamId);
+            return Ok(teamMembers);
+        }
+
         // PUT api/team/ownerId/teamId
         /// <summary>
         /// Updates an existing team in the Db
