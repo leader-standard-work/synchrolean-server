@@ -31,21 +31,21 @@ namespace SynchroLean.Persistence
             return await context.TeamPermissions.ToListAsync();
         }
 
-        async Task<IEnumerable<int>> ITeamPermissionRepository.GetTeamsThatCanSee(int objectId)
+        async Task<IEnumerable<Team>> ITeamPermissionRepository.GetTeamsThatCanSee(int objectId)
         {
             return await (
                 from permissionRelation in context.TeamPermissions
                 where permissionRelation.ObjectTeamId == objectId
-                select permissionRelation.SubjectTeamId
+                select permissionRelation.SubjectTeam
                 ).ToListAsync();
         }
 
-        async Task<IEnumerable<int>> ITeamPermissionRepository.GetTeamsThatItSees(int subjectId)
+        async Task<IEnumerable<Team>> ITeamPermissionRepository.GetTeamsThatItSees(int subjectId)
         {
             return await(
                 from permissionRelation in context.TeamPermissions
                 where permissionRelation.SubjectTeamId == subjectId
-                select permissionRelation.ObjectTeamId
+                select permissionRelation.ObjectTeam
                 ).ToListAsync();
         }
 
