@@ -153,5 +153,26 @@ namespace SynchroLean.Controllers
             // Return mapped resource
             return Ok(_mapper.Map<UserAccountResource>(account));
         }
+
+        /// <summary>
+        /// Get all the teams a user is on.
+        /// </summary>
+        /// <param name="ownerId">The user for which to get teams for.</param>
+        /// <returns></returns>
+        [HttpGet("teams/{ownerId}")]
+        public async Task<IActionResult> GetTeamsForAccount(int ownerId)
+        {
+            // Check if user exists
+            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+
+            // No account matches ownerId
+            if (!userExists)
+            {
+                return NotFound("No account found matching that ownerId.");
+            }
+
+            var teams = await unitOfWork.teamMemberRepository.GetAllTeamsForUser(ownerId);
+            return Ok(teams.Select(team => _mapper.Map<TeamResource>(team)));
+        }
     }
 }

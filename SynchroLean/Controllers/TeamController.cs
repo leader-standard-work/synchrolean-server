@@ -125,8 +125,8 @@ namespace SynchroLean.Controllers
                 return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
 
-            var teamMembers = await unitOfWork.teamMemberRepository.GetAllUserIdsForTeam(teamId);
-            return Ok(teamMembers);
+            var teamMembers = await unitOfWork.teamMemberRepository.GetAllUsersForTeam(teamId);
+            return Ok(teamMembers.Select(member => _mapper.Map<UserAccountResource>(member)));
         }
 
         // PUT api/team/ownerId/teamId

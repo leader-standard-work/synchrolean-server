@@ -42,7 +42,7 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="teamId">The team that the users are a part of.</param>
         /// <returns>A list of all users in the team.</returns>
-        Task<IEnumerable<UserAccount>> GetAllUserIdsForTeam(int teamId);
+        Task<IEnumerable<UserAccount>> GetAllUsersForTeam(int teamId);
 
         /// <summary>
         /// Test if a user is in a team.

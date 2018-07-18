@@ -36,7 +36,7 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
         }
 
-        async Task<IEnumerable<UserAccount>> ITeamMemberRepository.GetAllUserIdsForTeam(int teamId)
+        async Task<IEnumerable<UserAccount>> ITeamMemberRepository.GetAllUsersForTeam(int teamId)
         {
             return await
                 (
