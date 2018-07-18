@@ -11,6 +11,7 @@ namespace SynchroLean.Persistence
         public DbSet<UserAccount> UserAccounts { get; set; }
         public DbSet<AddUserRequest> AddUserRequests { get; set; }
         public DbSet<TeamPermission> TeamPermissions { get; set; }
+        public DbSet<TeamMember> TeamMembers { get; set; }
         public SynchroLeanDbContext(DbContextOptions<SynchroLeanDbContext> options) : base(options)
         {
 
@@ -19,6 +20,7 @@ namespace SynchroLean.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TeamPermission>().HasKey(perm => new { perm.SubjectTeamId, perm.ObjectTeamId });
+            modelBuilder.Entity<TeamMember>().HasKey(member => new { member.TeamId, member.MemberId });
         }
     }
 }
