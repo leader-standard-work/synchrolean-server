@@ -9,8 +9,8 @@ namespace SynchroLean.Controllers.Resources
     {
         /// <value>Gets and sets user id number</value>
         public int OwnerId { get; set; }
-        /// <value>Gets and sets team id number of user</value>
-        public int TeamId { get; set; }
+        // /// <value>Gets and sets team id number of user</value>
+        // public int TeamId { get; set; }
         /// <value>Gets and sets user first name</value>
         public string FirstName { get; set; }
         /// <value>Gets and sets user last name</value>

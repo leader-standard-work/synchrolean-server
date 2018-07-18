@@ -77,9 +77,9 @@ namespace SynchroLean.Persistence
             var teamTasks = await
             (
                 from task in context.UserTasks
-                join member in (from user in context.UserAccounts
-                                where user.TeamId.Equals(teamId)
-                                select user.OwnerId
+                join member in (from member in context.TeamMembers
+                                where member.TeamId == teamId
+                                select member.MemberId
                                )
                 on task.OwnerId equals member
                 select task.IsCompleted ? 1.0 : 0.0

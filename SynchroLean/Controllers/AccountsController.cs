@@ -142,7 +142,6 @@ namespace SynchroLean.Controllers
 
             // See UserTask PUT for issue of mapping back to UserAccountResource
             // Map account resource to model
-            account.TeamId = userAccountResource.TeamId;
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
             account.Email = userAccountResource.Email;

@@ -35,9 +35,11 @@ namespace SynchroLean.Persistence
         /// <returns>A list of UserAccounts for the given team id</returns>
         public async Task<IEnumerable<UserAccount>> GetTeamAccountsAsync(int teamId)
         {
-            return await context.UserAccounts
-                .Where(ua => ua.TeamId.Equals(teamId))
-                .ToListAsync();
+            return await (
+                from member in context.TeamMembers
+                where member.TeamId == teamId
+                select member.Member
+                ).ToListAsync();
         }
 
         /// <summary>

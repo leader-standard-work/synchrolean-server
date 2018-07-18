@@ -12,6 +12,7 @@ namespace SynchroLean.Core.Models
         /// <value>Gets and sets user id number</value>
         public int OwnerId { get; set; }
         /// <value>Gets and sets team id number of user</value>
+        [Obsolete]
         public int TeamId { get; set; }
         /// <value>Gets and sets user first name</value>
         [Required]

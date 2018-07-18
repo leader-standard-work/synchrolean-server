@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SynchroLean.Core
 {
-    interface ITeamMemberRepository
+    public interface ITeamMemberRepository
     {
         /// <summary>
         /// Add a user into a team.
@@ -35,13 +35,29 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="userId">The user in the teams.</param>
         /// <returns>All teams that the user belongs to.</returns>
-        Task<IEnumerable<int>> GetAllTeamIdsForUser(int userId);
+        Task<IEnumerable<Team>> GetAllTeamsForUser(int userId);
 
         /// <summary>
         /// Get all the users in a team.
         /// </summary>
         /// <param name="teamId">The team that the users are a part of.</param>
         /// <returns>A list of all users in the team.</returns>
-        Task<IEnumerable<int>> GetAllUserIdsForTeam(int teamId);
+        Task<IEnumerable<UserAccount>> GetAllUserIdsForTeam(int teamId);
+
+        /// <summary>
+        /// Test if a user is in a team.
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<bool> UserIsInTeam(int teamId, int userId);
+
+        /// <summary>
+        /// Transfer ownership of a team to a new team member.
+        /// </summary>
+        /// <param name="teamId">The team whose ownership will be changed.</param>
+        /// <param name="newOwnerId">The new owner of the team.</param>
+        /// <returns></returns>
+        Task ChangeTeamOwnership(int teamId, int newOwnerId);
     }
 }
