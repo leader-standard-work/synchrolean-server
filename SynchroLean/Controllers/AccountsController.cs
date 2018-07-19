@@ -82,38 +82,6 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
-        // GET api/accounts/{teamId}
-        /// <summary>
-        /// Retrieves specified team accounts from UserAccount table in Db
-        /// </summary>
-        /// <returns>List of team accounts from UserAccount</returns>
-        [HttpGet("member/{teamId}")]
-        public async Task<IActionResult> GetTeamAccountsAsync(int teamId)
-        {
-            // Fetch all accounts from the DB asyncronously
-            var accounts = await unitOfWork.userAccountRepository
-                .GetTeamAccountsAsync(teamId);
-
-            // Return error if no team exists
-            if(accounts.Count() == 0)
-            {
-                return NotFound("No accounts in this team.");
-            }
-
-            // List of corresponding accounts as resources
-            var outResources = new List<UserAccountResource>();
-
-            // Retrive accounts from database
-            foreach (var account in accounts)
-            {
-                // Map account model to resource
-                outResources.Add(_mapper.Map<UserAccountResource>(account));
-            }
-            
-            // Return account resources
-            return Ok(outResources);
-        }
-
         // PUT api/accounts/{ownerId}
         /// <summary>
         /// Updates an existing account in Db
