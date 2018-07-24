@@ -17,11 +17,6 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        /// <summary>
-        /// Retrieves a user's UserTasks from the database
-        /// </summary>
-        /// <param name="ownerId">The key to identify the owner</param>
-        /// <returns>A list of UserTasks for the owner</returns>
         public async Task<IEnumerable<UserTask>> GetTasksAsync(int ownerId)
         {
             return await context.UserTasks
@@ -29,11 +24,6 @@ namespace SynchroLean.Persistence
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Retrieves a UserTask from the database
-        /// </summary>
-        /// <param name="taskId">The key of the UserTask</param>
-        /// <returns>The UserTask fetched from the database</returns>
         public async Task<UserTask> GetTaskAsync(int taskId)
         {
             return await context.UserTasks
@@ -41,11 +31,6 @@ namespace SynchroLean.Persistence
                 .SingleOrDefaultAsync();
         }
 
-        /// <summary>
-        /// Get the completion rate for a user
-        /// </summary>
-        /// <param name="ownerId">The key to identify the owner</param>
-        /// <returns>The proportion (between 0 and 1) of tasks completed</returns>
         public async Task<Double> GetUserCompletionRate(int ownerId)
         {
             var userTasks = await context.UserTasks
@@ -67,11 +52,6 @@ namespace SynchroLean.Persistence
             }
         }
 
-        /// <summary>
-        /// Get the completion rate for a team
-        /// </summary>
-        /// <param name="teamId">The key to identify the team</param>
-        /// <returns>The proportion (between 0 and 1) of tasks completed</returns>
         public async Task<Double> GetTeamCompletionRate(int teamId)
         {
             var teamTasks = await
@@ -95,11 +75,6 @@ namespace SynchroLean.Persistence
             }
         }
 
-        /// <summary>
-        /// Adds a UserTask to the database
-        /// </summary>
-        /// <param name="userTask">UserTask to be added</param>
-        /// <returns></returns>
         public async Task AddAsync(UserTask userTask)
         {
             await context.UserTasks.AddAsync(userTask);
