@@ -28,6 +28,12 @@ namespace SynchroLean.Persistence
                 .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(ownerId));
         }
 
+        public async Task<UserAccount> GetUserAccountByEmailAsync(string emailAddress)
+        {
+            return await context.UserAccounts
+                .SingleOrDefaultAsync(ua => ua.Email.Trim().ToLower().Equals(emailAddress.Trim().ToLower()));
+        }
+
         /// <summary>
         /// Adds a UserAccount to the database
         /// </summary>

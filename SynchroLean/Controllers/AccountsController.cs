@@ -82,6 +82,30 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
+        // GET api/accounts/owner/{emailAddress}
+        /// <summary>
+        /// Retrieves a UserAccount with the specified email address
+        /// </summary>
+        /// <param name="emailAddress">The email address of the user being searched for</param>
+        /// <returns>User account from Db</returns>
+        [HttpGet("{emailAddress}")]
+        public async Task<IActionResult> GetAccountByEmailAsync(string emailAddress)
+        {
+            // Fetch account of ownerId
+            var account = await unitOfWork.userAccountRepository
+                .GetUserAccountByEmailAsync(emailAddress);
+
+            // Return error if account doesn't exist
+            // I imagine we'll need to move IsDeleted later if user wants to reactivate account
+            if(account == null || account.IsDeleted)
+            {
+                return NotFound("Account could not be found.");
+            }
+
+            // Return mapped account resource
+            return Ok(_mapper.Map<UserAccountResource>(account));
+        }
+
         // PUT api/accounts/{ownerId}
         /// <summary>
         /// Updates an existing account in Db
