@@ -322,5 +322,119 @@ namespace SynchroLean.Tests
                 connection.Close();
             }
         }
+
+        [Fact]
+        public async void GetUserMetricsTestAsync()
+        {
+            // In-memory database only exists while the connection is open
+            var connection = new SqliteConnection("DataSource=:memory:");
+            connection.Open();
+
+            try
+            {
+                IUnitOfWork unitOfWork;
+                TasksController taskController;
+                AccountsController accountController;
+                DateTime startDate;
+
+                var options = new DbContextOptionsBuilder<SynchroLeanDbContext>()
+                    .UseSqlite(connection)
+                    .Options;
+
+                // Create the schema in the database
+                using (var context = new SynchroLeanDbContext(options))
+                {
+                    context.Database.EnsureCreated();
+                }
+
+                // Create a newUserTask to send to HTTPPost method (without dates)
+                var newUserTask1 = new UserTaskResource {
+                    Name = "User metrics",
+                    Description = "Modify metrics endpoints to accept DateTimes",
+                    IsRecurring = true,
+                    Weekdays = 40,
+                    CreationDate = DateTime.Now,
+                    IsCompleted = false,
+                    IsRemoved = false,
+                    OwnerId = 1
+                };
+
+                // Create a newUserTask to send to HTTPPost method (without dates)
+                var newUserTask2 = new UserTaskResource {
+                    Name = "User metrics",
+                    Description = "complete this to have 50% completion rate",
+                    IsRecurring = true,
+                    Weekdays = 0,
+                    CreationDate = DateTime.Now,
+                    IsCompleted = false,
+                    IsRemoved = false,
+                    OwnerId = 1
+                };
+
+                var account = new UserAccountResource {
+                    FirstName = "Cole",
+                    LastName = "Phares",
+                    Email = "cophares@pdx.edu",
+                    IsDeleted = false
+                };
+                
+                // Run the test against one instance of the context
+                using (var context = new SynchroLeanDbContext(options))
+                { 
+                    // Bind the context to the UnitOfWork object
+                    unitOfWork = new UnitOfWork(context);
+
+                    // Create an instance of TasksController
+                    taskController = new TasksController(unitOfWork, mapper);
+
+                    // Create an instance of AccountsController
+                    accountController = new AccountsController(unitOfWork, mapper);
+
+                    await accountController.AddUserAccountAsync(account);
+
+                    // Add newUserTask to UserTasks table in Db asynchronously
+                    await taskController.AddUserTaskAsync(newUserTask1);
+                    await taskController.AddUserTaskAsync(newUserTask2);
+                    
+                    startDate = DateTime.Now;
+                    
+                    await taskController.EditUserTaskAsync(1, 2, 
+                        new UserTaskResource {
+                            Name = "User metrics",
+                            Description = "complete this to have 50% completion rate",
+                            IsRecurring = true,
+                            Weekdays = 0,
+                            IsCompleted = true,
+                            IsRemoved = false,
+                        }
+                    );
+                }
+
+                // Use a separate instance of the context to verify correct data was saved to database
+                using (var context = new SynchroLeanDbContext(options))
+                {
+
+                    // Bind the Db context to the UnitOfWork object
+                    unitOfWork = new UnitOfWork(context);
+
+                    // Create new instance of task controller
+                    taskController = new TasksController(unitOfWork, mapper);
+
+                    DateTime endDate = DateTime.Now;
+
+                    // Retrieve the task from the Db asynchronously
+                    var completionRateResult = taskController.GetUserCompletionRate(1, startDate, endDate);
+                    var actionResult = completionRateResult.Result;
+                    var okObjectResult = actionResult as OkObjectResult;
+                    var completionRate = okObjectResult.Value as Double?;
+
+                    Assert.True(completionRate.Equals(.5));
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
     }
 }

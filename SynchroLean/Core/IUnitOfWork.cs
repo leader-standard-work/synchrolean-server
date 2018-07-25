@@ -13,6 +13,7 @@ namespace SynchroLean.Core
         IAddUserRequestRepository addUserRequestRepository { get; }
         ITeamPermissionRepository teamPermissionRepository { get; }
         ITeamMemberRepository teamMemberRepository { get; }
+        ICompletionLogEntryRepository completionLogEntryRepository { get; }
 
         /// <summary>
         /// Saves changes to Db context asynchronously

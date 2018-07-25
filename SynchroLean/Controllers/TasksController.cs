@@ -86,7 +86,6 @@ namespace SynchroLean.Controllers
         }
 
         // PUT api/tasks/{ownerId}/{taskId}
-        // PUT api/tasks/ownerId/taskId
         /// <summary>
         /// Updates a users task
         /// </summary>
@@ -133,19 +132,32 @@ namespace SynchroLean.Controllers
             // This doesn't work but I'm trying to do something along this line
             //task = _mapper.Map<UserTask>(userTaskResource);
 
-            // Map resource to model
-            task.Name = userTaskResource.Name;
-            task.Description = userTaskResource.Description;
-            task.IsRecurring = userTaskResource.IsRecurring;
-            task.Weekdays = userTaskResource.Weekdays;
-            if (!task.IsCompleted && userTaskResource.IsCompleted) {
-                // We'll need to think about timezones here
-                task.CompletionDate = DateTime.Now;
+            if(userTaskResource.IsCompleted)
+            {
+                CompletionLogEntry logEntry = new CompletionLogEntry();
+                logEntry.TaskId = taskId;
+                logEntry.Task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
+                logEntry.OwnerId = ownerId;
+                logEntry.Owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
+                logEntry.EntryTime = DateTime.Now;
+                logEntry.IsCompleted = userTaskResource.IsCompleted;
+
+                await unitOfWork.completionLogEntryRepository.AddLogEntryAsync(logEntry, logEntry.IsCompleted);
+            } else 
+            {
+                // Map resource to model
+                task.Name = userTaskResource.Name;
+                task.Description = userTaskResource.Description;
+                task.IsRecurring = userTaskResource.IsRecurring;
+                task.Weekdays = userTaskResource.Weekdays;
+                if (!task.IsCompleted && userTaskResource.IsCompleted) {
+                    // We'll need to think about timezones here
+                    task.CompletionDate = DateTime.Now;
+                }
+                task.IsCompleted = userTaskResource.IsCompleted;
+                task.IsRemoved = userTaskResource.IsRemoved;
+                task.OwnerId = userTaskResource.OwnerId;
             }
-            task.IsCompleted = userTaskResource.IsCompleted;
-            task.IsRemoved = userTaskResource.IsRemoved;
-            task.OwnerId = userTaskResource.OwnerId;
-            
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 
@@ -159,8 +171,8 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/user/{ownerId}")]
-        public async Task<IActionResult> GetUserCompletionRate(int ownerId)
+        [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}")]
+        public async Task<IActionResult> GetUserCompletionRate(int ownerId, DateTime startDate, DateTime endDate)
         {
             //Check if user exists
             var userExists = await unitOfWork.userAccountRepository
@@ -168,7 +180,8 @@ namespace SynchroLean.Controllers
             //User doesn't exist
             if (!userExists) return NotFound("Couldn't find user.");
             //User exists
-            Double completionRate = await unitOfWork.userTaskRepository.GetUserCompletionRate(ownerId);
+            //Double completionRate = await unitOfWork.userTaskRepository.GetUserCompletionRate(ownerId);
+            Double completionRate = await unitOfWork.completionLogEntryRepository.GetUserCompletionRate(ownerId, startDate, endDate);
             return Ok(completionRate);
         }
 
@@ -177,8 +190,8 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="id">The key to identify the team.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/team/{Id}")]
-        public async Task<IActionResult> GetTeamCompletionRate(int id)
+        [HttpGet("metrics/team/{id}/{startDate}/{endDate}")]
+        public async Task<IActionResult> GetTeamCompletionRate(int id, DateTime startDate, DateTime endDate)
         {
 
             //Check if team exists
@@ -188,7 +201,8 @@ namespace SynchroLean.Controllers
             //Team doesn't exist
             if (!teamExists) return NotFound();
             //Team does exist
-            Double completionRate = await unitOfWork.userTaskRepository.GetTeamCompletionRate(id);
+            //Double completionRate = await unitOfWork.userTaskRepository.GetTeamCompletionRate(id);
+            Double completionRate = await unitOfWork.completionLogEntryRepository.GetTeamCompletionRate(id, startDate, endDate);
             return Ok(completionRate);
         }
     }
