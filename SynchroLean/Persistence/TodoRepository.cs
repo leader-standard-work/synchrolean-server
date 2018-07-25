@@ -17,35 +17,36 @@ namespace SynchroLean.Persistence
         {
             this.context = context;
         }
-        public async Task AddTodoTaskAsync(int ownerId, DateTime expires, UserTask userTask)
-        {
-            Todo todoTask = new Todo {
-                TaskId = userTask.Id,
-                Task = userTask,
-                OwnerId = ownerId,
-                Owner = await context.UserAccounts
-                        .Where(ua => ua.OwnerId.Equals(userTask.Id))
-                        .SingleOrDefaultAsync(),
-                Completed = null,
-                Expires = expires
-            };
 
-            await context.Todos.AddAsync(todoTask);
+        public async Task AddTodoTaskAsync(Todo todo)
+        {
+            await context.Todos.AddAsync(todo);
         }
 
-        public Task<bool> CompleteTask(int ownerId, int taskId)
+        public async Task<Todo> GetTodoAsync(int taskid)
         {
-            throw new NotImplementedException();
+            return await context.Todos
+                .SingleOrDefaultAsync(td => td.TaskId.Equals(taskid));
         }
 
-        public Task<IEnumerable<Todo>> EditTodoTask(int ownerId, int taskId)
+        public async Task RemoveTodoTaskAsync(int taskId)
         {
-            throw new NotImplementedException();
+            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Task.Equals(taskId));
+            if(todo == null){ return; }
+            context.Remove(new Todo { TaskId = taskId});
         }
 
-        public Task<IEnumerable<Todo>> RemoveTodoTask(int ownerId, int taskId)
+        public async Task CompleteTaskAsync(int taskId)
         {
-            throw new NotImplementedException();
+            var todo = await context.Todos.SingleOrDefaultAsync(td => td.TaskId.Equals(taskId));
+            if(todo == null){ return; }
+            todo.Completed = DateTime.Now;
+        }
+
+        public async Task TodoMissAsync(int taskId)
+        {
+            var todo = await context.Todos.SingleOrDefaultAsync(td => td.TaskId.Equals(taskId));
+            if(todo == null){ return; }
         }
     }
 }

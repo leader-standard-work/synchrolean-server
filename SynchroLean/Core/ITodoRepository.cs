@@ -8,21 +8,21 @@ namespace SynchroLean.Core {
     public interface ITodoRepository
     {
         // add
-        Task AddTodoTaskAsync(int ownerId, DateTime expires, UserTask UserTask);
+        Task AddTodoTaskAsync(Todo todo);
 
-        // update
-        Task<IEnumerable<Todo>> EditTodoTask(int ownerId, int taskId);
+        // get todo
+        Task<Todo> GetTodoAsync(int taskId);
 
         // remove
-        Task<IEnumerable<Todo>> RemoveTodoTask(int ownerId, int taskId);
+        Task RemoveTodoTaskAsync(int taskId);
 
         // completed
-        Task<bool> CompleteTask(int ownerId, int taskId);
+        Task CompleteTaskAsync(int taskId);
 
         // inverse of complete??
 
 
         // miss
-
+        Task TodoMissAsync(int taskId);
     }
 }

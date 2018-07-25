@@ -180,7 +180,6 @@ namespace SynchroLean.Controllers
             //User doesn't exist
             if (!userExists) return NotFound("Couldn't find user.");
             //User exists
-            //Double completionRate = await unitOfWork.userTaskRepository.GetUserCompletionRate(ownerId);
             Double completionRate = await unitOfWork.completionLogEntryRepository.GetUserCompletionRate(ownerId, startDate, endDate);
             return Ok(completionRate);
         }
@@ -201,7 +200,6 @@ namespace SynchroLean.Controllers
             //Team doesn't exist
             if (!teamExists) return NotFound();
             //Team does exist
-            //Double completionRate = await unitOfWork.userTaskRepository.GetTeamCompletionRate(id);
             Double completionRate = await unitOfWork.completionLogEntryRepository.GetTeamCompletionRate(id, startDate, endDate);
             return Ok(completionRate);
         }
