@@ -6,7 +6,6 @@ namespace SynchroLean.Core.Models
 {
     public class CompletionLogEntry
     {
-        
         public int TaskId { get; set; }
         [ForeignKey("TaskId")]
         public UserTask Task { get; set; }
