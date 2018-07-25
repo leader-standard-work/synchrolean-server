@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using System.Threading.Tasks;
 
 namespace SynchroLean.Persistence
@@ -17,6 +18,7 @@ namespace SynchroLean.Persistence
          * than exposing the repositories/context in the controller.
          **/
         private readonly SynchroLeanDbContext context;
+        public Timer rolloverTimer;
         public IUserTaskRepository userTaskRepository { get; }
         public IUserAccountRepository userAccountRepository { get; }
         public IUserTeamRepository userTeamRepository { get; }
@@ -34,6 +36,32 @@ namespace SynchroLean.Persistence
             teamPermissionRepository = new TeamPermissionRepository(context);
             teamMemberRepository = new TeamMemberRepository(context);
             completionLogEntryRepository = new CompletionLogEntryRepository(context);
+            //Set up nightly rollover
+            rolloverTimer = new Timer();
+            rolloverTimer.Elapsed += this.handleRollover;
+            rollover(true);
+        }
+
+        private void handleRollover(object sender, ElapsedEventArgs e)
+        {
+            rollover(false);
+        }
+
+        private void rollover(bool firstTime)
+        {
+            rolloverTimer.Stop();
+            //
+            var monthly = firstTime || DateTime.Now.Day == 1;
+            var weekly = firstTime || DateTime.Now.DayOfWeek == DayOfWeek.Sunday;
+
+            //--
+            //TODO: Do the things
+            //--
+
+            var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
+            var periodToNextMidnight = tomorrow - DateTime.Now;
+            rolloverTimer.Interval = periodToNextMidnight.Milliseconds;
+            rolloverTimer.Start();
         }
 
         public async Task CompleteAsync()
