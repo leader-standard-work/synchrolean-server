@@ -39,7 +39,11 @@ namespace SynchroLean.Persistence
                 from request in this.context.AddUserRequests
                 where request.AddUserRequestId == addUserRequestId
                 select request
-            ).SingleOrDefaultAsync();
+            )
+            .Include(aur => aur.DestinationTeam)
+            .Include(aur => aur.Invitee)
+            .Include(aur => aur.Inviter)
+            .SingleOrDefaultAsync();
         }
 
         async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsAsync()

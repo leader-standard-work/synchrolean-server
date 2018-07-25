@@ -224,14 +224,14 @@ namespace SynchroLean.Controllers
         /// Accept a user's authorized invite.
         /// </summary>
         /// <param name="addUserRequestId">The invite being accepted.</param>
-        /// <param name="ownerId">The user accepting the invite.</param>
+        /// <param name="inviteeId">The user accepting the invite.</param>
         /// <returns></returns>
-        [HttpPut("invite/accept/{addUserRequestId}/{creatorId}")]
-        public async Task<IActionResult> AcceptTeamInvite(int addUserRequestId, int ownerId)
+        [HttpPut("invite/accept/{addUserRequestId}/{inviteeId}")]
+        public async Task<IActionResult> AcceptTeamInvite(int addUserRequestId, int inviteeId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
             if (invite == null) return NotFound("No such invite");
-            if (!(invite.Invitee.OwnerId == ownerId)) return Forbid();
+            if (!(invite.Invitee.OwnerId == inviteeId)) return Forbid();
             await unitOfWork.teamMemberRepository.AddUserToTeam(invite.DestinationTeam.Id, invite.Invitee.OwnerId);
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
