@@ -17,11 +17,6 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        /// <summary>
-        /// Retrieves a UserAccount from the database
-        /// </summary>
-        /// <param name="ownerId">The key of the UserAccount</param>
-        /// <returns>The UserAccount fetched from the database</returns>
         public async Task<UserAccount> GetUserAccountAsync(int ownerId)
         {
             return await context.UserAccounts
@@ -34,21 +29,11 @@ namespace SynchroLean.Persistence
                 .SingleOrDefaultAsync(ua => ua.Email.Trim().ToLower().Equals(emailAddress.Trim().ToLower()));
         }
 
-        /// <summary>
-        /// Adds a UserAccount to the database
-        /// </summary>
-        /// <param name="account">Account to be added</param>
-        /// <returns></returns>
         public async Task AddAsync(UserAccount account)
         {
             await context.UserAccounts.AddAsync(account);
         }
 
-        /// <summary>
-        /// Checks to see if an account exists in the database
-        /// </summary>
-        /// <param name="ownerId">Account id to check existence for</param>
-        /// <returns>Boolean</returns>
         public async Task<Boolean> UserAccountExists(int ownerId)
         {
             return await context.UserAccounts

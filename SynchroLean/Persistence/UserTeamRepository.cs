@@ -17,42 +17,23 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        /// <summary>
-        /// Retrieves a Team from the database
-        /// </summary>
-        /// <param name="teamId">The key of the Team</param>
-        /// <returns>The Team fetched from the database</returns>
         public async Task<Team> GetUserTeamAsync(int teamId)
         {
             return await context.Teams
                 .SingleOrDefaultAsync(ut => ut.Id.Equals(teamId));
         }
 
-        /// <summary>
-        /// Retrieves all teams from the database
-        /// </summary>
-        /// <returns>List of teams from the database</returns>
         public async Task<IEnumerable<Team>> GetAllTeamsAsync()
         {
             return await context.Teams.ToListAsync();
         }
 
-        /// <summary>
-        /// Adds team to the database
-        /// </summary>
-        /// <param name="team">Team to add to the database.</param>
-        /// <returns></returns>
         public async Task AddAsync(Team team)
         {
             await context.Teams.AddAsync(team);
             await context.TeamMembers.AddAsync(new TeamMember { TeamId = team.Id, MemberId = team.OwnerId });
         }
 
-        /// <summary>
-        /// Checks for the existence of a team matching team id
-        /// </summary>
-        /// <param name="teamId">Team id to check existence for.</param>
-        /// <returns>Boolean</returns>
         public async Task<Boolean> TeamExists(int teamId)
         {
             return await context.Teams
