@@ -70,7 +70,7 @@ namespace SynchroLean.Persistence
         public async Task<Double> GetUserCompletionRate(int ownerId, DateTime start, DateTime end)
         {
             var userTasks = await context.TaskCompletionLog
-                .Where(ut => ut.OwnerId.Equals(ownerId) && ut.EntryTime >= start && ut.EntryTime <= end)
+                .Where(ut => ut.OwnerId.Equals(ownerId) && ut.EntryTime > start && ut.EntryTime <= end)
                 .Select(ut => ut.IsCompleted ? 1.0 : 0.0)
                 .ToListAsync();
             if (userTasks.Count > 0)
@@ -103,7 +103,7 @@ namespace SynchroLean.Persistence
                                 select member.MemberId
                                )
                 on task.OwnerId equals member
-                where task.EntryTime >= start && task.EntryTime <= end
+                where task.EntryTime > start && task.EntryTime <= end
                 select task.IsCompleted ? 1.0 : 0.0
             ).ToListAsync();
             // Team has tasks
