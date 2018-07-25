@@ -31,6 +31,7 @@ namespace SynchroLean.Persistence
                 .SingleOrDefaultAsync();
         }
 
+        [Obsolete]
         public async Task<Double> GetUserCompletionRate(int ownerId)
         {
             var userTasks = await context.UserTasks
