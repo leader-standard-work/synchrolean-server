@@ -19,5 +19,15 @@ namespace SynchroLean.Core.Models
         public DateTime? Completed { get; set; }
         [Required]
         public DateTime Expires { get; set; }
+
+        public static Todo FromTask(UserTask userTask, DateTime expires)
+        {
+            return new Todo
+            {
+                TaskId = userTask.Id,
+                OwnerId = userTask.OwnerId,
+                Expires = expires
+            };
+        }
     }
 }
