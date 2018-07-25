@@ -12,6 +12,8 @@ namespace SynchroLean.Persistence
         public DbSet<AddUserRequest> AddUserRequests { get; set; }
         public DbSet<TeamPermission> TeamPermissions { get; set; }
         public DbSet<TeamMember> TeamMembers { get; set; }
+        public DbSet<CompletionLogEntry> CompletionLog { get; set; }
+        public DbSet<Todo> Todos { get; set; }
         public SynchroLeanDbContext(DbContextOptions<SynchroLeanDbContext> options) : base(options)
         {
 
