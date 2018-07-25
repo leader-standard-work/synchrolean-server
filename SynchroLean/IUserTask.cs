@@ -22,12 +22,14 @@ namespace SynchroLean
         /// <summary>
         /// Completes the task.
         /// </summary>
+        [Obsolete]
         void completeTask();
 
         /// <summary>
         /// Checks if this task has been completed.
         /// </summary>
         /// <returns>True if this task has been completed.</returns>
+        [Obsolete]
         bool IsCompleted { get; }
 
         /// <summary>
