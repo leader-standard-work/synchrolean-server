@@ -66,7 +66,7 @@ namespace SynchroLean.Persistence
         /// <param name="ownerId">The key to identify the owner</param>
         /// <param name="start">The date to begin metrics from</param>
         /// <param name="end">The date to end metrics from</param>
-        /// <returns>The proportion (between 0 and 1) of tasks completed</returns>
+        /// <returns>The proportion (between 0 and 1) of tasks completed, which can be NaN for 0/0</returns>
         public async Task<Double> GetUserCompletionRate(int ownerId, DateTime start, DateTime end)
         {
             var userTasks = await context.TaskCompletionLog
@@ -92,15 +92,15 @@ namespace SynchroLean.Persistence
         /// Get the completion rate for a team
         /// </summary>
         /// <param name="teamId">The key to identify the team</param>
-        /// <returns>The proportion (between 0 and 1) of tasks completed</returns>
+        /// <returns>The proportion (between 0 and 1) of tasks completed, which can be NaN for 0/0</returns>
         public async Task<Double> GetTeamCompletionRate(int teamId, DateTime start, DateTime end)
         {
             var teamTasks = await
             (
                 from task in context.TaskCompletionLog
-                join member in (from user in context.UserAccounts
-                                where user.TeamId.Equals(teamId)
-                                select user.OwnerId
+                join member in (from member in context.TeamMembers
+                                where member.TeamId.Equals(teamId)
+                                select member.MemberId
                                )
                 on task.OwnerId equals member
                 where task.EntryTime >= start && task.EntryTime <= end
