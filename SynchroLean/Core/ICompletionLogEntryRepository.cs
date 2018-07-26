@@ -36,5 +36,12 @@ namespace SynchroLean.Core
         /// <param name="end"></param>
         /// <returns></returns>
         Task<Double> GetTeamCompletionRate(int teamId, DateTime start, DateTime end);
+
+        /// <summary>
+        /// Deletes all log entries older than the threshold
+        /// </summary>
+        /// <param name="threshold">The oldest a kept log entry can be</param>
+        /// <returns></returns>
+        Task CleanupLog(DateTime threshold);
     }
 }

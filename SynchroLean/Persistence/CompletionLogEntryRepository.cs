@@ -116,5 +116,11 @@ namespace SynchroLean.Persistence
                 return Double.NaN;
             }
         }
+
+        public async Task CleanupLog(DateTime threshold)
+        {
+            var toRemove = await context.TaskCompletionLog.Where(entry => entry.EntryTime < threshold).ToListAsync();
+            context.TaskCompletionLog.RemoveRange(toRemove);
+        }
     }
 }
