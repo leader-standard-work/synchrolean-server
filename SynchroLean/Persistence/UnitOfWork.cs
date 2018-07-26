@@ -1,6 +1,7 @@
 ﻿using SynchroLean.Core;
 using System;
 using System.Collections.Generic;
+using SynchroLean.Core.Models;
 using System.Linq;
 using System.Timers;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace SynchroLean.Persistence
         public ITeamPermissionRepository teamPermissionRepository { get; }
         public ITeamMemberRepository teamMemberRepository { get; }
         public ICompletionLogEntryRepository completionLogEntryRepository { get; }
+        public ITodoRepository todoList { get; }
         public UnitOfWork(SynchroLeanDbContext context)
         {
             this.context = context;
@@ -36,6 +38,7 @@ namespace SynchroLean.Persistence
             teamPermissionRepository = new TeamPermissionRepository(context);
             teamMemberRepository = new TeamMemberRepository(context);
             completionLogEntryRepository = new CompletionLogEntryRepository(context);
+            todoList = new TodoRepository(context);
             //Set up nightly rollover
             rolloverTimer = new Timer();
             rolloverTimer.Elapsed += this.handleRollover;
@@ -50,16 +53,33 @@ namespace SynchroLean.Persistence
         private void rollover(bool firstTime)
         {
             rolloverTimer.Stop();
-            //
+
+            //Determine important times
+            var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
+            var periodToNextMidnight = tomorrow - DateTime.Now;
+
+            //Determine what has to be done
             var monthly = firstTime || DateTime.Now.Day == 1;
             var weekly = firstTime || DateTime.Now.DayOfWeek == DayOfWeek.Sunday;
 
+            //Clean up the to-do list for the night
+            todoList.CleanTodos(DateTime.Now.Date);
+
+            //Add daily todos
+            var tasks =
+                from task in context.UserTasks
+                where task.IsRecurring
+                      && !task.IsRemoved
+                      && ((IUserTask)task).occursOnDayOfWeek(DateTime.Now.DayOfWeek)
+                select task;
+            foreach(var task in tasks)
+            {
+                context.Todos.Add(Todo.FromTask(task, tomorrow));
+            }
             //--
             //TODO: Do the things
             //--
 
-            var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
-            var periodToNextMidnight = tomorrow - DateTime.Now;
             rolloverTimer.Interval = periodToNextMidnight.Milliseconds;
             rolloverTimer.Start();
         }
