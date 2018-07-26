@@ -62,6 +62,10 @@ namespace SynchroLean.Persistence
             var monthly = firstTime || DateTime.Now.Day == 1;
             var weekly = firstTime || DateTime.Now.DayOfWeek == DayOfWeek.Sunday;
 
+            //Do cleanup of old tasks and log entries
+            completionLogEntryRepository.CleanupLog(DateTime.Now.Date-TimeSpan.FromDays(730.5)); //2a
+            // TODO: ... clean tasks here
+
             //Clean up the to-do list for the night
             todoList.CleanTodos(DateTime.Now.Date);
 
@@ -72,13 +76,12 @@ namespace SynchroLean.Persistence
                       && !task.IsRemoved
                       && ((IUserTask)task).occursOnDayOfWeek(DateTime.Now.DayOfWeek)
                 select task;
+
             foreach(var task in tasks)
             {
+                //TODO: Use frequency when adding tasks
                 context.Todos.Add(Todo.FromTask(task, tomorrow));
             }
-            //--
-            //TODO: Do the things
-            //--
 
             rolloverTimer.Interval = periodToNextMidnight.Milliseconds;
             rolloverTimer.Start();
