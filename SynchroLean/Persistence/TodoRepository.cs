@@ -48,5 +48,28 @@ namespace SynchroLean.Persistence
             var todo = await context.Todos.SingleOrDefaultAsync(td => td.TaskId.Equals(taskId));
             if(todo == null){ return; }
         }
+
+        public async Task CleanTodos(DateTime threshold)
+        {
+            var expireds = await 
+                (
+                    from todo in context.Todos
+                    where todo.Expires <= threshold
+                    select todo
+                ).ToListAsync();
+            foreach(var expired in expireds)
+            {
+                context.TaskCompletionLog.Add(
+                        new CompletionLogEntry
+                        {
+                            TaskId = expired.TaskId,
+                            OwnerId = expired.OwnerId,
+                            EntryTime = threshold,
+                            IsCompleted = false
+                        }
+                    );
+                context.Todos.Remove(expired);
+            }
+        }
     }
 }
