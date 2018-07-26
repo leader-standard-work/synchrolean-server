@@ -31,7 +31,7 @@ namespace SynchroLean.Persistence
 
         public async Task RemoveTodoTaskAsync(int todoId)
         {
-            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Task.Equals(todoId));
+            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Id.Equals(todoId));
             if(todo == null){ return; }
             context.Remove(new Todo { Id = todoId});
         }
