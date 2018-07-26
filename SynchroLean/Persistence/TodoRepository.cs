@@ -18,35 +18,29 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        public async Task AddTodoTaskAsync(Todo todo)
+        public async Task AddTodoAsync(Todo todo)
         {
             await context.Todos.AddAsync(todo);
         }
 
-        public async Task<Todo> GetTodoAsync(int taskid)
+        public async Task<Todo> GetTodoAsync(int todoId)
         {
             return await context.Todos
-                .SingleOrDefaultAsync(td => td.TaskId.Equals(taskid));
+                .SingleOrDefaultAsync(td => td.Id.Equals(todoId));
         }
 
-        public async Task RemoveTodoTaskAsync(int taskId)
+        public async Task RemoveTodoTaskAsync(int todoId)
         {
-            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Task.Equals(taskId));
+            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Task.Equals(todoId));
             if(todo == null){ return; }
-            context.Remove(new Todo { TaskId = taskId});
+            context.Remove(new Todo { Id = todoId});
         }
 
-        public async Task CompleteTaskAsync(int taskId)
+        public async Task CompleteTaskAsync(int todoId)
         {
-            var todo = await context.Todos.SingleOrDefaultAsync(td => td.TaskId.Equals(taskId));
+            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Id.Equals(todoId));
             if(todo == null){ return; }
             todo.Completed = DateTime.Now;
-        }
-
-        public async Task TodoMissAsync(int taskId)
-        {
-            var todo = await context.Todos.SingleOrDefaultAsync(td => td.TaskId.Equals(taskId));
-            if(todo == null){ return; }
         }
 
         public async Task CleanTodos(DateTime threshold)

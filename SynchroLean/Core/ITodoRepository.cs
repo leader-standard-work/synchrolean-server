@@ -7,23 +7,33 @@ using SynchroLean.Core.Models;
 namespace SynchroLean.Core {
     public interface ITodoRepository
     {
-        // add
-        Task AddTodoTaskAsync(Todo todo);
+        /// <summary>
+        /// Add a todo to the Db asynchronously
+        /// </summary>
+        /// <param name="todo"></param>
+        /// <returns></returns>
+        Task AddTodoAsync(Todo todo);
 
-        // get todo
-        Task<Todo> GetTodoAsync(int taskId);
+        /// <summary>
+        /// Retrieve a todo from Db asynchronously
+        /// </summary>
+        /// <param name="todoId"></param>
+        /// <returns></returns>
+        Task<Todo> GetTodoAsync(int todoId);
 
-        // remove
-        Task RemoveTodoTaskAsync(int taskId);
+        /// <summary>
+        /// Remove a todo from Db
+        /// </summary>
+        /// <param name="todoId"></param>
+        /// <returns></returns>
+        Task RemoveTodoTaskAsync(int todoId);
 
-        // completed
-        Task CompleteTaskAsync(int taskId);
-
-        // inverse of complete??
-
-
-        // miss
-        Task TodoMissAsync(int taskId);
+        /// <summary>
+        /// Mark todo as completed
+        /// </summary>
+        /// <param name="todoId"></param>
+        /// <returns></returns>
+        Task CompleteTaskAsync(int todoId);
 
         /// <summary>
         /// Mark all todos as missed and delete them, if they expired before or at the threshold

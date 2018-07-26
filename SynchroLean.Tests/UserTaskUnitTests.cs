@@ -59,7 +59,7 @@ namespace SynchroLean.Tests
                 Description = "Add a task using InMemory database",
                 IsRecurring = true,
                 Weekdays = 40,
-                IsCompleted = false,
+                //IsCompleted = false,
                 IsRemoved = false
             };
             
@@ -95,7 +95,7 @@ namespace SynchroLean.Tests
                 Assert.True(newUserTask.Description == userTask.Description);
                 Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                 Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
-                Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
+                //Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
                 Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
             }
         }
@@ -126,7 +126,7 @@ namespace SynchroLean.Tests
                     Description = "Add a task using SQLite database",
                     IsRecurring = true,
                     Weekdays = 40,
-                    IsCompleted = false,
+                    //IsCompleted = false,
                     IsRemoved = false
                 };
 
@@ -167,7 +167,7 @@ namespace SynchroLean.Tests
                     Assert.True(newUserTask.Description == userTask.Description);
                     Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                     Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
-                    Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
+                    //Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
                     Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
                 }
             }
