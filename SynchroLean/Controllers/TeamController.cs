@@ -242,14 +242,14 @@ namespace SynchroLean.Controllers
         /// Reject a specific invitation for your account
         /// </summary>
         /// <param name="addUserRequestId"></param>
-        /// <param name="ownerId"></param>
+        /// <param name="inviteeId"></param>
         /// <returns></returns>
-        [HttpPut("invite/reject/{addUserRequestId}/{creatorId}")]
-        public async Task<IActionResult> RejectTeamInvite(int addUserRequestId, int ownerId)
+        [HttpPut("invite/reject/{addUserRequestId}/{inviteeId}")]
+        public async Task<IActionResult> RejectTeamInvite(int addUserRequestId, int inviteeId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
             if (invite == null) return NotFound("No such invite");
-            if (!(invite.Invitee.OwnerId == ownerId)) return Forbid();
+            if (!(invite.Invitee.OwnerId == inviteeId)) return Forbid();
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
             return Ok();
