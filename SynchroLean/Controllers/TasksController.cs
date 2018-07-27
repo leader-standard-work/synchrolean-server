@@ -126,38 +126,53 @@ namespace SynchroLean.Controllers
             if(task.OwnerId != account.OwnerId)
             {
                 return BadRequest("Task does not belong to this account.");
-            } 
+            }
 
             // Don't know if it's possible to AutoMap without creating a new model
             // This doesn't work but I'm trying to do something along this line
             //task = _mapper.Map<UserTask>(userTaskResource);
 
+            //Check if a todo for that task exists
+            var todo = await unitOfWork.todoList.GetUsersTodo(ownerId,taskId);
+            var todoExists = !(todo == null);
             if(userTaskResource.IsCompleted)
             {
-                CompletionLogEntry logEntry = new CompletionLogEntry();
-                logEntry.TaskId = taskId;
-                logEntry.Task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
-                logEntry.OwnerId = ownerId;
-                logEntry.Owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
-                logEntry.EntryTime = DateTime.Now;
-                logEntry.IsCompleted = userTaskResource.IsCompleted;
-
-                await unitOfWork.completionLogEntryRepository.AddLogEntryAsync(logEntry, logEntry.IsCompleted);
-            } else 
-            {
-                // Map resource to model
-                task.Name = userTaskResource.Name;
-                task.Description = userTaskResource.Description;
-                task.IsRecurring = userTaskResource.IsRecurring;
-                task.Weekdays = userTaskResource.Weekdays;
-                if (!task.IsCompleted && userTaskResource.IsCompleted) {
-                    // We'll need to think about timezones here
-                    task.CompletionDate = DateTime.Now;
+                if (todoExists && !todo.IsCompleted)
+                {
+                    todo.IsCompleted = true;
+                    await unitOfWork.completionLogEntryRepository.AddLogEntryAsync
+                        (
+                            new CompletionLogEntry
+                            {
+                                OwnerId = ownerId,
+                                TaskId = taskId,
+                                //Not null because we just set it
+                                EntryTime = (DateTime)todo.Completed,
+                                IsCompleted = true
+                            }
+                        );
                 }
-                task.IsCompleted = userTaskResource.IsCompleted;
-                task.IsRemoved = userTaskResource.IsRemoved;
-                task.OwnerId = userTaskResource.OwnerId;
+
             }
+            else
+            {
+                if (todoExists && todo.IsCompleted)
+                {
+                    await unitOfWork.completionLogEntryRepository.DeleteLogEntryAsync
+                        (taskId, 
+                        ownerId,
+                        //Not null because todo.IsCompleted is true
+                        (DateTime)todo.Completed);
+                    todo.IsCompleted = false;
+                }
+            }
+            // Map resource to model
+            task.Name = userTaskResource.Name;
+            task.Description = userTaskResource.Description;
+            task.IsRecurring = userTaskResource.IsRecurring;
+            task.Weekdays = userTaskResource.Weekdays;
+            task.IsRemoved = userTaskResource.IsRemoved;
+            task.OwnerId = userTaskResource.OwnerId;
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 

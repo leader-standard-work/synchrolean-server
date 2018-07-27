@@ -74,7 +74,7 @@ namespace SynchroLean.Persistence
                 from task in context.UserTasks
                 where task.IsRecurring
                       && !task.IsRemoved
-                      && ((IUserTask)task).occursOnDayOfWeek(DateTime.Now.DayOfWeek)
+                      && task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek)
                 select task;
 
             foreach(var task in tasks)

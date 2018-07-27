@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using SynchroLean;
 
 namespace SynchroLean.Core.Models
 {
-    public class UserTask: IUserTask
+    public class UserTask
     {
         public int Id { get; set; }
         [Required]
@@ -23,12 +24,13 @@ namespace SynchroLean.Core.Models
         public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
 
-        bool IUserTask.occursOnDayOfWeek(DayOfWeek day)
+        public bool OccursOnDayOfWeek(DayOfWeek day)
         {
             return 0 < (Weekdays & (1 << (byte)day));
         }
 
-        IEnumerable<DayOfWeek> IUserTask.Weekdays
+        [NotMapped]
+        public IEnumerable<DayOfWeek> DaysOfWeek
         {
             get
             {
@@ -51,22 +53,13 @@ namespace SynchroLean.Core.Models
             }
         }
 
-        void IUserTask.completeTask()
-        {
-            IsCompleted = true;
-        }
-
-        void IUserTask.deleteTask()
+        public void deleteTask()
         {
             IsRemoved = true;
         }
 
-        bool IUserTask.IsCompleted
-        {
-            get { return this.IsCompleted; }
-        }
-
-        bool IUserTask.IsDeleted
+        [NotMapped]
+        public bool IsDeleted
         {
             get { return this.IsRemoved; }
         }

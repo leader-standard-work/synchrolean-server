@@ -11,9 +11,8 @@ namespace SynchroLean.Core
         /// Add a log entry
         /// </summary>
         /// <param name="completionLogEntry"></param>
-        /// <param name="isCompleted"></param>
         /// <returns></returns>
-        Task AddLogEntryAsync(CompletionLogEntry completionLogEntry, bool isCompleted);
+        Task AddLogEntryAsync(CompletionLogEntry completionLogEntry);
 
         /// <summary>
         /// Delete a log entry

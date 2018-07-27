@@ -36,10 +36,25 @@ namespace SynchroLean.Core {
         Task CompleteTaskAsync(int todoId);
 
         /// <summary>
+        /// Mark a completed todo as no longer complete
+        /// </summary>
+        /// <param name="todoId">The id of the todo to undo completion for.</param>
+        /// <returns></returns>
+        Task UndoCompleteTaskAsync(int todoId);
+
+        /// <summary>
         /// Mark all todos as missed and delete them, if they expired before or at the threshold
         /// </summary>
         /// <param name="threshold">The latest time for expiry.</param>
         /// <returns></returns>
         Task CleanTodos(DateTime threshold);
+        
+        /// <summary>
+        /// Get a specific user's todo for a task.
+        /// </summary>
+        /// <param name="userId">The id for the user.</param>
+        /// <param name="taskId">The id for the task.</param>
+        /// <returns>The todo item for the task. Null if the task wasn't assigned today.</returns>
+        Task<Todo> GetUsersTodo(int userId, int taskId);
     }
 }

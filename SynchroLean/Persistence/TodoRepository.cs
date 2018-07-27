@@ -23,6 +23,13 @@ namespace SynchroLean.Persistence
             await context.Todos.AddAsync(todo);
         }
 
+        public async Task<Todo> GetUsersTodo(int userId, int taskId)
+        {
+            return await context.Todos
+                .Where(todo => todo.OwnerId == userId && todo.TaskId == taskId)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<Todo> GetTodoAsync(int todoId)
         {
             return await context.Todos
@@ -38,9 +45,16 @@ namespace SynchroLean.Persistence
 
         public async Task CompleteTaskAsync(int todoId)
         {
-            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Id.Equals(todoId));
+            var todo = await context.Todos.FindAsync(todoId);
             if(todo == null){ return; }
-            todo.Completed = DateTime.Now;
+            todo.IsCompleted = true;
+        }
+
+        public async Task UndoCompleteTaskAsync(int todoId)
+        {
+            var todo = await context.Todos.FindAsync(todoId);
+            if (todo == null) return;
+            todo.IsCompleted = false;
         }
 
         public async Task CleanTodos(DateTime threshold)

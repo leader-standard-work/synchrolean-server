@@ -21,9 +21,8 @@ namespace SynchroLean.Persistence
         /// Adds a task to the lot
         /// </summary>
         /// <param name="completionLogEntry"></param>
-        /// <param name="isCompleted"></param>
         /// <returns></returns>
-        public async Task AddLogEntryAsync(CompletionLogEntry completionLogEntry, bool isCompleted)
+        public async Task AddLogEntryAsync(CompletionLogEntry completionLogEntry)
         {
             await context.TaskCompletionLog.AddAsync(completionLogEntry);
         }

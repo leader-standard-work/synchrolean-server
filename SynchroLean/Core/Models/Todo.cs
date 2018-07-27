@@ -19,7 +19,20 @@ namespace SynchroLean.Core.Models
         public DateTime? Completed { get; set; }
         [Required]
         public DateTime Expires { get; set; }
-
+        [NotMapped]
+        public bool IsCompleted
+        {
+            get
+            {
+                return Completed != null;
+            }
+            set
+            {
+                //Only need to do something if the property is mismatched with the value
+                if(value && !IsCompleted) Completed = DateTime.Now;
+                else if(!value && IsCompleted) Completed = null;
+            }
+        }
         public static Todo FromTask(UserTask userTask, DateTime expires)
         {
             return new Todo
