@@ -48,6 +48,9 @@ namespace SynchroLean.Persistence
             var todo = await context.Todos.FindAsync(todoId);
             if(todo == null){ return; }
             todo.IsCompleted = true;
+            var task = await context.UserTasks.FindAsync(todo.TaskId);
+            //For outstanding tasks without a due date, get it deleted before the end of the day
+            if (!task.IsRecurring) todo.Expires = DateTime.Today.AddDays(1);
         }
 
         public async Task UndoCompleteTaskAsync(int todoId)
@@ -55,6 +58,9 @@ namespace SynchroLean.Persistence
             var todo = await context.Todos.FindAsync(todoId);
             if (todo == null) return;
             todo.IsCompleted = false;
+            var task = await context.UserTasks.FindAsync(todo.TaskId);
+            //For outstanding tasks without a due date, make sure it isn't deleted at the end of the day
+            if (!task.IsRecurring) todo.Expires = DateTime.MaxValue;
         }
 
         public async Task CleanTodos(DateTime threshold)
