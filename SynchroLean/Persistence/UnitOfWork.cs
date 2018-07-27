@@ -88,9 +88,10 @@ namespace SynchroLean.Persistence
                 context.Todos.Add(Todo.FromTask(task, expiry));
             }
 
+            context.SaveChanges();
+
             rolloverTimer.Interval = periodToNextMidnight.Milliseconds;
             rolloverTimer.Start();
-            context.SaveChanges();
         }
 
         public async Task CompleteAsync()
