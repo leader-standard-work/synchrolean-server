@@ -16,9 +16,9 @@ namespace SynchroLean.Core.Models
         public int ObjectTeamId { get; set; }
 
         [ForeignKey("SubjectTeamId")]
-        public Team SubjectTeam { get; set; }
+        public virtual Team SubjectTeam { get; set; }
 
         [ForeignKey("ObjectTeamId")]
-        public Team ObjectTeam { get; set; }
+        public virtual Team ObjectTeam { get; set; }
     }
 }
