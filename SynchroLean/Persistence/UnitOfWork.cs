@@ -74,7 +74,12 @@ namespace SynchroLean.Persistence
                 from task in context.UserTasks
                 where task.IsRecurring
                       && !task.IsRemoved
-                      && task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek)
+                      && 
+                      (
+                        (task.Frequency == Frequency.Daily && task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek))
+                        || (task.Frequency == Frequency.Weekly && weekly)
+                        || (task.Frequency == Frequency.Monthly && monthly)
+                      )
                 select task;
 
             foreach(var task in tasks)
