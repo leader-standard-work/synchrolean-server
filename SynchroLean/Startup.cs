@@ -32,7 +32,8 @@ namespace SynchroLean
         {
             services.AddCors();
             services.AddMvc();
-            services.AddDbContext<SynchroLeanDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("SQLite")));
+            services.AddDbContext<SynchroLeanDbContext>(options => options.UseLazyLoadingProxies()
+                                                                          .UseSqlite(Configuration.GetConnectionString("SQLite")));
 
             // Some research needs to be done in terms of managing instances...
             services.AddScoped<IUnitOfWork, UnitOfWork>();

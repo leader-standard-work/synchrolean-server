@@ -18,18 +18,18 @@ namespace SynchroLean.Core.Models
         /// Which team the user will be added to.
         /// </summary>
         [Required]
-        public Team DestinationTeam { get; set; }
+        public virtual Team DestinationTeam { get; set; }
 
         /// <summary>
         /// Who will join the team.
         /// </summary>
         [Required]
-        public UserAccount Invitee { get; set; }
+        public virtual UserAccount Invitee { get; set; }
 
         /// <summary>
         /// Who sent out the invitation.
         /// </summary>
-        public UserAccount Inviter { get; set; }
+        public virtual UserAccount Inviter { get; set; }
 
         /// <summary>
         /// Check if the owner of the group approved the invitation.
