@@ -35,5 +35,17 @@ namespace SynchroLean.Persistence
         {
             await context.UserTasks.AddAsync(userTask);
         }
+
+        public async Task CleanTasks()
+        {
+            //Left outer join
+            var tasksToDelete = await
+                (from task in context.UserTasks
+                 join entry in context.TaskCompletionLog on task.Id equals entry.TaskId into taskentries
+                 from taskentry in taskentries.DefaultIfEmpty()
+                 where task.IsRemoved && taskentry == null
+                 select task).ToListAsync();
+            foreach (var taskToDelete in tasksToDelete) context.UserTasks.Remove(taskToDelete);
+        }
     }
 }

@@ -42,54 +42,55 @@ namespace SynchroLean.Persistence
             //Set up nightly rollover
             rolloverTimer = new Timer();
             rolloverTimer.Elapsed += this.handleRollover;
-            rollover(true);
+            var noTodos = context.Todos.Count() == 0;
+            rollover();
         }
 
         private void handleRollover(object sender, ElapsedEventArgs e)
         {
-            rollover(false);
+            rollover();
         }
 
-        private void rollover(bool firstTime)
+        private void rollover()
         {
             rolloverTimer.Stop();
 
             //Determine important times
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
             var periodToNextMidnight = tomorrow - DateTime.Now;
-
-            //Determine what has to be done
-            var monthly = firstTime || DateTime.Now.Day == 1;
-            var weekly = firstTime || DateTime.Now.DayOfWeek == DayOfWeek.Sunday;
-
-            //Do cleanup of old tasks and log entries
-            completionLogEntryRepository.CleanupLog(DateTime.Now.Date-TimeSpan.FromDays(730.5)); //2a
-            // TODO: ... clean tasks here
+            var endOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddDays(-1);
+            var endOfWeek = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day)
+                .AddDays((int)(DayOfWeek.Saturday) - (int)(DateTime.Now.DayOfWeek) + 1);
 
             //Clean up the to-do list for the night
             todoList.CleanTodos(DateTime.Now.Date);
 
+            //Do cleanup of old tasks and log entries
+            completionLogEntryRepository.CleanupLog(DateTime.Now.Date-TimeSpan.FromDays(730.5)); //2a
+            userTaskRepository.CleanTasks();
+            
             //Add daily todos
-            var tasks =
+            var tasks = 
                 from task in context.UserTasks
                 where task.IsRecurring
                       && !task.IsRemoved
-                      && 
-                      (
-                        (task.Frequency == Frequency.Daily && task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek))
-                        || (task.Frequency == Frequency.Weekly && weekly)
-                        || (task.Frequency == Frequency.Monthly && monthly)
-                      )
+                      && (!(task.Frequency == Frequency.Daily) || task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek))
+                      && !context.Todos.Any(todo => todo.TaskId == task.Id)
                 select task;
 
             foreach(var task in tasks)
             {
-                //TODO: Use frequency when adding tasks
-                context.Todos.Add(Todo.FromTask(task, tomorrow));
+                var expiry =
+                    task.Frequency == Frequency.Monthly ? endOfMonth
+                    : task.Frequency == Frequency.Weekly ? endOfWeek
+                    : task.Frequency == Frequency.Daily ? tomorrow
+                    : DateTime.MaxValue;
+                context.Todos.Add(Todo.FromTask(task, expiry));
             }
 
             rolloverTimer.Interval = periodToNextMidnight.Milliseconds;
             rolloverTimer.Start();
+            context.SaveChanges();
         }
 
         public async Task CompleteAsync()

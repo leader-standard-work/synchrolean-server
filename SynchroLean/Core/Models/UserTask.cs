@@ -58,11 +58,5 @@ namespace SynchroLean.Core.Models
         {
             IsRemoved = true;
         }
-
-        [NotMapped]
-        public bool IsDeleted
-        {
-            get { return this.IsRemoved; }
-        }
     }
 }

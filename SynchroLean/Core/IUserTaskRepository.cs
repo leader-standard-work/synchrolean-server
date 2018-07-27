@@ -28,5 +28,11 @@ namespace SynchroLean.Core
         /// <param name="userTask">UserTask to be added</param>
         /// <returns></returns>
         Task AddAsync(UserTask task);
+
+        /// <summary>
+        /// Deletes all tasks that can be safely removed.
+        /// </summary>
+        /// <returns></returns>
+        Task CleanTasks();
     }
 }
