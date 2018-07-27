@@ -12,10 +12,10 @@ namespace SynchroLean.Core.Models
         public int Id { get; set; }
         public int TaskId { get; set; }
         [ForeignKey("TaskId")]
-        public UserTask Task { get; set; }
+        public virtual UserTask Task { get; set; }
         public int OwnerId { get; set; }
         [ForeignKey("OwnerId")]
-        public UserAccount Owner { get; set; }
+        public virtual UserAccount Owner { get; set; }
         public DateTime? Completed { get; set; }
         [Required]
         public DateTime Expires { get; set; }
