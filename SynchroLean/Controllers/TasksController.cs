@@ -68,6 +68,12 @@ namespace SynchroLean.Controllers
         [HttpGet("{ownerId}")]
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
+            // How does this validate against the UserTask model?
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
             // Fetch all tasks from the DB asyncronously
             var tasks = await unitOfWork.userTaskRepository
                 .GetTasksAsync(ownerId);
@@ -83,6 +89,40 @@ namespace SynchroLean.Controllers
             }
                 
             return Ok(resourceTasks); // List of UserTaskResources 200OK
+        }
+
+        /// <summary>
+        /// Gets a single task from user task
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="taskId"></param>
+        /// <returns>A task specified by taskId</returns>
+        [HttpGet("{ownerId}/{taskId}")]
+        public async Task<IActionResult> GetTaskAsync(int ownerId, int taskId)
+        {
+            // How does this validate against the UserTask model?
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            // Check that account exists
+            if(await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId) == null)
+            {
+                return NotFound("Account not found!");
+            }
+
+            // Retrieve task
+            var task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
+
+            // Check if task exists
+            if(task == null)
+            {
+                return NotFound("Task not found!");
+            } else 
+            {
+                return Ok(_mapper.Map<UserTaskResource>(task));
+            }            
         }
 
         // PUT api/tasks/{ownerId}/{taskId}
