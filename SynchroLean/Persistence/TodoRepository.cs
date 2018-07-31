@@ -30,10 +30,11 @@ namespace SynchroLean.Persistence
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<Todo> GetTodoAsync(int todoId)
+        public async Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId)
         {
             return await context.Todos
-                .SingleOrDefaultAsync(td => td.Id.Equals(todoId));
+                .Where(todo => todo.OwnerId == ownerId && todo.Expires.Day == DateTime.Now.Day)
+                .ToListAsync();
         }
 
         public async Task RemoveTodoTaskAsync(int todoId)

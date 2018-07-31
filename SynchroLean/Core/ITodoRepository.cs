@@ -19,7 +19,7 @@ namespace SynchroLean.Core {
         /// </summary>
         /// <param name="todoId"></param>
         /// <returns></returns>
-        Task<Todo> GetTodoAsync(int todoId);
+        Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId);
 
         /// <summary>
         /// Remove a todo from Db

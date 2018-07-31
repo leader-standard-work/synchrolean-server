@@ -85,6 +85,48 @@ namespace SynchroLean.Controllers
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
+        /// <summary>
+        /// Retrieves the users tasks for current day
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>A list of current days tasks</returns>
+        [HttpGet("todo/{ownerId}")]
+        public async Task<IActionResult> GetTodosAsync(int ownerId)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            // Check that account exists (can be removed with auth??)
+            var account = await unitOfWork.userAccountRepository
+                .GetUserAccountAsync(ownerId);
+
+            if(account == null)
+            {
+                return NotFound("Account was not found!");
+            }
+
+            // Get todos from Db asynchronously
+            var todos = await unitOfWork.todoList.GetTodoListAsync(ownerId);
+
+            if(todos == null)
+            {
+                return NotFound("No Task found for today");
+            }
+            
+            var resourceTasks = new List<UserTaskResource>();
+
+            // Add the todo task to the resource list
+            foreach(var todo in todos)
+            {
+                resourceTasks.Add(_mapper.Map<UserTaskResource>(todo.Task));
+            }
+
+            // Return current days tasks
+            return Ok(resourceTasks);
+        }
+
         // PUT api/tasks/{ownerId}/{taskId}
         /// <summary>
         /// Updates a users task
