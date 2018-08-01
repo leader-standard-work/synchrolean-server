@@ -93,11 +93,6 @@ namespace SynchroLean.Controllers
         [HttpGet("todo/{ownerId}")]
         public async Task<IActionResult> GetTodosAsync(int ownerId)
         {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             // Check that account exists (can be removed with auth??)
             var account = await unitOfWork.userAccountRepository
                 .GetUserAccountAsync(ownerId);
@@ -110,17 +105,24 @@ namespace SynchroLean.Controllers
             // Get todos from Db asynchronously
             var todos = await unitOfWork.todoList.GetTodoListAsync(ownerId);
 
-            if(todos == null)
+            if(todos == null || todos.Count() == 0)
             {
                 return NotFound("No Task found for today");
             }
             
             var resourceTasks = new List<UserTaskResource>();
 
-            // Add the todo task to the resource list
+            /*  
+            *   Retrieve UserTask from Db asynchronously specified by todo.TaskId,
+            *   AutoMap UserTask to UserTaskResource,
+            *   Add UserTaskResource to resourceTasks list.
+            */ 
             foreach(var todo in todos)
             {
-                resourceTasks.Add(_mapper.Map<UserTaskResource>(todo.Task));
+                resourceTasks
+                    .Add(_mapper
+                    .Map<UserTaskResource>(await unitOfWork.userTaskRepository
+                    .GetTaskAsync(todo.TaskId)));
             }
 
             // Return current days tasks

@@ -33,7 +33,7 @@ namespace SynchroLean.Persistence
         public async Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId)
         {
             return await context.Todos
-                .Where(todo => todo.OwnerId == ownerId && todo.Expires.Day == DateTime.Now.Day)
+                .Where(todo => todo.OwnerId.Equals(ownerId))
                 .ToListAsync();
         }
 

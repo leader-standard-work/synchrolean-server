@@ -17,6 +17,6 @@ namespace SynchroLean.Controllers.Resources
         public DateTime CompletionDate { get; set; }
         public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
-        public Frequency frequency { get; set; }
+        public Frequency Frequency { get; set; }
     }
 }
