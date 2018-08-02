@@ -46,7 +46,7 @@ namespace SynchroLean.Persistence
             await context.Todos.AddAsync(Todo.FromTask(task, expiry));
         }
 
-        public async Task RemoveTask(int taskId)
+        public async Task RemoveTaskAsync(int taskId)
         {
             var todosForRemoval = await
                 (from todo in context.Todos
