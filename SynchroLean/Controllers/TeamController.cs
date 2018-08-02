@@ -195,7 +195,7 @@ namespace SynchroLean.Controllers
         /// <param name="creatorId"></param>
         /// <param name="teamId"></param>
         /// <returns></returns>
-        // PUT api/team/invite/teamId
+        // PUT api/team/invite/
         [HttpPut("invite/{ownerId}/{creatorId}/{teamId}")]
         public async Task<IActionResult> InviteUserToTeamAsync(int ownerId, int creatorId, int teamId)
         {
@@ -398,8 +398,37 @@ namespace SynchroLean.Controllers
             await unitOfWork.teamPermissionRepository.Forbid(subjectId, objectId);
             await unitOfWork.CompleteAsync();
             return Ok();
-        }
+        }        
 
+        /// <summary>
+        /// Removes a user from a team, except a team owner (currently)
+        /// </summary>
+        /// <param name="callerId">The user calling to remove an other user from the team.</param>
+        /// <param name="targetId">The user to be removed from the team.</param>
+        /// <param name="teamId"> The team the user is too be removed from.</param>
+        /// <returns></returns>
+        [HttpPut("remove/{callerId}/{targetId}/{teamId}")]
+        public async Task<IActionResult> removeMemberAsync(int callerId, int targetId, int teamId){
+        
+            var targetTeam = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
+            
+            if (targetTeam == null){
+                return NotFound("Not a valid team.");
+            }
+            
+            if(callerId != targetTeam.OwnerId && callerId != targetId){
+                return BadRequest("User does not have permissions");
+            }
+
+            if(targetTeam.OwnerId == targetId){
+                return BadRequest("Can't remove the team owner");
+            }
+
+            await unitOfWork.teamMemberRepository.RemoveUserFromTeam(teamId,targetId);
+            await unitOfWork.CompleteAsync();
+            return Ok();
+        }
     }
 }
 
