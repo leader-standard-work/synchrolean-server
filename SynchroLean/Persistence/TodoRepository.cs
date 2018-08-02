@@ -23,6 +23,38 @@ namespace SynchroLean.Persistence
             await context.Todos.AddAsync(todo);
         }
 
+        public async Task AddTaskAsync(int taskId)
+        {
+            var task = await context.UserTasks.FindAsync(taskId);
+            //Already in the list
+            var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
+            //Doesn't apply to us
+            var notToday = (task.IsRecurring
+                            && task.Frequency == Frequency.Daily
+                            && !task.OccursOnDayOfWeek(DateTime.Today.DayOfWeek));
+            if(alreadyExists || notToday) return;
+            //Otherwise, go ahead and add it
+            var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
+            var endOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1).AddDays(-1);
+            var endOfWeek = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
+                .AddDays((int)(DayOfWeek.Saturday) - (int)(DateTime.Now.DayOfWeek) + 1);
+            var expiry =
+                task.Frequency == Frequency.Monthly ? endOfMonth
+                : task.Frequency == Frequency.Weekly ? endOfWeek
+                : task.Frequency == Frequency.Daily ? tomorrow
+                : DateTime.MaxValue;
+            await context.Todos.AddAsync(Todo.FromTask(task, expiry));
+        }
+
+        public async Task RemoveTask(int taskId)
+        {
+            var todosForRemoval = await
+                (from todo in context.Todos
+                 where todo.TaskId == taskId
+                 select todo).ToListAsync();
+            foreach (Todo todo in todosForRemoval) context.Todos.Remove(todo);
+        }
+
         public async Task<Todo> GetUsersTodo(int userId, int taskId)
         {
             return await context.Todos

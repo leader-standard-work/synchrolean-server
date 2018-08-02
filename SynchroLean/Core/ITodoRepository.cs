@@ -15,6 +15,14 @@ namespace SynchroLean.Core {
         Task AddTodoAsync(Todo todo);
 
         /// <summary>
+        /// Add a new todo item for a task matching the task ID. If the task already
+        ///  exists or doesn't apply to today, it is not added.
+        /// </summary>
+        /// <param name="taskId">The ID of the task to add.</param>
+        /// <returns></returns>
+        Task AddTaskAsync(int taskId);
+
+        /// <summary>
         /// Retrieve a todo from Db asynchronously
         /// </summary>
         /// <param name="todoId"></param>
@@ -27,6 +35,13 @@ namespace SynchroLean.Core {
         /// <param name="todoId"></param>
         /// <returns></returns>
         Task RemoveTodoTaskAsync(int todoId);
+
+        /// <summary>
+        /// Remove all todo items associated with a particular task
+        /// </summary>
+        /// <param name="taskId">The id of that task</param>
+        /// <returns></returns>
+        Task RemoveTaskAsync(int taskId);
 
         /// <summary>
         /// Mark todo as completed

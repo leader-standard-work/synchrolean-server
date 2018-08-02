@@ -50,6 +50,14 @@ namespace SynchroLean.Controllers
             // Save userTask to database
             await unitOfWork.userTaskRepository.AddAsync(userTask);
             await unitOfWork.CompleteAsync();
+            
+            // If the task is valid now, immediatelly push it to the todo list
+            if(!userTask.IsRecurring 
+                || !(userTask.Frequency == Frequency.Daily) 
+                || userTask.OccursOnDayOfWeek(DateTime.Today.DayOfWeek))
+            {
+                await unitOfWork.todoList.AddTaskAsync(userTask.Id);
+            }
 
             // Retrieve userTask from database
             userTask = await unitOfWork.userTaskRepository
