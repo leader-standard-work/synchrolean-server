@@ -187,7 +187,10 @@ namespace SynchroLean.Controllers
             //Check if a todo for that task exists
             var todo = await unitOfWork.todoList.GetUsersTodo(ownerId,taskId);
             var todoExists = !(todo == null);
-            if(userTaskResource.IsCompleted)
+
+            //Delete the task if needed
+            //Complete the task if needed
+            if (userTaskResource.IsCompleted)
             {
                 if (todoExists && !todo.IsCompleted)
                 {
@@ -204,20 +207,25 @@ namespace SynchroLean.Controllers
                             }
                         );
                 }
-
             }
             else
             {
                 if (todoExists && todo.IsCompleted)
                 {
                     await unitOfWork.completionLogEntryRepository.DeleteLogEntryAsync
-                        (taskId, 
+                        (taskId,
                         ownerId,
                         //Not null because todo.IsCompleted is true
                         (DateTime)todo.Completed);
                     todo.IsCompleted = false;
                 }
             }
+            //Remove the todo if needed
+            if(userTaskResource.IsRemoved)
+            {
+                await unitOfWork.todoList.RemoveTaskAsync(taskId);
+            }
+
             // Map resource to model
             task.Name = userTaskResource.Name;
             task.Description = userTaskResource.Description;
