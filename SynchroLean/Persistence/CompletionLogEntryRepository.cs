@@ -32,7 +32,7 @@ namespace SynchroLean.Persistence
         /// </summary>
         /// <param name="taskId"></param>
         /// <returns></returns>
-        public async Task DeleteLogEntryAsync(int taskId, int ownerId, DateTime entryTime)
+        public void DeleteLogEntryAsync(int taskId, int ownerId, DateTime entryTime)
         {
             // Create log entry to search table
             CompletionLogEntry completionLogEntry = new CompletionLogEntry{ 
@@ -40,23 +40,8 @@ namespace SynchroLean.Persistence
                 OwnerId = ownerId,
                 EntryTime = entryTime 
             };
-            
-            // Verify entry exists in the table
-            if(!await context.TaskCompletionLog.ContainsAsync(completionLogEntry))
-            {
-                return;
-            }
-
-            // Retrieve entry from Db
-            var entry = await context.TaskCompletionLog.SingleOrDefaultAsync(cle => cle.TaskId == taskId);
-
-            // TODO: add entry to unfinished table once implemented
-
             // Remove entry from Db and save changes
             context.TaskCompletionLog.Remove(completionLogEntry);
-            await context.SaveChangesAsync();
-            
-            return;
         }
 
         /// <summary>
