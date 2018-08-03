@@ -137,6 +137,34 @@ namespace SynchroLean.Controllers
             return Ok(resourceTasks);
         }
 
+        /// <summary>
+        /// Gets a single task from user task
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <param name="taskId"></param>
+        /// <returns>A task specified by taskId</returns>
+        [HttpGet("{ownerId}/{taskId}")]
+        public async Task<IActionResult> GetTaskAsync(int ownerId, int taskId)
+        {
+            // Check that account exists
+            if(await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId) == null)
+            {
+                return NotFound("Account not found!");
+            }
+
+            // Retrieve task
+            var task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
+
+            // Check if task exists
+            if(task == null)
+            {
+                return NotFound("Task not found!");
+            } else 
+            {
+                return Ok(_mapper.Map<UserTaskResource>(task));
+            }
+        }
+
         // PUT api/tasks/{ownerId}/{taskId}
         /// <summary>
         /// Updates a users task
