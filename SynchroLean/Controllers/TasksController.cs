@@ -51,7 +51,7 @@ namespace SynchroLean.Controllers
             await unitOfWork.userTaskRepository.AddAsync(userTask);
             await unitOfWork.CompleteAsync();
             
-            // If the task is valid now, immediatelly push it to the todo list
+            // If the task is valid now, immediately push it to the todo list
             if(!userTask.IsRecurring 
                 || !(userTask.Frequency == Frequency.Daily) 
                 || userTask.OccursOnDayOfWeek(DateTime.Today.DayOfWeek))
