@@ -21,42 +21,42 @@ namespace SynchroLean.Core {
         /// <param name="userId">The id for the user.</param>
         /// <param name="taskId">The id for the task.</param>
         /// <returns>The todo item for the task. Null if the task wasn't assigned today.</returns>
-        Task<Todo> GetUserTodo(int userId, int todoId);
+        Task<Todo> GetUserTodo(int userId, int taskId);
 
         /// <summary>
         /// Retrieve a todo from Db asynchronously
         /// </summary>
-        /// <param name="todoId"></param>
+        /// <param name="taskId"></param>
         /// <returns></returns>
         Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId);
 
         /// <summary>
         /// Remove a todo from Db
         /// </summary>
-        /// <param name="todoId"></param>
+        /// <param name="taskId"></param>
         /// <returns></returns>
-        void RemoveTodo(int todoId);
+        void RemoveTodo(int taskId);
 
         /// <summary>
         /// Remove all todo items associated with a particular task
         /// </summary>
         /// <param name="taskId">The id of that task</param>
         /// <returns></returns>
-        Task RemoveTodosAsync(int todoId);
+        Task RemoveTodosAsync(int taskId);
 
         /// <summary>
         /// Mark todo as completed
         /// </summary>
-        /// <param name="todoId"></param>
+        /// <param name="taskId"></param>
         /// <returns></returns>
-        Task CompleteTodoAsync(int todoId);
+        Task CompleteTodoAsync(int taskId);
 
         /// <summary>
         /// Mark a completed todo as no longer complete
         /// </summary>
-        /// <param name="todoId">The id of the todo to undo completion for.</param>
+        /// <param name="taskId">The id of the todo to undo completion for.</param>
         /// <returns></returns>
-        Task UndoCompleteTodoAsync(int todoId);
+        Task UndoCompleteTodoAsync(int taskId);
 
         /// <summary>
         /// Mark all todos as missed and delete them, if they expired before or at the threshold
