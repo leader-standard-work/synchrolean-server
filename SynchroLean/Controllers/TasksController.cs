@@ -201,39 +201,15 @@ namespace SynchroLean.Controllers
             //Check if a todo for that task exists
             var todo = await unitOfWork.todoList.GetUserTodo(ownerId,taskId);
             var todoExists = !(todo == null);
-
-            //Delete the task if needed
             //Complete the task if needed
-            if (userTaskResource.IsCompleted)
+            if(todoExists)
             {
-                if (todoExists && !todo.IsCompleted)
-                {
-                    todo.IsCompleted = true;
-                    await unitOfWork.completionLogEntryRepository.AddLogEntryAsync
-                        (
-                            new CompletionLogEntry
-                            {
-                                OwnerId = ownerId,
-                                TaskId = taskId,
-                                //Not null because we just set it
-                                EntryTime = (DateTime)todo.Completed,
-                                IsCompleted = true
-                            }
-                        );
-                }
+                if (userTaskResource.IsCompleted && !todo.IsCompleted)
+                    await unitOfWork.todoList.CompleteTodoAsync(todo.Id);
+                else if (!userTaskResource.IsCompleted && todo.IsCompleted)
+                    await unitOfWork.todoList.UndoCompleteTodoAsync(todo.Id);
             }
-            else
-            {
-                if (todoExists && todo.IsCompleted)
-                {
-                    unitOfWork.completionLogEntryRepository.DeleteLogEntry
-                        (taskId,
-                        ownerId,
-                        //Not null because todo.IsCompleted is true
-                        (DateTime)todo.Completed);
-                    todo.IsCompleted = false;
-                }
-            }
+            //Delete the task if needed
             //Remove the todo if needed
             if(userTaskResource.IsRemoved)
             {
