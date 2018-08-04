@@ -69,9 +69,9 @@ namespace SynchroLean.Persistence
             foreach (Todo todo in todosForRemoval) context.Todos.Remove(todo);
         }
 
-        public async Task CompleteTodoAsync(int taskId)
+        public async Task CompleteTodoAsync(int todoId)
         {
-            var todo = await context.Todos.FindAsync(taskId);
+            var todo = await context.Todos.FindAsync(todoId);
             if(todo == null) return; 
             if(!todo.IsCompleted)
             {
@@ -94,9 +94,9 @@ namespace SynchroLean.Persistence
             }
         }
 
-        public async Task UndoCompleteTodoAsync(int taskId)
+        public async Task UndoCompleteTodoAsync(int todoId)
         {
-            var todo = await context.Todos.FindAsync(taskId);
+            var todo = await context.Todos.FindAsync(todoId);
             if (todo == null) return;
             // Check that todo is completed
             if(todo.IsCompleted)
