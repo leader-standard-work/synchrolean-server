@@ -56,7 +56,7 @@ namespace SynchroLean.Controllers
                 || !(userTask.Frequency == Frequency.Daily) 
                 || userTask.OccursOnDayOfWeek(DateTime.Today.DayOfWeek))
             {
-                await unitOfWork.todoList.AddTaskAsync(userTask.Id);
+                await unitOfWork.todoList.AddTodoAsync(userTask.Id);
             }
 
             // Retrieve userTask from database
@@ -113,28 +113,14 @@ namespace SynchroLean.Controllers
             // Get todos from Db asynchronously
             var todos = await unitOfWork.todoList.GetTodoListAsync(ownerId);
 
+            // Count check might be unnecessary 
             if(todos == null || todos.Count() == 0)
             {
                 return NotFound("No Task found for today");
             }
-            
-            var resourceTasks = new List<UserTaskResource>();
-
-            /*  
-            *   Retrieve UserTask from Db asynchronously specified by todo.TaskId,
-            *   AutoMap UserTask to UserTaskResource,
-            *   Add UserTaskResource to resourceTasks list.
-            */ 
-            foreach(var todo in todos)
-            {
-                resourceTasks
-                    .Add(_mapper
-                    .Map<UserTaskResource>(await unitOfWork.userTaskRepository
-                    .GetTaskAsync(todo.TaskId)));
-            }
 
             // Return current days tasks
-            return Ok(resourceTasks);
+            return Ok(todos.Select(todo => _mapper.Map<UserTaskResource>(unitOfWork.userTaskRepository.GetTaskAsync(todo.TaskId).Result)));
         }
 
         /// <summary>
@@ -213,7 +199,7 @@ namespace SynchroLean.Controllers
             //task = _mapper.Map<UserTask>(userTaskResource);
 
             //Check if a todo for that task exists
-            var todo = await unitOfWork.todoList.GetUsersTodo(ownerId,taskId);
+            var todo = await unitOfWork.todoList.GetUserTodo(ownerId,taskId);
             var todoExists = !(todo == null);
 
             //Delete the task if needed
@@ -240,7 +226,7 @@ namespace SynchroLean.Controllers
             {
                 if (todoExists && todo.IsCompleted)
                 {
-                    await unitOfWork.completionLogEntryRepository.DeleteLogEntryAsync
+                    unitOfWork.completionLogEntryRepository.DeleteLogEntry
                         (taskId,
                         ownerId,
                         //Not null because todo.IsCompleted is true
@@ -251,7 +237,7 @@ namespace SynchroLean.Controllers
             //Remove the todo if needed
             if(userTaskResource.IsRemoved)
             {
-                await unitOfWork.todoList.RemoveTaskAsync(taskId);
+                await unitOfWork.todoList.RemoveTodosAsync(taskId);
             }
 
             // Map resource to model

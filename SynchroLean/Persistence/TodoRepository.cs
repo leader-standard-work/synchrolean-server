@@ -18,12 +18,7 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        public async Task AddTodoAsync(Todo todo)
-        {
-            await context.Todos.AddAsync(todo);
-        }
-
-        public async Task AddTaskAsync(int taskId)
+        public async Task AddTodoAsync(int taskId)
         {
             var task = await context.UserTasks.FindAsync(taskId);
             //Already in the list
@@ -46,19 +41,10 @@ namespace SynchroLean.Persistence
             await context.Todos.AddAsync(Todo.FromTask(task, expiry));
         }
 
-        public async Task RemoveTaskAsync(int taskId)
-        {
-            var todosForRemoval = await
-                (from todo in context.Todos
-                 where todo.TaskId == taskId
-                 select todo).ToListAsync();
-            foreach (Todo todo in todosForRemoval) context.Todos.Remove(todo);
-        }
-
-        public async Task<Todo> GetUsersTodo(int userId, int taskId)
+        public async Task<Todo> GetUserTodo(int userId, int todoId)
         {
             return await context.Todos
-                .Where(todo => todo.OwnerId == userId && todo.TaskId == taskId)
+                .Where(todo => todo.OwnerId == userId && todo.TaskId == todoId)
                 .SingleOrDefaultAsync();
         }
 
@@ -69,14 +55,21 @@ namespace SynchroLean.Persistence
                 .ToListAsync();
         }
 
-        public async Task RemoveTodoTaskAsync(int todoId)
+        public void RemoveTodo(int todoId)
         {
-            var todo = await context.Todos.SingleOrDefaultAsync(td => td.Id.Equals(todoId));
-            if(todo == null){ return; }
             context.Remove(new Todo { Id = todoId});
         }
 
-        public async Task CompleteTaskAsync(int todoId)
+        public async Task RemoveTodosAsync(int todoId)
+        {
+            var todosForRemoval = await
+                (from todo in context.Todos
+                 where todo.TaskId == todoId
+                 select todo).ToListAsync();
+            foreach (Todo todo in todosForRemoval) context.Todos.Remove(todo);
+        }
+
+        public async Task CompleteTodoAsync(int todoId)
         {
             var todo = await context.Todos.FindAsync(todoId);
             if(todo == null){ return; }
@@ -86,7 +79,7 @@ namespace SynchroLean.Persistence
             if (!task.IsRecurring) todo.Expires = DateTime.Today.AddDays(1);
         }
 
-        public async Task UndoCompleteTaskAsync(int todoId)
+        public async Task UndoCompleteTodoAsync(int todoId)
         {
             var todo = await context.Todos.FindAsync(todoId);
             if (todo == null) return;

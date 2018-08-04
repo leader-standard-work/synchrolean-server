@@ -32,7 +32,7 @@ namespace SynchroLean.Persistence
         /// </summary>
         /// <param name="taskId"></param>
         /// <returns></returns>
-        public void DeleteLogEntryAsync(int taskId, int ownerId, DateTime entryTime)
+        public void DeleteLogEntry(int taskId, int ownerId, DateTime entryTime)
         {
             // Create log entry to search table
             CompletionLogEntry completionLogEntry = new CompletionLogEntry{ 
