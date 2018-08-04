@@ -50,6 +50,14 @@ namespace SynchroLean.Controllers
             // Save userTask to database
             await unitOfWork.userTaskRepository.AddAsync(userTask);
             await unitOfWork.CompleteAsync();
+            
+            // If the task is valid now, immediately push it to the todo list
+            if(!userTask.IsRecurring 
+                || !(userTask.Frequency == Frequency.Daily) 
+                || userTask.OccursOnDayOfWeek(DateTime.Today.DayOfWeek))
+            {
+                await unitOfWork.todoList.AddTodoAsync(userTask.Id);
+            }
 
             // Retrieve userTask from database
             userTask = await unitOfWork.userTaskRepository
@@ -86,6 +94,36 @@ namespace SynchroLean.Controllers
         }
 
         /// <summary>
+        /// Retrieves the users tasks for current day
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>A list of current days tasks</returns>
+        [HttpGet("todo/{ownerId}")]
+        public async Task<IActionResult> GetTodosAsync(int ownerId)
+        {
+            // Check that account exists (can be removed with auth??)
+            var account = await unitOfWork.userAccountRepository
+                .GetUserAccountAsync(ownerId);
+
+            if(account == null)
+            {
+                return NotFound("Account was not found!");
+            }
+
+            // Get todos from Db asynchronously
+            var todos = await unitOfWork.todoList.GetTodoListAsync(ownerId);
+
+            // Count check might be unnecessary 
+            if(todos == null || todos.Count() == 0)
+            {
+                return NotFound("No Task found for today");
+            }
+
+            // Return current days tasks
+            return Ok(todos.Select(todo => _mapper.Map<UserTaskResource>(unitOfWork.userTaskRepository.GetTaskAsync(todo.TaskId).Result)));
+        }
+
+        /// <summary>
         /// Gets a single task from user task
         /// </summary>
         /// <param name="ownerId"></param>
@@ -110,11 +148,10 @@ namespace SynchroLean.Controllers
             } else 
             {
                 return Ok(_mapper.Map<UserTaskResource>(task));
-            }            
+            }
         }
 
         // PUT api/tasks/{ownerId}/{taskId}
-        // PUT api/tasks/ownerId/taskId
         /// <summary>
         /// Updates a users task
         /// </summary>
@@ -155,25 +192,37 @@ namespace SynchroLean.Controllers
             if(task.OwnerId != account.OwnerId)
             {
                 return BadRequest("Task does not belong to this account.");
-            } 
+            }
 
             // Don't know if it's possible to AutoMap without creating a new model
             // This doesn't work but I'm trying to do something along this line
             //task = _mapper.Map<UserTask>(userTaskResource);
+
+            //Check if a todo for that task exists
+            var todo = await unitOfWork.todoList.GetUserTodo(ownerId,taskId);
+            var todoExists = !(todo == null);
+            //Complete the task if needed
+            if(todoExists)
+            {
+                if (userTaskResource.IsCompleted && !todo.IsCompleted)
+                    await unitOfWork.todoList.CompleteTodoAsync(todo.Id);
+                else if (!userTaskResource.IsCompleted && todo.IsCompleted)
+                    await unitOfWork.todoList.UndoCompleteTodoAsync(todo.Id);
+            }
+            //Delete the task if needed
+            //Remove the todo if needed
+            if(userTaskResource.IsRemoved)
+            {
+                await unitOfWork.todoList.RemoveTodosAsync(taskId);
+            }
 
             // Map resource to model
             task.Name = userTaskResource.Name;
             task.Description = userTaskResource.Description;
             task.IsRecurring = userTaskResource.IsRecurring;
             task.Weekdays = userTaskResource.Weekdays;
-            if (!task.IsCompleted && userTaskResource.IsCompleted) {
-                // We'll need to think about timezones here
-                task.CompletionDate = DateTime.Now;
-            }
-            task.IsCompleted = userTaskResource.IsCompleted;
             task.IsRemoved = userTaskResource.IsRemoved;
             task.OwnerId = userTaskResource.OwnerId;
-            
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 
@@ -187,8 +236,8 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/user/{ownerId}")]
-        public async Task<IActionResult> GetUserCompletionRate(int ownerId)
+        [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}")]
+        public async Task<IActionResult> GetUserCompletionRate(int ownerId, DateTime startDate, DateTime endDate)
         {
             //Check if user exists
             var userExists = await unitOfWork.userAccountRepository
@@ -196,7 +245,7 @@ namespace SynchroLean.Controllers
             //User doesn't exist
             if (!userExists) return NotFound("Couldn't find user.");
             //User exists
-            Double completionRate = await unitOfWork.userTaskRepository.GetUserCompletionRate(ownerId);
+            Double completionRate = await unitOfWork.completionLogEntryRepository.GetUserCompletionRate(ownerId, startDate, endDate);
             return Ok(completionRate);
         }
 
@@ -205,8 +254,8 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="id">The key to identify the team.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/team/{Id}")]
-        public async Task<IActionResult> GetTeamCompletionRate(int id)
+        [HttpGet("metrics/team/{id}/{startDate}/{endDate}")]
+        public async Task<IActionResult> GetTeamCompletionRate(int id, DateTime startDate, DateTime endDate)
         {
 
             //Check if team exists
@@ -216,7 +265,7 @@ namespace SynchroLean.Controllers
             //Team doesn't exist
             if (!teamExists) return NotFound();
             //Team does exist
-            Double completionRate = await unitOfWork.userTaskRepository.GetTeamCompletionRate(id);
+            Double completionRate = await unitOfWork.completionLogEntryRepository.GetTeamCompletionRate(id, startDate, endDate);
             return Ok(completionRate);
         }
     }

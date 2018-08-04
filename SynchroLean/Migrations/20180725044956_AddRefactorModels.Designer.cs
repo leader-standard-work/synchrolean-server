@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SynchroLean.Persistence;
 
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    partial class SynchroLeanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180725044956_AddRefactorModels")]
+    partial class AddRefactorModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,8 +176,6 @@ namespace SynchroLean.Migrations
                     b.Property<int>("OwnerId");
 
                     b.Property<byte>("Weekdays");
-
-                    b.Property<int>("frequency");
 
                     b.HasKey("Id");
 
