@@ -9,6 +9,7 @@ using SynchroLean.Controllers.Resources;
 using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SynchroLean.Controllers
 {
@@ -64,7 +65,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId"></param>
         /// <returns>User account from Db</returns>
-        [HttpGet("owner/{ownerId}")]
+        [HttpGet("owner/{ownerId}"), Authorize]
         public async Task<IActionResult> GetAccountAsync(int ownerId)
         {
             // Fetch account of ownerId
