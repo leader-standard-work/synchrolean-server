@@ -120,7 +120,25 @@ namespace SynchroLean.Controllers
             }
 
             // Return current days tasks
-            return Ok(todos.Select(todo => _mapper.Map<UserTaskResource>(unitOfWork.userTaskRepository.GetTaskAsync(todo.TaskId).Result)));
+            /*var taskResources = todos.Select(todo => _mapper
+                .Map<UserTaskResource>(unitOfWork.userTaskRepository
+                .GetTaskAsync(todo.TaskId).Result));
+            */
+            var taskResources = new List<UserTaskResource>();
+
+            foreach(var todo in todos)
+            {
+                var taskResource = _mapper
+                    .Map<UserTaskResource>(unitOfWork.userTaskRepository
+                    .GetTaskAsync(todo.TaskId).Result);
+                taskResource.IsCompleted = todo.IsCompleted;
+                if(todo.IsCompleted)
+                    taskResource.CompletionDate = (DateTime)todo.Completed;
+
+                taskResources.Add(taskResource);
+            }
+            
+            return Ok(taskResources);
         }
 
         /// <summary>
