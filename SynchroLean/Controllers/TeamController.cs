@@ -454,7 +454,8 @@ namespace SynchroLean.Controllers
                 .GetTasksAsync(member.OwnerId);
 
                 foreach(var task in tasks){
-                    if(!task.IsRemoved/* && task.teamId==teamId*/){
+                    if(unitOfWork.todoList.GetUserTodo(member.OwnerId,task.Id) != null
+                        /* && task.teamId==teamId*/){
                         teamTasks.Add(_mapper.Map<UserTaskResource>(task));
                     }
                 }
