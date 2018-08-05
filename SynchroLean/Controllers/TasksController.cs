@@ -87,7 +87,9 @@ namespace SynchroLean.Controllers
             foreach (var task in tasks)
             {
                 // Add mapped resource to resources list
-                resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
+                if(!task.IsRemoved){
+                    resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
+                }
             }
                 
             return Ok(resourceTasks); // List of UserTaskResources 200OK
@@ -160,7 +162,7 @@ namespace SynchroLean.Controllers
             var task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
 
             // Check if task exists
-            if(task == null)
+            if(task == null || task.IsRemoved)
             {
                 return NotFound("Task not found!");
             } else 
@@ -201,7 +203,7 @@ namespace SynchroLean.Controllers
                 .GetTaskAsync(taskId);
 
             // Nothing was retrieved, no id match
-            if (task == null)
+            if (task == null || task.IsRemoved)
             {
                 return NotFound("Task couldn't be found.");
             }
