@@ -41,7 +41,7 @@ namespace SynchroLean.Controllers
                 issuer: "http://localhost:55542",
                 audience: "http://localhost:4200",
                 claims: new List<Claim>(),
-                expires: DateTime.Now.AddSeconds(5),
+                expires: DateTime.Now.AddMinutes(5),
                 signingCredentials: signingCredentials
             );
 
