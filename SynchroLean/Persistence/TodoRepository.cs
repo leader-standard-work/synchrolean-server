@@ -84,9 +84,7 @@ namespace SynchroLean.Persistence
                 //Create log entry and add to log
                 var entry = new CompletionLogEntry {
                     TaskId = todo.TaskId,
-                    Task = todo.Task,
                     OwnerId = todo.OwnerId,
-                    Owner = todo.Owner,
                     EntryTime = DateTime.Now,
                     IsCompleted = todo.IsCompleted
                 };
@@ -138,6 +136,22 @@ namespace SynchroLean.Persistence
                     );
                 context.Todos.Remove(expired);
             }
+        }
+
+        public async Task RefreshTodo(int taskId)
+        {
+            var task = context.UserTasks.Find(taskId);
+            if (task == null) return; //invalid, nothing to do
+            var todo = await context.Todos.Where(td => td.TaskId == taskId).FirstOrDefaultAsync();
+            DateTime? todoCompletion = null;
+            if (todo != null)
+            {
+                todoCompletion = todo.Completed;
+                context.Todos.Remove(todo);
+            }
+            await this.AddTodoAsync(taskId);
+            var newTodo = await context.Todos.Where(td => td.TaskId == taskId).FirstOrDefaultAsync();
+            if (newTodo != null) newTodo.Completed = todoCompletion;
         }
     }
 }
