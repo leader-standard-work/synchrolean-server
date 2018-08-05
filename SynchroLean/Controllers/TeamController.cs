@@ -408,7 +408,7 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"> The team the user is too be removed from.</param>
         /// <returns></returns>
         [HttpPut("remove/{callerId}/{targetId}/{teamId}")]
-        public async Task<IActionResult> removeMemberAsync(int callerId, int targetId, int teamId){
+        public async Task<IActionResult> RemoveMemberAsync(int callerId, int targetId, int teamId){
         
             var targetTeam = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamId);
@@ -428,6 +428,39 @@ namespace SynchroLean.Controllers
             await unitOfWork.teamMemberRepository.RemoveUserFromTeam(teamId,targetId);
             await unitOfWork.CompleteAsync();
             return Ok();
+        }
+
+        /// <summary>
+        ///  Returns a list of tasks for a team
+        /// </summary>
+        /// <param name="teamId">
+        /// <returns></returns>
+        [HttpGet("rollup/{teamId}")]
+        public async Task<IActionResult> TeamRollUpAsync(int teamId){
+                        
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
+
+            if (team == null){
+                return NotFound("Not a valid team.");
+            }
+
+            var teamRoster = await unitOfWork.teamMemberRepository.GetAllUsersForTeam(teamId);
+
+            var teamTasks = new List<UserTaskResource>();
+
+            foreach(var member in teamRoster){
+                var tasks = await unitOfWork.userTaskRepository
+                .GetTasksAsync(member.OwnerId);
+
+                foreach(var task in tasks){
+                    if(!task.IsRemoved/* && task.teamId==teamId*/){
+                        teamTasks.Add(_mapper.Map<UserTaskResource>(task));
+                    }
+                }
+            }
+
+        return Ok(teamTasks);      
         }
     }
 }
