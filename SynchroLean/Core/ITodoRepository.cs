@@ -65,11 +65,19 @@ namespace SynchroLean.Core {
         /// <returns></returns>
         Task CleanTodos();
 
+<<<<<<< HEAD
+        /// <summary>
+        /// Make sure a todo is up to date after a task has been edited.
+        /// </summary>
+        /// <param name="taskId">The id of the task being edited.</param>
+        /// <returns></returns>
+=======
         /// <summary> 
         /// Make sure a todo is up to date after a task has been edited. 
         /// </summary> 
         /// <param name="taskId">The id of the task being edited.</param> 
         /// <returns></returns> 
+>>>>>>> 1aff63967e64ee9a89dbdf87cb07d3aee78797e2
         Task RefreshTodo(int taskId);
     }
 }

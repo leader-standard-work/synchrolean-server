@@ -230,9 +230,15 @@ namespace SynchroLean.Controllers
             task.IsRemoved = userTaskResource.IsRemoved;
             task.OwnerId = userTaskResource.OwnerId;
 
+<<<<<<< HEAD
+            //Refresh the todo list
+            await unitOfWork.todoList.RefreshTodo(taskId);
+
+=======
             //Refresh the todo list 
             await unitOfWork.todoList.RefreshTodo(taskId);
             
+>>>>>>> 1aff63967e64ee9a89dbdf87cb07d3aee78797e2
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 
