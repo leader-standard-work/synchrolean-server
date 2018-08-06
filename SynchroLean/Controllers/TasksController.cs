@@ -32,7 +32,6 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Adds new task to DB
         /// </summary>
-        /// <param name="ownerId"></param>
         /// <param name="userTaskResource"></param>
         /// <returns>New task retrieved from DB</returns>
         [HttpPost]
@@ -50,7 +49,9 @@ namespace SynchroLean.Controllers
             // Save userTask to database
             await unitOfWork.userTaskRepository.AddAsync(userTask);
             await unitOfWork.todoList.AddTodoAsync(userTask.Id);
-            await unitOfWork.CompleteAsync();
+
+            // Saves changes to database (Errors if `await` is used on this method)
+            Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Retrieve userTask from database
             userTask = await unitOfWork.userTaskRepository
@@ -115,10 +116,6 @@ namespace SynchroLean.Controllers
             }
 
             // Return current days tasks
-            /*var taskResources = todos.Select(todo => _mapper
-                .Map<UserTaskResource>(unitOfWork.userTaskRepository
-                .GetTaskAsync(todo.TaskId).Result));
-            */
             var taskResources = new List<UserTaskResource>();
 
             foreach(var todo in todos)
@@ -207,10 +204,6 @@ namespace SynchroLean.Controllers
                 return BadRequest("Task does not belong to this account.");
             }
 
-            // Don't know if it's possible to AutoMap without creating a new model
-            // This doesn't work but I'm trying to do something along this line
-            //task = _mapper.Map<UserTask>(userTaskResource);
-
             //Check if a todo for that task exists
             var todo = await unitOfWork.todoList.GetUserTodo(ownerId,taskId);
             var todoExists = !(todo == null);
@@ -236,6 +229,10 @@ namespace SynchroLean.Controllers
             task.Weekdays = userTaskResource.Weekdays;
             task.IsRemoved = userTaskResource.IsRemoved;
             task.OwnerId = userTaskResource.OwnerId;
+
+            //Refresh the todo list 
+            await unitOfWork.todoList.RefreshTodo(taskId);
+            
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
 

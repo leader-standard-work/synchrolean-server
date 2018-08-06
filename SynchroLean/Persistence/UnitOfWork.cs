@@ -63,7 +63,7 @@ namespace SynchroLean.Persistence
                 .AddDays((int)(DayOfWeek.Saturday) - (int)(DateTime.Now.DayOfWeek) + 1);
 
             //Clean up the to-do list for the night
-            todoList.CleanTodos(DateTime.Now);
+            todoList.CleanTodos();
             CompleteAsync().Wait();
 
             //Do cleanup of old tasks and log entries
