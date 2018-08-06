@@ -27,7 +27,7 @@ namespace SynchroLean.Core.Models
 
         public bool OccursOnDayOfWeek(DayOfWeek day)
         {
-            return 0 < (Weekdays & (1 << (byte)day));
+            return this.Frequency == Frequency.Daily && 0 < (Weekdays & (1 << (byte)day));
         }
 
         [NotMapped]
