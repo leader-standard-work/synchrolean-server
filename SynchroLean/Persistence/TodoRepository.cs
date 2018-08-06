@@ -24,9 +24,7 @@ namespace SynchroLean.Persistence
             //Already in the list
             var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
             //Doesn't apply to us
-            var notToday = (task.IsRecurring
-                            && task.Frequency == Frequency.Daily
-                            && !task.OccursOnDayOfWeek(DateTime.Today.DayOfWeek));
+            var notToday = !task.OccursOnDayOfWeek(DateTime.Today.DayOfWeek);
             if(alreadyExists || notToday) return;
             //Otherwise, go ahead and add it
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
