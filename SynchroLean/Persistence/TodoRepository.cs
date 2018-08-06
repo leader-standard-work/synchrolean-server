@@ -132,7 +132,7 @@ namespace SynchroLean.Persistence
                         {
                             TaskId = expired.TaskId,
                             OwnerId = expired.OwnerId,
-                            EntryTime = threshold,
+                            EntryTime = expired.Expires,
                             IsCompleted = false
                         }
                     );
