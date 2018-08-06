@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SynchroLean.Controllers.Resources;
@@ -34,19 +36,31 @@ namespace SynchroLean.Controllers
                 return NotFound("Account could not be found.");
             }
 
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("developmentKey!@3"));
-            var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+            var password = loginResource.Password + account.Salt;
+            bool validPassword = BCrypt.Net.BCrypt.Verify(password, account.Password);
 
-            var tokenOptions = new JwtSecurityToken(
-                issuer: "http://localhost:55542",
-                audience: "http://localhost:4200",
-                claims: new List<Claim>(),
-                expires: DateTime.Now.AddMinutes(5),
-                signingCredentials: signingCredentials
-            );
+            if (validPassword)
+            {
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("developmentKey!@3"));
+                var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-            return Ok(new { Token = tokenString });
+                var tokenOptions = new JwtSecurityToken(
+                    issuer: "http://localhost:55542",
+                    audience: "http://localhost:4200",
+                    claims: new List<Claim>(),
+                    expires: DateTime.Now.AddMinutes(5),
+                    signingCredentials: signingCredentials
+                );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+                return Ok(new { Token = tokenString });
+            }
+            else 
+            {
+                return Unauthorized();
+            }
+
+            
         }
     }
 }

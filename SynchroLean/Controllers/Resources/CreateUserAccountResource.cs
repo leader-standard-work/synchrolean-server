@@ -1,37 +1,22 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 
-namespace SynchroLean.Core.Models
+namespace SynchroLean.Controllers.Resources
 {
     /// <summary>
-    /// This class contains fields for client identification information
+    /// This class is used to retrieve/send user identification information to/from mobile or web app
     /// </summary>
-    public class UserAccount
+    public class CreateUserAccountResource
     {
-        [Key]
         /// <value>Gets and sets user id number</value>
         public int OwnerId { get; set; }
-        /// <value>Gets and sets team id number of user</value>
-        [Obsolete]
-        public int TeamId { get; set; }
         /// <value>Gets and sets user first name</value>
-        [Required]
-        [StringLength(50)]
         public string FirstName { get; set; }
         /// <value>Gets and sets user last name</value>
-        [Required]
-        [StringLength(50)]
-        public string LastName { get; set; }
+        public string LastName  { get; set; }
         /// <value>Gets and sets user email</value>
-        [Required]
-        [StringLength(50)]
         public string Email { get; set; }
         /// <value>Gets and sets user password</value>
-        [Required]
         public string Password { get; set; }
-        /// <value>Gets and sets user salt</value>
-        [Required]
-        public string Salt { get; set; }
         /// <value>Gets and sets account active/inactive state</value>
         public bool IsDeleted { get; set; }
     }

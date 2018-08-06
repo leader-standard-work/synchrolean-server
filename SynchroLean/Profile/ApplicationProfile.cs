@@ -13,6 +13,9 @@ namespace SynchroLean.Profile
             CreateMap<UserAccount, UserAccountResource>()
                 .ReverseMap();
 
+            CreateMap<UserAccount, CreateUserAccountResource>()
+                .ReverseMap();
+
             CreateMap<Team, TeamResource>()
                 .ReverseMap();
         }
