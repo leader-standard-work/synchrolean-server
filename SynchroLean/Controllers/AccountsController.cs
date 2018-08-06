@@ -47,6 +47,7 @@ namespace SynchroLean.Controllers
             // Map account resource to model
             var account = _mapper.Map<UserAccount>(createUserAccountResource);
 
+            // Salt and hash password
             var salt = BCrypt.Net.BCrypt.GenerateSalt();
             var saltedPassword = account.Password + salt;
             account.Password = BCrypt.Net.BCrypt.HashPassword(saltedPassword);
@@ -94,7 +95,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="emailAddress">The email address of the user being searched for</param>
         /// <returns>User account from Db</returns>
-        [HttpGet("{emailAddress}")]
+        [HttpGet("{emailAddress}"), Authorize]
         public async Task<IActionResult> GetAccountByEmailAsync(string emailAddress)
         {
             // Fetch account of ownerId
@@ -119,13 +120,19 @@ namespace SynchroLean.Controllers
         /// <param name="ownerId"></param>
         /// <param name="userAccountResource"></param>
         /// <returns>A resource of the updated account</returns>
-        [HttpPut("{ownerId}")]
+        [HttpPut("{ownerId}"), Authorize]
         public async Task<IActionResult> EditAccountAsync(int ownerId, [FromBody]UserAccountResource userAccountResource)
         {
             // How does this validate against the UserAccount model?
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(ownerId)) 
+            {
+                return Forbid();
             }
 
             // Retrieve ownerId account from database
@@ -157,7 +164,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The user for which to get teams for.</param>
         /// <returns></returns>
-        [HttpGet("teams/{ownerId}")]
+        [HttpGet("teams/{ownerId}"), Authorize]
         public async Task<IActionResult> GetTeamsForAccount(int ownerId)
         {
             // Check if user exists

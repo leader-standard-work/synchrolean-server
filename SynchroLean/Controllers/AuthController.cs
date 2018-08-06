@@ -47,8 +47,10 @@ namespace SynchroLean.Controllers
                 var tokenOptions = new JwtSecurityToken(
                     issuer: "http://localhost:55542",
                     audience: "http://localhost:4200",
-                    claims: new List<Claim>(),
-                    expires: DateTime.Now.AddMinutes(5),
+                    claims: new List<Claim>
+                    {
+                        new Claim("OwnerId", account.OwnerId.ToString())
+                    },
                     signingCredentials: signingCredentials
                 );
 

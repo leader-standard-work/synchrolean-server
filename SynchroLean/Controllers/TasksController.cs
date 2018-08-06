@@ -10,6 +10,7 @@ using SynchroLean.Controllers.Resources;
 using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SynchroLean.Controllers
 {
@@ -35,13 +36,19 @@ namespace SynchroLean.Controllers
         /// <param name="ownerId"></param>
         /// <param name="userTaskResource"></param>
         /// <returns>New task retrieved from DB</returns>
-        [HttpPost]
+        [HttpPost, Authorize]
         public async Task<IActionResult> AddUserTaskAsync([FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(userTaskResource.OwnerId)) 
+            {
+                return Forbid();
             }
 
             // Map object from UserTaskResource into UserTask
@@ -73,7 +80,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId"></param>
         /// <returns>List of a users tasks</returns>
-        [HttpGet("{ownerId}")]
+        [HttpGet("{ownerId}"), Authorize]
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
             // Fetch all tasks from the DB asyncronously
@@ -98,7 +105,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId"></param>
         /// <returns>A list of current days tasks</returns>
-        [HttpGet("todo/{ownerId}")]
+        [HttpGet("todo/{ownerId}"), Authorize]
         public async Task<IActionResult> GetTodosAsync(int ownerId)
         {
             // Check that account exists (can be removed with auth??)
@@ -129,7 +136,7 @@ namespace SynchroLean.Controllers
         /// <param name="ownerId"></param>
         /// <param name="taskId"></param>
         /// <returns>A task specified by taskId</returns>
-        [HttpGet("{ownerId}/{taskId}")]
+        [HttpGet("{ownerId}/{taskId}"), Authorize]
         public async Task<IActionResult> GetTaskAsync(int ownerId, int taskId)
         {
             // Check that account exists
@@ -159,13 +166,19 @@ namespace SynchroLean.Controllers
         /// <param name="taskId"></param>
         /// <param name="userTaskResource"></param>
         /// <returns>Updated user task</returns>
-        [HttpPut("{ownerId}/{taskId}")]
+        [HttpPut("{ownerId}/{taskId}"), Authorize]
         public async Task<IActionResult> EditUserTaskAsync(int ownerId, int taskId, [FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
             if (!ModelState.IsValid)
             {
                 return BadRequest();
+            }
+
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(userTaskResource.OwnerId)) 
+            {
+                return Forbid();
             }
 
             // Fetch an account from the DB asynchronously
@@ -236,7 +249,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}")]
+        [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}"), Authorize]
         public async Task<IActionResult> GetUserCompletionRate(int ownerId, DateTime startDate, DateTime endDate)
         {
             //Check if user exists
@@ -254,7 +267,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="id">The key to identify the team.</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/team/{id}/{startDate}/{endDate}")]
+        [HttpGet("metrics/team/{id}/{startDate}/{endDate}"), Authorize]
         public async Task<IActionResult> GetTeamCompletionRate(int id, DateTime startDate, DateTime endDate)
         {
 

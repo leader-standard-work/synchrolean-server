@@ -59,7 +59,8 @@ namespace SynchroLean
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = true,
+                    ValidateLifetime = false,
+                    RequireExpirationTime = false,
                     ValidateIssuerSigningKey = true,
 
                     ValidIssuer = "http://localhost:55542",
