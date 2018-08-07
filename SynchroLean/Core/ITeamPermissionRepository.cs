@@ -64,7 +64,7 @@ namespace SynchroLean.Core
         /// Test if a user can see a target user
         /// </summary>
         /// <param name="subjectUserId">The user that is trying to see detailed user info</param>
-        /// <param name="objectId">The user that the user is trying to see</param>
+        /// <param name="objectUserId">The user that the user is trying to see</param>
         /// <returns></returns>
         Task<bool> UserIsPermittedToSeeUser(int subjectUserId, int objectUserId);
     }
