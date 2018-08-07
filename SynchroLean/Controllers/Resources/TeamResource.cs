@@ -11,7 +11,5 @@ namespace SynchroLean.Controllers.Resources
         public int OwnerId { get; set; }
         public string TeamName { get; set; }
         public string TeamDescription { get; set; }
-
-        // Some kind of collection of team members here as well
     }
 }

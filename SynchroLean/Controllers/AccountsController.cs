@@ -55,7 +55,7 @@ namespace SynchroLean.Controllers
 
             // Add model to database and save changes
             await unitOfWork.userAccountRepository.AddAsync(account);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Retrieve account from database
             var accountModel = await unitOfWork.userAccountRepository

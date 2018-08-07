@@ -261,6 +261,8 @@ namespace SynchroLean.Controllers
         /// Get the completion rate for a user.
         /// </summary>
         /// <param name="ownerId">The key to identify the owner.</param>
+        /// <param name="startDate">Beginning date range</param>
+        /// <param name="endDate">Ending date range</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
         [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}"), Authorize]
         public async Task<IActionResult> GetUserCompletionRate(int ownerId, DateTime startDate, DateTime endDate)
@@ -279,6 +281,8 @@ namespace SynchroLean.Controllers
         /// See how much of their tasks a team has completed.
         /// </summary>
         /// <param name="id">The key to identify the team.</param>
+        /// <param name="startDate">Beginning date range</param>
+        /// <param name="endDate">Ending date range</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
         [HttpGet("metrics/team/{id}/{startDate}/{endDate}"), Authorize]
         public async Task<IActionResult> GetTeamCompletionRate(int id, DateTime startDate, DateTime endDate)

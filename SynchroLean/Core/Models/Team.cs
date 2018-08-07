@@ -15,7 +15,5 @@ namespace SynchroLean.Core.Models
         public string TeamName { get; set; }
         [StringLength(250)]
         public string TeamDescription { get; set; }
-
-        // Some kind of collection of team members here as well
     }
 }
