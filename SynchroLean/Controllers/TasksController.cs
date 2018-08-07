@@ -77,6 +77,9 @@ namespace SynchroLean.Controllers
         [HttpGet("{ownerId}"), Authorize]
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            var canSee = await unitOfWork.teamPermissionRepository.UserIsPermittedToSeeUser(tokenOwnerId, ownerId);
+            if (!canSee) return Forbid();
             // Fetch all tasks from the DB asyncronously
             var tasks = await unitOfWork.userTaskRepository
                 .GetTasksAsync(ownerId);
