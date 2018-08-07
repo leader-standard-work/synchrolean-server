@@ -18,7 +18,7 @@ namespace SynchroLean.Controllers
     /// This class handles HTTP requests for teams
     /// </summary>
     [Route("api/[controller]")]
-    public class TeamController : Controller    
+    public class TeamController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper _mapper;
