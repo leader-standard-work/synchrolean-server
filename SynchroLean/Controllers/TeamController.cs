@@ -10,6 +10,7 @@ using SynchroLean.Controllers.Resources;
 using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SynchroLean.Controllers
 {
@@ -33,13 +34,20 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="teamResource"></param>
         /// <returns>A resource of the new team</returns>
-        [HttpPost]
+        [HttpPost, Authorize]
         public async Task<IActionResult> AddTeamAsync([FromBody]TeamResource teamResource)
         {
             // Validate against the team model
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            // Validate that the user creating the team is the assigned owner
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(teamResource.OwnerId)) 
+            {
+                return Forbid();
             }
 
             // Map the team resource to a model
@@ -65,7 +73,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <returns>A list of all teams</returns>
         // GET api/team
-        [HttpGet]
+        [HttpGet, Authorize]
         public async Task<IActionResult> GetTeamsAsync()
         {
             // Fetch all teams from the database
@@ -85,34 +93,11 @@ namespace SynchroLean.Controllers
         }
 
         /// <summary>
-        /// Handler to get the team for the currently logged in user. This is in case 
-        /// we only want to fetch the team for the person who is currently logged in.
-        /// </summary>
-        /// <param name="teamId"></param>
-        /// <returns>A team resource</returns>
-        // GET api/team/tid
-        [HttpGet("{teamId}")]
-        public async Task<IActionResult> GetUserTeamAsync(int teamId)
-        {
-            // Get the team for the currently logged in user
-            var team = await unitOfWork.userTeamRepository
-                .GetUserTeamAsync(teamId);
-
-            // Check to see if a team corresponding to the given team id was found
-            if (team == null)
-            {
-                return NotFound("Couldn't find a team matching that id."); // Team wasn't found
-            }
-
-            return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
-        }
-
-        /// <summary>
         /// Get a list of all members for a team.
         /// </summary>
         /// <param name="teamId">The team for which to get members.</param>
         /// <returns></returns>
-        [HttpGet("members/{teamId}")]
+        [HttpGet("members/{teamId}"), Authorize]
         public async Task<IActionResult> GetTeamMembers(int teamId)
         {
             // Get the team for the currently logged in user
@@ -137,7 +122,7 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"></param>
         /// <param name="teamResource"></param>
         /// <returns>A resource of updated team</returns>
-        [HttpPut("{ownerId}/{teamId}")]
+        [HttpPut("{ownerId}/{teamId}"), Authorize]
         public async Task<IActionResult> UpdateUserTeamAsync(int ownerId, int teamId, [FromBody]TeamResource teamResource)
         {
             if (!ModelState.IsValid)
@@ -165,10 +150,11 @@ namespace SynchroLean.Controllers
                 return NotFound("Couldn't find a team matching that teamId.");
             }
 
-            // Validates team belongs to correct user
-            if (team.OwnerId != account.OwnerId)
+            // Validates that team belongs to editing user
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(team.OwnerId)) 
             {
-                return BadRequest("prohibited user does not have edit rights");
+                return Forbid();
             }
 
             // Map resource to model
@@ -197,14 +183,15 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"></param>
         /// <returns></returns>
         // PUT api/team/invite/
-        [HttpPut("invite/{ownerId}/{creatorId}/{teamId}")]
+        [HttpPut("invite/{ownerId}/{creatorId}/{teamId}"), Authorize]
         public async Task<IActionResult> InviteUserToTeamAsync(int ownerId, int creatorId, int teamId)
         {
             var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
             if (team == null) return NotFound("No such team");
             //TODO: Check if creator is in the team creator is being invited into
             //blocked by the fact that teams aren't implemented yet
-            var creatorIsTeamOwner = team.OwnerId == creatorId;
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            var creatorIsTeamOwner = team.OwnerId == tokenOwnerId;
             var creator = await unitOfWork.userAccountRepository.GetUserAccountAsync(creatorId);
             if (creator == null) return NotFound("User doesn't exist");
             var owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
@@ -227,12 +214,19 @@ namespace SynchroLean.Controllers
         /// <param name="addUserRequestId">The invite being accepted.</param>
         /// <param name="inviteeId">The user accepting the invite.</param>
         /// <returns></returns>
-        [HttpPut("invite/accept/{addUserRequestId}/{inviteeId}")]
+        [HttpPut("invite/accept/{addUserRequestId}/{inviteeId}"), Authorize]
         public async Task<IActionResult> AcceptTeamInvite(int addUserRequestId, int inviteeId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
             if (invite == null) return NotFound("No such invite");
-            if (!(invite.Invitee.OwnerId == inviteeId)) return Forbid();
+
+            // Validate that the accepting user is the invitee
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(invite.Invitee.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             await unitOfWork.teamMemberRepository.AddUserToTeam(invite.DestinationTeam.Id, invite.Invitee.OwnerId);
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
@@ -245,12 +239,19 @@ namespace SynchroLean.Controllers
         /// <param name="addUserRequestId"></param>
         /// <param name="inviteeId"></param>
         /// <returns></returns>
-        [HttpPut("invite/reject/{addUserRequestId}/{inviteeId}")]
+        [HttpPut("invite/reject/{addUserRequestId}/{inviteeId}"), Authorize]
         public async Task<IActionResult> RejectTeamInvite(int addUserRequestId, int inviteeId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
             if (invite == null) return NotFound("No such invite");
-            if (!(invite.Invitee.OwnerId == inviteeId)) return Forbid();
+            
+            // Validate that the rejecting user is the invitee
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(invite.Invitee.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
             return Ok();
@@ -262,12 +263,19 @@ namespace SynchroLean.Controllers
         /// <param name="addUserRequestId"></param>
         /// <param name="creatorId"></param>
         /// <returns></returns>
-        [HttpPut("invite/rescind/{addUserRequestId}/{creatorId}")]
+        [HttpPut("invite/rescind/{addUserRequestId}/{creatorId}"), Authorize]
         public async Task<IActionResult> RescindTeamInvite(int addUserRequestId, int creatorId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
             if (invite == null) return NotFound("No such invite");
-            if (!(invite.Inviter.OwnerId == creatorId)) return Forbid();
+
+            // Validate that the rescinding user is the inviter
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(invite.Inviter.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
             return Ok();
@@ -279,7 +287,7 @@ namespace SynchroLean.Controllers
         /// <param name="addUserRequestId"></param>
         /// <param name="creatorId"></param>
         /// <returns></returns>
-        [HttpPut("invite/authorize/{addUserRequestId}/{ownerId}")]
+        [HttpPut("invite/authorize/{addUserRequestId}/{ownerId}"), Authorize]
         public async Task<IActionResult> AuthorizeTeamInvite(int addUserRequestId, int ownerId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
@@ -287,7 +295,14 @@ namespace SynchroLean.Controllers
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
             if (team == null) return NotFound("No such team");
-            if (!(team.OwnerId == ownerId)) return Forbid();
+
+            // Validate that the authorizing user is the team owner
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(team.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             invite.IsAuthorized = true;
             await unitOfWork.CompleteAsync();
             return Ok();
@@ -299,7 +314,7 @@ namespace SynchroLean.Controllers
         /// <param name="addUserRequestId"></param>
         /// <param name="creatorId"></param>
         /// <returns></returns>
-        [HttpPut("invite/veto/{addUserRequestId}/{ownerId}")]
+        [HttpPut("invite/veto/{addUserRequestId}/{ownerId}"), Authorize]
         public async Task<IActionResult> VetoTeamInvite(int addUserRequestId, int ownerId)
         {
             var invite = await unitOfWork.addUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
@@ -307,7 +322,14 @@ namespace SynchroLean.Controllers
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
             if (team == null) return NotFound("No such team");
-            if (!(team.OwnerId == ownerId)) return Forbid();
+            
+            // Validate that the vetoing user is the team owner
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(team.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             await unitOfWork.addUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
             await unitOfWork.CompleteAsync();
             return Ok();
@@ -318,11 +340,19 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The id for the user.</param>
         /// <returns>All invites that the user may accept.</returns>
-        [HttpGet("invite/incoming/accept/{ownerId}")]
+        [HttpGet("invite/incoming/accept/{ownerId}"), Authorize]
         public async Task<IActionResult> GetInvitesToAccept(int ownerId)
         {
             var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             if (!userExists) return NotFound("No such user");
+
+            // Validate that the user is fetching their own invites
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(ownerId))
+            {
+                return Forbid();
+            }
+
             var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(ownerId);
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
@@ -332,11 +362,19 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The id for the user.</param>
         /// <returns>All invites that the user may authorize.</returns>
-        [HttpGet("invite/incoming/authorize/{ownerId}")]
+        [HttpGet("invite/incoming/authorize/{ownerId}"), Authorize]
         public async Task<IActionResult> GetInvitesToAuthorize(int ownerId)
         {
             var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             if (!userExists) return NotFound("No such user");
+
+            // Validate that the user is fetching invites waiting for their own authorization
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(ownerId)) 
+            {
+                return Forbid();
+            }
+
             var invites = await unitOfWork.addUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(ownerId);
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
@@ -346,11 +384,19 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="ownerId">The id for the user.</param>
         /// <returns>All invites that the user has created and may rescind.</returns>
-        [HttpGet("invite/outgoing/{ownerId}")]
+        [HttpGet("invite/outgoing/{ownerId}"), Authorize]
         public async Task<IActionResult> GetCreatedInvites(int ownerId)
         {
             var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             if (!userExists) return NotFound("No such user");
+
+            // Validate that the user is fetching their own created invites
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(ownerId)) 
+            {
+                return Forbid();
+            }
+
             var invites = await unitOfWork.addUserRequestRepository.GetMySentAddUserRequestsAsync(ownerId);
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
@@ -362,7 +408,7 @@ namespace SynchroLean.Controllers
         /// <param name="subjectId">The team for which permissions will be granted.</param>
         /// <param name="objectId">The user's team.</param>
         /// <returns></returns>
-        [HttpPut("permissions/grant/{objectId}/{subjectId}/{ownerId}")]
+        [HttpPut("permissions/grant/{objectId}/{subjectId}/{ownerId}"), Authorize]
         public async Task<IActionResult> PermitTeamToSee(int ownerId, int subjectId, int objectId)
         {
             // -- We don't need to actually check who the user is, but if you want to, uncomment this
@@ -372,7 +418,14 @@ namespace SynchroLean.Controllers
             if (!subjectExists) return NotFound("No such team (subjectId)");
             var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
             if (objectTeam == null) return NotFound("No such team (objectId)");
-            if (ownerId != objectTeam.OwnerId) return Forbid();
+
+            // Validate that the user granting permissions owns the object team
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(objectTeam.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             await unitOfWork.teamPermissionRepository.Permit(subjectId, objectId);
             await unitOfWork.CompleteAsync();
             return Ok();
@@ -385,7 +438,7 @@ namespace SynchroLean.Controllers
         /// <param name="subjectId">The team for which permissions will be revoking.</param>
         /// <param name="objectId">The user's team.</param>
         /// <returns></returns>
-        [HttpPut("permissions/revoke/{objectId}/{subjectId}/{ownerId}")]
+        [HttpPut("permissions/revoke/{objectId}/{subjectId}/{ownerId}"), Authorize]
         public async Task<IActionResult> ForbidTeamToSee(int ownerId, int subjectId, int objectId)
         {
             // -- We don't need to actually check who the user is, but if you want to, uncomment this
@@ -395,7 +448,14 @@ namespace SynchroLean.Controllers
             if (!subjectExists) return NotFound();
             var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
             if (objectTeam == null) return NotFound("No such team (objectId)");
-            if (ownerId != objectTeam.OwnerId) return Forbid();
+
+            // Validate that the user revoking permissions owns the object team
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(objectTeam.OwnerId)) 
+            {
+                return Forbid();
+            }
+
             await unitOfWork.teamPermissionRepository.Forbid(subjectId, objectId);
             await unitOfWork.CompleteAsync();
             return Ok();
@@ -408,7 +468,7 @@ namespace SynchroLean.Controllers
         /// <param name="targetId">The user to be removed from the team.</param>
         /// <param name="teamId"> The team the user is too be removed from.</param>
         /// <returns></returns>
-        [HttpPut("remove/{callerId}/{targetId}/{teamId}")]
+        [HttpPut("remove/{callerId}/{targetId}/{teamId}"), Authorize]
         public async Task<IActionResult> RemoveMemberAsync(int callerId, int targetId, int teamId){
         
             var targetTeam = await unitOfWork.userTeamRepository
@@ -417,9 +477,13 @@ namespace SynchroLean.Controllers
             if (targetTeam == null){
                 return NotFound("Not a valid team.");
             }
-            
-            if(callerId != targetTeam.OwnerId && callerId != targetId){
-                return BadRequest("User does not have permissions");
+
+            // Validate that the user removing another user is either the team owner
+            // or they are removing themselves (leaving the team).
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            if (!tokenOwnerId.Equals(targetTeam.OwnerId) && !tokenOwnerId.Equals(targetId)) 
+            {
+                return Forbid();
             }
 
             if(targetTeam.OwnerId == targetId){
@@ -436,7 +500,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="teamId">
         /// <returns></returns>
-        [HttpGet("rollup/{teamId}")]
+        [HttpGet("rollup/{teamId}"), Authorize]
         public async Task<IActionResult> TeamRollUpAsync(int teamId){
                         
             var team = await unitOfWork.userTeamRepository
@@ -444,6 +508,13 @@ namespace SynchroLean.Controllers
 
             if (team == null){
                 return NotFound("Not a valid team.");
+            }
+
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            var userCanSeeTeam = await unitOfWork.teamPermissionRepository.UserIsPermittedToSeeTeam(tokenOwnerId, teamId);
+            if (!userCanSeeTeam)
+            {
+                return Forbid();
             }
 
             var teamRoster = await unitOfWork.teamMemberRepository.GetAllUsersForTeam(teamId);

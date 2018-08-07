@@ -26,6 +26,12 @@ namespace SynchroLean.Core.Models
         [Required]
         [StringLength(50)]
         public string Email { get; set; }
+        /// <value>Gets and sets user password</value>
+        [Required]
+        public string Password { get; set; }
+        /// <value>Gets and sets user salt</value>
+        [Required]
+        public string Salt { get; set; }
         /// <value>Gets and sets account active/inactive state</value>
         public bool IsDeleted { get; set; }
     }

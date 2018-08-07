@@ -62,5 +62,35 @@ namespace SynchroLean.Persistence
                 context.TeamPermissions.Add(new TeamPermission { SubjectTeamId = subjectId, ObjectTeamId = objectId });
             }
         }
+
+        async Task<bool> ITeamPermissionRepository.UserIsPermittedToSeeTeam(int subjectUserId, int objectId)
+        {
+            var teamsUserIsIn =
+                from membership in context.TeamMembers
+                where membership.MemberId == subjectUserId
+                select membership.TeamId;
+            var result = false;
+            result = await teamsUserIsIn.AnyAsync(x => x == objectId);
+            if (result) return result;
+            else
+            {
+                var teamsUserCanSee =
+                    from teamId in teamsUserIsIn
+                    join permission in context.TeamPermissions
+                    on teamId equals permission.SubjectTeamId
+                    select permission.ObjectTeamId;
+                return await teamsUserCanSee.AnyAsync(x => x == objectId);
+            }
+        }
+
+        async Task<bool> ITeamPermissionRepository.UserIsPermittedToSeeUser(int subjectUserId, int objectUserId)
+        {
+            var possibleRelations =
+                from subjectMembership in context.TeamMembers
+                from objectMembership in context.TeamMembers
+                where subjectMembership.MemberId == subjectUserId && objectMembership.MemberId == objectUserId
+                select !(null == context.TeamPermissions.Find(subjectMembership.MemberId, objectMembership.MemberId));
+            return await possibleRelations.AnyAsync(x => x);
+        }
     }
 }

@@ -15,6 +15,9 @@ using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 using SynchroLean.Profile;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace SynchroLean
 {
@@ -41,11 +44,30 @@ namespace SynchroLean
             services.AddSingleton<IUserTaskRepository, UserTaskRepository>();
             services.AddSingleton<IUserTeamRepository, UserTeamRepository>();
 
+            // AutoMapper
             var config = new AutoMapper.MapperConfiguration(c => {
                 c.AddProfile(new ApplicationProfile());
             });
             var mapper = config.CreateMapper();
             services.AddSingleton(mapper);
+
+            // JWT
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options => 
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = false,
+                    RequireExpirationTime = false,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = "http://localhost:55542",
+                    ValidAudience = "http://localhost:4200",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("developmentKey!@3"))
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,6 +84,8 @@ namespace SynchroLean
                     .AllowAnyMethod()
                     .AllowCredentials()
             );
+
+            app.UseAuthentication();
 
             app.UseMvc();
         }

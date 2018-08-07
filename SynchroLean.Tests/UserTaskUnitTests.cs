@@ -390,7 +390,16 @@ namespace SynchroLean.Tests
                     // Create an instance of AccountsController
                     accountController = new AccountsController(unitOfWork, mapper);
 
-                    await accountController.AddUserAccountAsync(account);
+                    var newAccount = new CreateUserAccountResource
+                    {
+                        Email = account.Email,
+                        FirstName = account.FirstName,
+                        LastName = account.LastName,
+                        Password = "swordfish",
+                        IsDeleted = false
+                    };
+
+                    await accountController.AddUserAccountAsync(newAccount);
 
                     // Add newUserTask to UserTasks table in Db asynchronously
                     await taskController.AddUserTaskAsync(newUserTask1);
