@@ -174,7 +174,8 @@ namespace SynchroLean.Controllers
             // Map resource to model
             team.TeamName = teamResource.TeamName;
             team.TeamDescription = teamResource.TeamDescription;
-            team.OwnerId = teamResource.OwnerId; // Should we really be changing the owner id?
+
+            await unitOfWork.teamMemberRepository.ChangeTeamOwnership(teamId, teamResource.OwnerId);
 
             //this stops default edit team from giving teams to user 0
             if (team.OwnerId == 0)
