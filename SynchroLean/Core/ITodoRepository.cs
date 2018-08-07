@@ -62,8 +62,14 @@ namespace SynchroLean.Core {
         /// Mark all todos as missed and delete them, if they expired before or at the threshold
         /// </summary>
         /// <param name="threshold">The latest time for expiry.</param>
-        /// <returns></returns>
-        Task CleanTodos(DateTime threshold);
+        /// <returns></returns> 
+        Task CleanTodos();
 
+        /// <summary> 
+        /// Make sure a todo is up to date after a task has been edited. 
+        /// </summary> 
+        /// <param name="taskId">The id of the task being edited.</param> 
+        /// <returns></returns> 
+        Task RefreshTodo(int taskId);
     }
 }

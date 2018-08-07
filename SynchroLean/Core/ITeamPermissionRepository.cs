@@ -51,5 +51,21 @@ namespace SynchroLean.Core
         /// <param name="subjectId">The id of the subject team.</param>
         /// <returns>The ids of all object teams that the subject team can see.</returns>
         Task<IEnumerable<Team>> GetTeamsThatItSees(int subjectId);
+
+        /// <summary>
+        /// Test if a user can see a target team
+        /// </summary>
+        /// <param name="subjectUserId">The user that is trying to see team info</param>
+        /// <param name="objectId">The team that the user is trying to see</param>
+        /// <returns></returns>
+        Task<bool> UserIsPermittedToSeeTeam(int subjectUserId, int objectId);
+
+        /// <summary>
+        /// Test if a user can see a target user
+        /// </summary>
+        /// <param name="subjectUserId">The user that is trying to see detailed user info</param>
+        /// <param name="objectId">The user that the user is trying to see</param>
+        /// <returns></returns>
+        Task<bool> UserIsPermittedToSeeUser(int subjectUserId, int objectUserId);
     }
 }

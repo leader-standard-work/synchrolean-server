@@ -18,7 +18,7 @@ namespace SynchroLean.Controllers
     /// This class handles HTTP requests for teams
     /// </summary>
     [Route("api/[controller]")]
-    public class TeamController : Controller
+    public class TeamController : Controller    
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper _mapper;
@@ -183,7 +183,8 @@ namespace SynchroLean.Controllers
             // Map resource to model
             team.TeamName = teamResource.TeamName;
             team.TeamDescription = teamResource.TeamDescription;
-            team.OwnerId = teamResource.OwnerId; // Should we really be changing the owner id?
+
+            await unitOfWork.teamMemberRepository.ChangeTeamOwnership(teamId, teamResource.OwnerId);
 
             //this stops default edit team from giving teams to user 0
             if (team.OwnerId == 0)
@@ -491,7 +492,7 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"> The team the user is too be removed from.</param>
         /// <returns></returns>
         [HttpPut("remove/{callerId}/{targetId}/{teamId}"), Authorize]
-        public async Task<IActionResult> removeMemberAsync(int callerId, int targetId, int teamId){
+        public async Task<IActionResult> RemoveMemberAsync(int callerId, int targetId, int teamId){
         
             var targetTeam = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamId);
@@ -515,6 +516,47 @@ namespace SynchroLean.Controllers
             await unitOfWork.teamMemberRepository.RemoveUserFromTeam(teamId,targetId);
             await unitOfWork.CompleteAsync();
             return Ok();
+        }
+
+        /// <summary>
+        ///  Returns a list of tasks for a team
+        /// </summary>
+        /// <param name="teamId">
+        /// <returns></returns>
+        [HttpGet("rollup/{teamId}"), Authorize]
+        public async Task<IActionResult> TeamRollUpAsync(int teamId){
+                        
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
+
+            if (team == null){
+                return NotFound("Not a valid team.");
+            }
+
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            var userCanSeeTeam = await unitOfWork.teamPermissionRepository.UserIsPermittedToSeeTeam(tokenOwnerId, teamId);
+            if (!userCanSeeTeam)
+            {
+                return Forbid();
+            }
+
+            var teamRoster = await unitOfWork.teamMemberRepository.GetAllUsersForTeam(teamId);
+
+            var teamTasks = new List<UserTaskResource>();
+
+            foreach(var member in teamRoster){
+                var tasks = await unitOfWork.userTaskRepository
+                .GetTasksAsync(member.OwnerId);
+
+                foreach(var task in tasks){
+                    if(unitOfWork.todoList.GetUserTodo(member.OwnerId,task.Id) != null
+                        /* && task.teamId==teamId*/){
+                        teamTasks.Add(_mapper.Map<UserTaskResource>(task));
+                    }
+                }
+            }
+
+        return Ok(teamTasks);      
         }
     }
 }
