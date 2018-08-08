@@ -91,6 +91,27 @@ namespace SynchroLean.Controllers
 
             return Ok(resourceTeams); // Return the collection of team resources
         }
+        /// <summary>
+        /// Get the given team.
+        /// </summary>
+        /// <param name="teamId">The id for the team to fetch.</param>
+        /// <returns>A team resource</returns>
+        // GET api/team/tid
+        [HttpGet("{teamId}")]
+        public async Task<IActionResult> GetUserTeamAsync(int teamId)
+        {
+            // Get the team for the currently logged in user
+            var team = await unitOfWork.userTeamRepository
+                .GetUserTeamAsync(teamId);
+
+            // Check to see if a team corresponding to the given team id was found
+            if (team == null)
+            {
+                return NotFound("Couldn't find a team matching that id."); // Team wasn't found
+            }
+
+            return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
+        }
 
         /// <summary>
         /// Get a list of all members for a team.
