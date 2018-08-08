@@ -106,5 +106,17 @@ namespace SynchroLean.Persistence
             var toRemove = await context.TaskCompletionLog.Where(entry => entry.EntryTime < threshold).ToListAsync();
             context.TaskCompletionLog.RemoveRange(toRemove);
         }
+
+        public async Task<Double> GetUserCompletionRateOnTeams(int userId, DateTime start, DateTime end, IEnumerable<int> teamId)
+        {
+            var userTeamTasks = await
+               (from task in context.TaskCompletionLog
+                where task.OwnerId == userId
+                && task.TeamId != null
+                && teamId.Contains((int)task.TeamId)
+                && task.EntryTime > start && task.EntryTime <= end
+                select task.IsCompleted ? 1.0 : 0.0).ToListAsync();
+            if (userTeamTasks.Count > 0) return userTeamTasks.Average();
+            else return Double.NaN;
     }
 }

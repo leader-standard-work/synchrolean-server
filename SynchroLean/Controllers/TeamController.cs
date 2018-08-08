@@ -554,7 +554,7 @@ namespace SynchroLean.Controllers
                 }
             }
 
-        return Ok(teamTasks);      
+            return Ok(teamTasks);      
         }
     }
 }

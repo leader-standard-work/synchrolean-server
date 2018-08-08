@@ -18,5 +18,6 @@ namespace SynchroLean.Controllers.Resources
         public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
         public Frequency Frequency { get; set; }
+        public int Team { get; set; }
     }
 }
