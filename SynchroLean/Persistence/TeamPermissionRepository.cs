@@ -85,6 +85,8 @@ namespace SynchroLean.Persistence
 
         async Task<bool> ITeamPermissionRepository.UserIsPermittedToSeeUser(int subjectUserId, int objectUserId)
         {
+            //Trivial case
+            if (subjectUserId == objectUserId) return true;
             var possibleRelations =
                 from subjectMembership in context.TeamMembers
                 from objectMembership in context.TeamMembers
