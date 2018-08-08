@@ -102,6 +102,36 @@ namespace SynchroLean.Controllers
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
+        // GET api/tasks/team/{teamId}/{ownerId}
+        /// <summary>
+        /// Retrieves a users tasks
+        /// </summary>
+        /// <param name="ownerId"></param>
+        /// <returns>List of a users tasks</returns>
+        [HttpGet("team/{teamId}/{ownerId}"), Authorize]
+        public async Task<IActionResult> GetTasksForTeamAsync(int ownerId, int teamId)
+        {
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+            var userCanSee = await unitOfWork.teamPermissionRepository.UserIsPermittedToSeeTeam(ownerId,teamId);
+            if (!userCanSee) return Forbid();
+            var tasks = await unitOfWork.userTaskRepository
+                .GetTasksAsync(ownerId);
+            var visibleTasks = tasks.Where(task => task.TeamId != null && task.TeamId == teamId);
+            // List of corresponding tasks as resources
+            var resourceTasks = new List<UserTaskResource>();
+
+            // Map each task to a corresponding resource
+            foreach (var task in tasks)
+            {
+                // Add mapped resource to resources list
+                if (!task.IsRemoved)
+                {
+                    resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
+                }
+            }
+
+            return Ok(resourceTasks); // List of UserTaskResources 200OK
+        }
         /// <summary>
         /// Retrieves the users tasks for current day
         /// </summary>
