@@ -78,12 +78,15 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTasksAsync(int ownerId)
         {
             var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
-            var canSee = await unitOfWork.teamPermissionRepository.UserIsPermittedToSeeUser(tokenOwnerId, ownerId);
-            if (!canSee) return Forbid();
-            // Fetch all tasks from the DB asyncronously
             var tasks = await unitOfWork.userTaskRepository
                 .GetTasksAsync(ownerId);
-
+            IEnumerable<UserTask> visibleTasks;
+            if (tokenOwnerId != ownerId)
+            {
+                var teamsCanSee = await unitOfWork.teamPermissionRepository.GetTeamIdsUserIdSees(ownerId);
+                visibleTasks = tasks.Where(task => task.TeamId != null && teamsCanSee.Contains((int)task.TeamId));
+            }
+            else visibleTasks = tasks;
             // List of corresponding tasks as resources
             var resourceTasks = new List<UserTaskResource>();
 

@@ -73,6 +73,6 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="userId">The user which is a subject in the permissions model</param>
         /// <returns>All the valid object teams that can be seen</returns>
-        Task<IEnumerable<int>> GetTeamIdsUserIdSees(int userId);
+        Task<ISet<int>> GetTeamIdsUserIdSees(int userId);
     }
 }
