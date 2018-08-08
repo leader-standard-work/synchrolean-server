@@ -16,5 +16,6 @@ namespace SynchroLean.Core.Models
         [StringLength(250)]
         public string TeamDescription { get; set; }
         public virtual ICollection<UserTask> AssociatedTasks { get; set; }
+        public virtual ICollection<CompletionLogEntry> AssociatedLogEntries { get; set; }
     }
 }

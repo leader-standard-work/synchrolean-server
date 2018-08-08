@@ -14,5 +14,8 @@ namespace SynchroLean.Core.Models
         public virtual UserAccount Owner { get; set; }
         public DateTime EntryTime { get; set; }
         public bool IsCompleted { get; set; }
+        public int? TeamId { get; set; }
+        [ForeignKey("TeamId")]
+        public virtual Team Team { get; set; }
     }
 }
