@@ -82,12 +82,7 @@ namespace SynchroLean.Persistence
             var teamTasks = await
             (
                 from task in context.TaskCompletionLog
-                join member in (from member in context.TeamMembers
-                                where member.TeamId.Equals(teamId)
-                                select member.MemberId
-                               )
-                on task.OwnerId equals member
-                where task.EntryTime > start && task.EntryTime <= end
+                where task.TeamId != null && (int)task.TeamId == teamId && task.EntryTime > start && task.EntryTime <= end
                 select task.IsCompleted ? 1.0 : 0.0
             ).ToListAsync();
             // Team has tasks
