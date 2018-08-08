@@ -24,7 +24,9 @@ namespace SynchroLean.Core.Models
         public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
         public Frequency Frequency { get; set; }
-
+        public int? TeamId { get; set; }
+        [ForeignKey("TeamId")]
+        public virtual Team Team { get; set; }
         public bool OccursOnDayOfWeek(DayOfWeek day)
         {
             return this.Frequency != Frequency.Daily || 0 < (Weekdays & (1 << (byte)day));

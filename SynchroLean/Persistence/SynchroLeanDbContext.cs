@@ -24,6 +24,7 @@ namespace SynchroLean.Persistence
             modelBuilder.Entity<TeamMember>().HasKey(member => new { member.TeamId, member.MemberId });
             //modelBuilder.Entity<Todo>().HasKey(todo => new { todo.TaskId, todo.OwnerId });
             modelBuilder.Entity<CompletionLogEntry>().HasKey(log => new { log.TaskId, log.OwnerId, log.EntryTime });
+            modelBuilder.Entity<Team>().HasMany(team => team.AssociatedTasks).WithOne(task => task.Team).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
