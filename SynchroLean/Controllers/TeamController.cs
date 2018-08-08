@@ -97,8 +97,8 @@ namespace SynchroLean.Controllers
         /// <param name="teamId">The id for the team to fetch.</param>
         /// <returns>A team resource</returns>
         // GET api/team/tid
-        [HttpGet("{teamId}")]
-        public async Task<IActionResult> GetTeamAsync(int teamId)
+        [HttpGet("{teamId}"), Authorize]
+        public async Task<IActionResult> GetUserTeamAsync(int teamId)
         {
             // Get the team for the currently logged in user
             var team = await unitOfWork.userTeamRepository
