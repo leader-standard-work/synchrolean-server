@@ -85,11 +85,14 @@ namespace SynchroLean.Persistence
 
         async Task<bool> ITeamPermissionRepository.UserIsPermittedToSeeUser(int subjectUserId, int objectUserId)
         {
+            //Trivial case
+            if (subjectUserId == objectUserId) return true;
             var possibleRelations =
                 from subjectMembership in context.TeamMembers
                 from objectMembership in context.TeamMembers
                 where subjectMembership.MemberId == subjectUserId && objectMembership.MemberId == objectUserId
-                select !(null == context.TeamPermissions.Find(subjectMembership.MemberId, objectMembership.MemberId));
+                select subjectMembership.MemberId == objectMembership.MemberId
+                       || null != context.TeamPermissions.Find(subjectMembership.MemberId, objectMembership.MemberId);
             return await possibleRelations.AnyAsync(x => x);
         }
     }
