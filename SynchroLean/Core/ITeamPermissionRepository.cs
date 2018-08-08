@@ -67,5 +67,12 @@ namespace SynchroLean.Core
         /// <param name="objectUserId">The user that the user is trying to see</param>
         /// <returns></returns>
         Task<bool> UserIsPermittedToSeeUser(int subjectUserId, int objectUserId);
+
+        /// <summary>
+        /// Get all teams ids for which a user can see detailed stats
+        /// </summary>
+        /// <param name="userId">The user which is a subject in the permissions model</param>
+        /// <returns>All the valid object teams that can be seen</returns>
+        Task<IEnumerable<int>> GetTeamIdsUserIdSees(int userId);
     }
 }

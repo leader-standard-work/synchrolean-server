@@ -102,16 +102,32 @@ namespace SynchroLean.Persistence
             context.TaskCompletionLog.RemoveRange(toRemove);
         }
 
-        public async Task<Double> GetUserCompletionRateOnTeams(int userId, DateTime start, DateTime end, IEnumerable<int> teamId)
+        public async Task<Double> GetUserCompletionRateOnTeam(int userId, int teamId, DateTime start, DateTime end)
+        {
+            var userTeamTasks = await
+               (from task in context.TaskCompletionLog
+                where task.OwnerId == userId
+                && task.TeamId != null
+                && teamId == (int)task.TeamId
+                && task.EntryTime > start
+                && task.EntryTime <= end
+                select task.IsCompleted ? 1.0 : 0.0).ToListAsync();
+            if (userTeamTasks.Count > 0) return userTeamTasks.Average();
+            else return Double.NaN;
+        }
+
+        public async Task<Double> GetUserCompletionRateOnTeams(int userId, IEnumerable<int> teamId, DateTime start, DateTime end)
         {
             var userTeamTasks = await
                (from task in context.TaskCompletionLog
                 where task.OwnerId == userId
                 && task.TeamId != null
                 && teamId.Contains((int)task.TeamId)
-                && task.EntryTime > start && task.EntryTime <= end
+                && task.EntryTime > start 
+                && task.EntryTime <= end
                 select task.IsCompleted ? 1.0 : 0.0).ToListAsync();
             if (userTeamTasks.Count > 0) return userTeamTasks.Average();
             else return Double.NaN;
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using SynchroLean.Core.Models;
 
@@ -47,5 +48,25 @@ namespace SynchroLean.Core
         /// <param name="threshold">The oldest a kept log entry can be</param>
         /// <returns></returns>
         Task CleanupLog(DateTime threshold);
+
+        /// <summary>
+        /// Get the user's completion rate for a particular team
+        /// </summary>
+        /// <param name="userId">The user</param>
+        /// <param name="teamId">The team</param>
+        /// <param name="start">Starting date for metrics calculation</param>
+        /// <param name="end">Ending date for metrics calculation</param>
+        /// <returns>A rate from 0 to 1, NaN if the user had no tasks assigned on those teams.</returns>
+        Task<Double> GetUserCompletionRateOnTeam(int userId, int teamId, DateTime start, DateTime end);
+
+        /// <summary>
+        /// Get the user's completion rate for multiple teams
+        /// </summary>
+        /// <param name="userId">The user</param>
+        /// <param name="teamId">The teams the user is one</param>
+        /// <param name="start">Start date for metrics calculation</param>
+        /// <param name="end">End date for metrics calculations</param>
+        /// <returns>A rate from 0 to 1, NaN if the user had no tasks assigned on those teams.</returns>
+        Task<Double> GetUserCompletionRateOnTeams(int userId, IEnumerable<int> teamIds, DateTime start, DateTime end);
     }
 }

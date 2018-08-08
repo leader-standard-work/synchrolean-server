@@ -17,7 +17,7 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        async Task ITeamPermissionRepository.Forbid(int subjectId, int objectId)
+        public async Task Forbid(int subjectId, int objectId)
         {
             var alreadyPermitted = await ((ITeamPermissionRepository)this).IsPermitted(subjectId, objectId);
             if(alreadyPermitted)
@@ -26,12 +26,12 @@ namespace SynchroLean.Persistence
             }
         }
 
-        async Task<IEnumerable<TeamPermission>> ITeamPermissionRepository.GetTeamPermissions()
+        public async Task<IEnumerable<TeamPermission>> GetTeamPermissions()
         {
             return await context.TeamPermissions.ToListAsync();
         }
 
-        async Task<IEnumerable<Team>> ITeamPermissionRepository.GetTeamsThatCanSee(int objectId)
+        public async Task<IEnumerable<Team>> GetTeamsThatCanSee(int objectId)
         {
             return await (
                 from permissionRelation in context.TeamPermissions
@@ -40,7 +40,7 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
         }
 
-        async Task<IEnumerable<Team>> ITeamPermissionRepository.GetTeamsThatItSees(int subjectId)
+        public async Task<IEnumerable<Team>> GetTeamsThatItSees(int subjectId)
         {
             return await(
                 from permissionRelation in context.TeamPermissions
@@ -49,12 +49,26 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
         }
 
-        async Task<bool> ITeamPermissionRepository.IsPermitted(int subjectId, int objectId)
+        public async Task<IEnumerable<int>> GetTeamIdsUserIdSees(int subjectId)
+        {
+            var teamsUserIsOn = await
+                (from membership in context.TeamMembers
+                 where membership.MemberId == subjectId
+                 select membership.TeamId).ToListAsync();
+            var teamsUserCanSee = await
+               (from permissionRelation in context.TeamPermissions
+                join teamId in teamsUserIsOn
+                on permissionRelation.SubjectTeamId equals teamId
+                select permissionRelation.ObjectTeamId).ToListAsync();
+            return new HashSet<int>(teamsUserIsOn.Concat(teamsUserCanSee));
+        }
+
+        public async Task<bool> IsPermitted(int subjectId, int objectId)
         {
             return await context.TeamPermissions.AnyAsync(x => x.SubjectTeamId == subjectId && x.ObjectTeamId == objectId);
         }
 
-        async Task ITeamPermissionRepository.Permit(int subjectId, int objectId)
+        public async Task Permit(int subjectId, int objectId)
         {
             var alreadyPermitted = await((ITeamPermissionRepository)this).IsPermitted(subjectId, objectId);
             if (!alreadyPermitted)
@@ -63,7 +77,7 @@ namespace SynchroLean.Persistence
             }
         }
 
-        async Task<bool> ITeamPermissionRepository.UserIsPermittedToSeeTeam(int subjectUserId, int objectId)
+        public async Task<bool> UserIsPermittedToSeeTeam(int subjectUserId, int objectId)
         {
             var teamsUserIsIn =
                 from membership in context.TeamMembers
@@ -83,7 +97,7 @@ namespace SynchroLean.Persistence
             }
         }
 
-        async Task<bool> ITeamPermissionRepository.UserIsPermittedToSeeUser(int subjectUserId, int objectUserId)
+        public async Task<bool> UserIsPermittedToSeeUser(int subjectUserId, int objectUserId)
         {
             //Trivial case
             if (subjectUserId == objectUserId) return true;
