@@ -55,7 +55,7 @@ namespace SynchroLean.Persistence
 
         public void RemoveTodo(int taskId)
         {
-            context.Remove(new Todo { Id = taskId});
+            context.Remove(new Todo { TaskId = taskId});
         }
 
         public async Task RemoveTodosAsync(int taskId)

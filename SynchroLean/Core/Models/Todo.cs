@@ -9,7 +9,7 @@ namespace SynchroLean.Core.Models
 {
     public class Todo
     {
-        public int Id { get; set; }
+        [Key]
         public int TaskId { get; set; }
         [ForeignKey("TaskId")]
         public virtual UserTask Task { get; set; }

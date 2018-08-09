@@ -260,9 +260,9 @@ namespace SynchroLean.Controllers
             if(todoExists)
             {
                 if (userTaskResource.IsCompleted && !todo.IsCompleted)
-                    await unitOfWork.todoList.CompleteTodoAsync(todo.Id);
+                    await unitOfWork.todoList.CompleteTodoAsync(todo.TaskId);
                 else if (!userTaskResource.IsCompleted && todo.IsCompleted)
-                    await unitOfWork.todoList.UndoCompleteTodoAsync(todo.Id);
+                    await unitOfWork.todoList.UndoCompleteTodoAsync(todo.TaskId);
             }
             //Delete the task if needed
             //Remove the todo if needed
