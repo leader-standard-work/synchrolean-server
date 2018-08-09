@@ -118,7 +118,7 @@ namespace SynchroLean.Persistence
             DateTime threshold = DateTime.Now;
             var expireds = await 
                 (
-                    from todo in context.Todos
+                    from todo in context.Todos.Include(todo => todo.Task)
                     where todo.Expires <= threshold
                     select todo
                 ).ToListAsync();
@@ -133,6 +133,7 @@ namespace SynchroLean.Persistence
                             IsCompleted = false
                         }
                     );
+                if (!expired.Task.IsRecurring) expired.Task.IsRemoved = true;
                 context.Todos.Remove(expired);
             }
         }
