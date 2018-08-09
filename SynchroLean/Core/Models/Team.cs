@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SynchroLean.Core.Models
 {
@@ -18,5 +19,14 @@ namespace SynchroLean.Core.Models
         public virtual ICollection<UserTask> AssociatedTasks { get; set; }
         public virtual ICollection<CompletionLogEntry> AssociatedLogEntries { get; set; }
         public virtual ICollection<Todo> AssociatedTodos { get; set; }
+        public DateTime? Deleted { get; set; }
+        [NotMapped]
+        public bool IsDeleted { get { return this.Deleted != null; } }
+        public void Delete()
+        {
+            this.Deleted = DateTime.Now;
+            this.AssociatedTasks.Clear();
+            this.AssociatedTodos.Clear();
+        }
     }
 }
