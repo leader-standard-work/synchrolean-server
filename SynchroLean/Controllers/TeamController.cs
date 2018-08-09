@@ -527,7 +527,7 @@ namespace SynchroLean.Controllers
             var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamId);
 
-            if (team == null){
+            if (team == null || !team.IsDeleted){
                 return NotFound("Not a valid team.");
             }
 
@@ -540,6 +540,31 @@ namespace SynchroLean.Controllers
             
             var teamUserTasks = await unitOfWork.userTaskRepository.GetTeamTasksAsync(teamId);
             return Ok(teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)));      
+        }
+
+        /// <summary>
+        /// Allow a team owner to delete a team. By popular demand.
+        /// </summary>
+        /// <param name="teamId">The team to be deleted.</param>
+        /// <returns></returns>
+        [HttpPost("delete/{teamId}"), Authorize]
+        public async Task<IActionResult> DeleteTeam(int teamId)
+        {
+            var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
+
+            if (team == null || !team.IsDeleted)
+            {
+                return NotFound("Not a valid team.");
+            }
+
+            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
+
+            if (team.OwnerId != tokenOwnerId) return Forbid();
+            else
+            {
+                await unitOfWork.userTeamRepository.DeleteTeamAsync(teamId);
+                return Ok();
+            }
         }
     }
 }

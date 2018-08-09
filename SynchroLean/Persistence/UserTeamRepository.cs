@@ -40,7 +40,7 @@ namespace SynchroLean.Persistence
                 .AnyAsync(team => team.Id == teamId);
         }
 
-        public async Task DeleteTeam(int teamId)
+        public async Task DeleteTeamAsync(int teamId)
         {
             var team = await context.Teams.FindAsync(teamId);
             var members = await context.TeamMembers.Where(member => member.TeamId == teamId).ToListAsync();

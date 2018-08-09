@@ -40,6 +40,6 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="teamId"></param>
         /// <returns></returns>
-        Task DeleteTeam(int teamId);
+        Task DeleteTeamAsync(int teamId);
     }
 }
