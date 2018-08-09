@@ -19,6 +19,9 @@ namespace SynchroLean.Core.Models
         public DateTime? Completed { get; set; }
         [Required]
         public DateTime Expires { get; set; }
+        public int? TeamId { get; set; }
+        [ForeignKey("TeamId")]
+        public virtual Team Team { get; set; }
         [NotMapped]
         public bool IsCompleted
         {
@@ -39,7 +42,8 @@ namespace SynchroLean.Core.Models
             {
                 TaskId = userTask.Id,
                 OwnerId = userTask.OwnerId,
-                Expires = expires
+                Expires = expires,
+                TeamId = userTask.TeamId
             };
         }
     }

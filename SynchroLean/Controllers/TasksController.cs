@@ -278,6 +278,7 @@ namespace SynchroLean.Controllers
             task.Weekdays = userTaskResource.Weekdays;
             task.IsRemoved = userTaskResource.IsRemoved;
             task.OwnerId = userTaskResource.OwnerId;
+            task.TeamId = userTaskResource.TeamId;
 
             //Refresh the todo list 
             await unitOfWork.todoList.RefreshTodo(taskId);
