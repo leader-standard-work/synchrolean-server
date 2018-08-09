@@ -17,10 +17,6 @@ namespace SynchroLean.Core.Models
         public bool IsRecurring { get; set; }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
-        [Obsolete]
-        public bool IsCompleted { get; set; }
-        [Obsolete]
-        public DateTime CompletionDate { get; set; }
         public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
         public Frequency Frequency { get; set; }
