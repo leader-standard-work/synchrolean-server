@@ -34,5 +34,12 @@ namespace SynchroLean.Core
         /// </summary>
         /// <returns></returns>
         Task CleanTasks();
+
+        /// <summary>
+        /// Get all the tasks for a specific team
+        /// </summary>
+        /// <param name="teamId">The id of all the teams</param>
+        /// <returns>All tasks with the given team assigned to them</returns>
+        Task<IEnumerable<UserTask>> GetTeamTasksAsync(int teamId)
     }
 }

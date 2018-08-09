@@ -26,14 +26,17 @@ namespace SynchroLean.Persistence
 
         public async Task<UserTask> GetTaskAsync(int taskId)
         {
-            return await context.UserTasks
-                .Where(ut => ut.Id.Equals(taskId))
-                .SingleOrDefaultAsync();
+            return await context.UserTasks.FindAsync(taskId);
         }
 
         public async Task AddAsync(UserTask userTask)
         {
             await context.UserTasks.AddAsync(userTask);
+        }
+
+        public async Task<IEnumerable<UserTask>> GetTeamTasksAsync(int teamId)
+        {
+            return await context.UserTasks.Where(task => task.TeamId != null && (int)task.TeamId == teamId).ToListAsync();
         }
 
         public async Task CleanTasks()

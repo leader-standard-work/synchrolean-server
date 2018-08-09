@@ -537,24 +537,9 @@ namespace SynchroLean.Controllers
             {
                 return Forbid();
             }
-
-            var teamRoster = await unitOfWork.teamMemberRepository.GetAllUsersForTeam(teamId);
-
-            var teamTasks = new List<UserTaskResource>();
-
-            foreach(var member in teamRoster){
-                var tasks = await unitOfWork.userTaskRepository
-                .GetTasksAsync(member.OwnerId);
-
-                foreach(var task in tasks){
-                    if(unitOfWork.todoList.GetUserTodo(member.OwnerId,task.Id) != null
-                        /* && task.teamId==teamId*/){
-                        teamTasks.Add(_mapper.Map<UserTaskResource>(task));
-                    }
-                }
-            }
-
-            return Ok(teamTasks);      
+            
+            var teamUserTasks = await unitOfWork.userTaskRepository.GetTeamTasksAsync(teamId);
+            return Ok(teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)));      
         }
     }
 }
