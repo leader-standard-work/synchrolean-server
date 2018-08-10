@@ -19,6 +19,8 @@ namespace SynchroLean.Core.Models
         public DateTime CreationDate { get; set; }
         public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
+        [ForeignKey("OwnerId")]
+        public virtual UserAccount Owner { get; set; }
         public Frequency Frequency { get; set; }
         public int? TeamId { get; set; }
         [ForeignKey("TeamId")]
@@ -27,7 +29,15 @@ namespace SynchroLean.Core.Models
         {
             return this.Frequency != Frequency.Daily || 0 < (Weekdays & (1 << (byte)day));
         }
-
+        public virtual Todo Todo { get; set; }
+        [NotMapped]
+        public bool IsActive
+        {
+            get
+            {
+                return null == this.Todo;
+            }
+        }
         [NotMapped]
         public IEnumerable<DayOfWeek> DaysOfWeek
         {

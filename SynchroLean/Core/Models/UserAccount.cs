@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace SynchroLean.Core.Models
 {
@@ -8,12 +11,9 @@ namespace SynchroLean.Core.Models
     /// </summary>
     public class UserAccount
     {
-        [Key]
         /// <value>Gets and sets user id number</value>
+        [Key]
         public int OwnerId { get; set; }
-        /// <value>Gets and sets team id number of user</value>
-        [Obsolete]
-        public int TeamId { get; set; }
         /// <value>Gets and sets user first name</value>
         [Required]
         [StringLength(50)]
@@ -34,5 +34,17 @@ namespace SynchroLean.Core.Models
         public string Salt { get; set; }
         /// <value>Gets and sets account active/inactive state</value>
         public bool IsDeleted { get; set; }
+        public virtual ICollection<UserTask> Tasks { get; set; }
+        public virtual ICollection<TeamMember> TeamMembershipRelations { get; set; }
+        public virtual ICollection<AddUserRequest> OutgoingInvites { get; set; }
+        public virtual ICollection<AddUserRequest> IncomingInvites { get; set; }
+        [NotMapped]
+        public IEnumerable<Todo> TodoList
+        {
+            get
+            {
+                return this.Tasks.Select(taskItem => taskItem.Todo);
+            }
+        }
     }
 }

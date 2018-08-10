@@ -110,26 +110,13 @@ namespace SynchroLean.Migrations
 
             modelBuilder.Entity("SynchroLean.Core.Models.Todo", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("TaskId");
 
                     b.Property<DateTime?>("Completed");
 
                     b.Property<DateTime>("Expires");
 
-                    b.Property<int>("OwnerId");
-
-                    b.Property<int>("TaskId");
-
-                    b.Property<int?>("TeamId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.HasIndex("TaskId");
-
-                    b.HasIndex("TeamId");
+                    b.HasKey("TaskId");
 
                     b.ToTable("Todos");
                 });
@@ -159,8 +146,6 @@ namespace SynchroLean.Migrations
                     b.Property<string>("Salt")
                         .IsRequired();
 
-                    b.Property<int>("TeamId");
-
                     b.HasKey("OwnerId");
 
                     b.ToTable("UserAccounts");
@@ -171,15 +156,11 @@ namespace SynchroLean.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CompletionDate");
-
                     b.Property<DateTime>("CreationDate");
 
                     b.Property<string>("Description");
 
                     b.Property<int>("Frequency");
-
-                    b.Property<bool>("IsCompleted");
 
                     b.Property<bool>("IsRecurring");
 
@@ -197,6 +178,8 @@ namespace SynchroLean.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OwnerId");
+
                     b.HasIndex("TeamId");
 
                     b.ToTable("UserTasks");
@@ -205,18 +188,19 @@ namespace SynchroLean.Migrations
             modelBuilder.Entity("SynchroLean.Core.Models.AddUserRequest", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.Team", "DestinationTeam")
-                        .WithMany()
+                        .WithMany("Invites")
                         .HasForeignKey("DestinationTeamId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Invitee")
-                        .WithMany()
+                        .WithMany("IncomingInvites")
                         .HasForeignKey("InviteeOwnerId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Inviter")
-                        .WithMany()
-                        .HasForeignKey("InviterOwnerId");
+                        .WithMany("OutgoingInvites")
+                        .HasForeignKey("InviterOwnerId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.CompletionLogEntry", b =>
@@ -234,18 +218,18 @@ namespace SynchroLean.Migrations
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
                         .WithMany("AssociatedLogEntries")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.TeamMember", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Member")
-                        .WithMany()
+                        .WithMany("TeamMembershipRelations")
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
-                        .WithMany()
+                        .WithMany("TeamMembershipRelations")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -253,40 +237,36 @@ namespace SynchroLean.Migrations
             modelBuilder.Entity("SynchroLean.Core.Models.TeamPermission", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.Team", "ObjectTeam")
-                        .WithMany()
+                        .WithMany("PermissionsWhereThisIsObject")
                         .HasForeignKey("ObjectTeamId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.Team", "SubjectTeam")
-                        .WithMany()
+                        .WithMany("PermissionsWhereThisIsSubject")
                         .HasForeignKey("SubjectTeamId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.Todo", b =>
                 {
-                    b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("SynchroLean.Core.Models.UserTask", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
+                        .WithOne("Todo")
+                        .HasForeignKey("SynchroLean.Core.Models.Todo", "TaskId")
+                        .HasConstraintName("FK_Todo_Tasks_TaskId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SynchroLean.Core.Models.Team", "Team")
-                        .WithMany("AssociatedTodos")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.UserTask", b =>
                 {
+                    b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
+                        .WithMany("Tasks")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
                         .WithMany("AssociatedTasks")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

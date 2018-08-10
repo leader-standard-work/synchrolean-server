@@ -39,17 +39,15 @@ namespace SynchroLean.Persistence
             await context.Todos.AddAsync(Todo.FromTask(task, expiry));
         }
 
-        public async Task<Todo> GetUserTodo(int userId, int taskId)
+        public async Task<Todo> GetTodo(int taskId)
         {
-            return await context.Todos
-                .Where(todo => todo.OwnerId == userId && todo.TaskId == taskId)
-                .SingleOrDefaultAsync();
+            return await context.Todos.FindAsync(taskId);
         }
 
         public async Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId)
         {
-            return await context.Todos
-                .Where(todo => todo.OwnerId.Equals(ownerId))
+            return await context.Todos.Include(todo => todo.Task)
+                .Where(todo => todo.Task.OwnerId.Equals(ownerId))
                 .ToListAsync();
         }
 
@@ -82,7 +80,6 @@ namespace SynchroLean.Persistence
                 //Create log entry and add to log
                 var entry = new CompletionLogEntry {
                     TaskId = todo.TaskId,
-                    OwnerId = todo.OwnerId,
                     EntryTime = DateTime.Now,
                     IsCompleted = todo.IsCompleted
                 };
@@ -104,7 +101,6 @@ namespace SynchroLean.Persistence
                 //Find and remove log entry
                 var entry = new CompletionLogEntry {
                     TaskId = todo.TaskId,
-                    OwnerId = todo.OwnerId,
                     EntryTime = (DateTime)todo.Completed
                 };
 
@@ -128,7 +124,6 @@ namespace SynchroLean.Persistence
                         new CompletionLogEntry
                         {
                             TaskId = expired.TaskId,
-                            OwnerId = expired.OwnerId,
                             EntryTime = expired.Expires,
                             IsCompleted = false
                         }

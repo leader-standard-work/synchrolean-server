@@ -16,15 +16,14 @@ namespace SynchroLean.Core {
         Task AddTodoAsync(int taskId);
 
         /// <summary>
-        /// Get a specific user's todo for a task.
+        /// Get a specific todo for a task.
         /// </summary>
-        /// <param name="userId">The id for the user.</param>
         /// <param name="taskId">The id for the task.</param>
         /// <returns>The todo item for the task. Null if the task wasn't assigned today.</returns>
-        Task<Todo> GetUserTodo(int userId, int taskId);
+        Task<Todo> GetTodo(int taskId);
 
         /// <summary>
-        /// Retrieve a todo from Db asynchronously
+        /// Retrieve all todos for a user
         /// </summary>
         /// <param name="taskId"></param>
         /// <returns></returns>
