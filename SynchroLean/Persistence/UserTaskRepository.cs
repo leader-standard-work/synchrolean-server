@@ -46,7 +46,7 @@ namespace SynchroLean.Persistence
                 (from task in context.UserTasks
                  join entry in context.TaskCompletionLog on task.Id equals entry.TaskId into taskentries
                  from taskentry in taskentries.DefaultIfEmpty()
-                 where task.IsRemoved && taskentry == null
+                 where task.IsDeleted && taskentry == null
                  select task).ToListAsync();
             foreach (var taskToDelete in tasksToDelete) context.UserTasks.Remove(taskToDelete);
         }

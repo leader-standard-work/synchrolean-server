@@ -150,7 +150,10 @@ namespace SynchroLean.Controllers
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
             account.Email = userAccountResource.Email;
-            account.IsDeleted = userAccountResource.IsDeleted;
+            if (userAccountResource.IsDeleted) 
+            {
+                account.Delete();
+            }
 
             // Save updated account to database
             await unitOfWork.CompleteAsync();

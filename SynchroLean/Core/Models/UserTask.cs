@@ -17,7 +17,6 @@ namespace SynchroLean.Core.Models
         public bool IsRecurring { get; set; }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
-        public bool IsRemoved { get; set; }
         public int OwnerId { get; set; }
         [ForeignKey("OwnerId")]
         public virtual UserAccount Owner { get; set; }
@@ -61,10 +60,12 @@ namespace SynchroLean.Core.Models
                 Weekdays = result;
             }
         }
-
-        public void deleteTask()
+        public DateTime? Deleted { get; set; }
+        [NotMapped]
+        public bool IsDeleted { get { return this.Deleted != null; } }
+        public void Delete()
         {
-            IsRemoved = true;
+            this.Deleted = DateTime.Now;
         }
     }
 }

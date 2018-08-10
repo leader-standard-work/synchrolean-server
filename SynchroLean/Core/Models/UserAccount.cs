@@ -32,8 +32,6 @@ namespace SynchroLean.Core.Models
         /// <value>Gets and sets user salt</value>
         [Required]
         public string Salt { get; set; }
-        /// <value>Gets and sets account active/inactive state</value>
-        public bool IsDeleted { get; set; }
         public virtual ICollection<UserTask> Tasks { get; set; }
         public virtual ICollection<TeamMember> TeamMembershipRelations { get; set; }
         public virtual ICollection<AddUserRequest> OutgoingInvites { get; set; }
@@ -45,6 +43,15 @@ namespace SynchroLean.Core.Models
             {
                 return this.Tasks.Select(taskItem => taskItem.Todo);
             }
+        }
+        public DateTime? Deleted { get; set; }
+        [NotMapped]
+        public bool IsDeleted { get { return this.Deleted != null; } }
+        public void Delete()
+        {
+            this.Deleted = DateTime.Now;
+            this.Tasks.Clear();
+            // Do we need to clear TeamMembershipRelations or IncomingInvites?
         }
     }
 }

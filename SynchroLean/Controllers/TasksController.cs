@@ -94,7 +94,7 @@ namespace SynchroLean.Controllers
             foreach (var task in tasks)
             {
                 // Add mapped resource to resources list
-                if(!task.IsRemoved){
+                if(!task.IsDeleted){
                     resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
                 }
             }
@@ -124,7 +124,7 @@ namespace SynchroLean.Controllers
             foreach (var task in tasks)
             {
                 // Add mapped resource to resources list
-                if (!task.IsRemoved)
+                if (!task.IsDeleted)
                 {
                     resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
                 }
@@ -195,7 +195,7 @@ namespace SynchroLean.Controllers
             var task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
 
             // Check if task exists
-            if(task == null || task.IsRemoved)
+            if(task == null || task.IsDeleted)
             {
                 return NotFound("Task not found!");
             } else 
@@ -242,7 +242,7 @@ namespace SynchroLean.Controllers
                 .GetTaskAsync(taskId);
 
             // Nothing was retrieved, no id match
-            if (task == null || task.IsRemoved)
+            if (task == null || task.IsDeleted)
             {
                 return NotFound("Task couldn't be found.");
             }
@@ -266,7 +266,7 @@ namespace SynchroLean.Controllers
             }
             //Delete the task if needed
             //Remove the todo if needed
-            if(userTaskResource.IsRemoved)
+            if(userTaskResource.IsDeleted)
             {
                 await unitOfWork.todoList.RemoveTodosAsync(taskId);
             }
@@ -276,7 +276,10 @@ namespace SynchroLean.Controllers
             task.Description = userTaskResource.Description;
             task.IsRecurring = userTaskResource.IsRecurring;
             task.Weekdays = userTaskResource.Weekdays;
-            task.IsRemoved = userTaskResource.IsRemoved;
+            if (userTaskResource.IsDeleted)
+            {
+                task.Delete();
+            }
             task.OwnerId = userTaskResource.OwnerId;
             task.TeamId = userTaskResource.TeamId;
 
