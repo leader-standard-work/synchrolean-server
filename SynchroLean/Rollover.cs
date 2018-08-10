@@ -39,6 +39,8 @@ namespace SynchroLean
                 await _unitOfWork.completionLogEntryRepository.CleanupLog(DateTime.Now.Date - TimeSpan.FromDays(730.5)); //2a
                 await _unitOfWork.userTaskRepository.CleanTasks();
 
+                var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
+
                 //Add daily todos
                 var tasks =
                     from task in context.UserTasks
@@ -46,6 +48,17 @@ namespace SynchroLean
                         && !task.IsRemoved
                         && (!(task.Frequency == Frequency.Daily) || task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek))
                         && !context.Todos.Any(todo => todo.TaskId == task.Id)
+                        && (// Check that there's not already a log entry for current month for monthly task
+                            (task.Frequency == Frequency.Monthly 
+                                    && !context.TaskCompletionLog.Any(log => log.EntryTime.Month == DateTime.Now.Month))
+                            // Check that there's not already a log entry for current week for weekly task
+                            || (task.Frequency == Frequency.Weekly
+                                && !context.TaskCompletionLog.Any(log => 
+                                    log.EntryTime.AddDays(-1 * (int)cal.GetDayOfWeek(log.EntryTime)) ==
+                                    DateTime.Today.AddDays(-1 * (int)cal.GetDayOfWeek(DateTime.Today))
+                                    )
+                                )
+                            )
                     select task;
 
                 foreach (var task in tasks)
