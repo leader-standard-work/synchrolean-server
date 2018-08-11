@@ -137,7 +137,7 @@ namespace SynchroLean.Controllers
             }
 
             // Verify email is unchanged
-            if (account.Email != userAccountResource.Email)
+            if (account.Email != userAccountResource.Email.Trim().ToLower())
             {
                 return BadRequest("Cannot change email address.");
             }
