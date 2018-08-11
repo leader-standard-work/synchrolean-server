@@ -285,7 +285,7 @@ namespace SynchroLean.Controllers
             }
 
             //Check if a todo for that task exists
-            var todo = await unitOfWork.TodoRepository.GetTodo(taskId);
+            var todo = task.Todo;
             var todoExists = todo != null;
             //Complete the task if needed
             if(todoExists)
