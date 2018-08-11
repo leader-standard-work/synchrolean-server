@@ -49,8 +49,8 @@ namespace SynchroLean.Controllers
             var saltedPassword = createUserAccountResource.Password + salt;
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(saltedPassword);
 
-            var existingAccount = await unitOfWork.userAccountRepository
-                .GetUserAccountByEmailAsync(createUserAccountResource.Email);
+            var existingAccount = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(createUserAccountResource.Email);
 
             if (existingAccount != null && existingAccount.IsDeleted)
             {
@@ -68,16 +68,17 @@ namespace SynchroLean.Controllers
 
                 account.Password = hashedPassword;
                 account.Salt = salt;
+                account.Email = account.Email.Trim().ToLower();
 
                 // Add model to database and save changes
-                await unitOfWork.userAccountRepository.AddAsync(account);
+                await unitOfWork.UserAccountRepository.AddAsync(account);
             }
 
             Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Retrieve account from database
-            var createdAccount = await unitOfWork.userAccountRepository
-                .GetUserAccountByEmailAsync(createUserAccountResource.Email);
+            var createdAccount = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(createUserAccountResource.Email);
             
             // Return mapped account resource
             return Ok(_mapper.Map<UserAccountResource>(createdAccount));
@@ -87,14 +88,14 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Retrieves specified account from UserAccount in Db
         /// </summary>
-        /// <param name="ownerId"></param>
+        /// <param name="emailAddress"></param>
         /// <returns>User account from Db</returns>
         [HttpGet("owner/{ownerId}"), Authorize]
-        public async Task<IActionResult> GetAccountAsync(int ownerId)
+        public async Task<IActionResult> GetAccountAsync(string emailAddress)
         {
             // Fetch account of ownerId
-            var account = await unitOfWork.userAccountRepository
-                .GetUserAccountAsync(ownerId);
+            var account = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(emailAddress);
 
             // Return error if account doesn't exist
             // I imagine we'll need to move IsDeleted later if user wants to reactivate account
@@ -117,8 +118,8 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetAccountByEmailAsync(string emailAddress)
         {
             // Fetch account of ownerId
-            var account = await unitOfWork.userAccountRepository
-                .GetUserAccountByEmailAsync(emailAddress);
+            var account = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(emailAddress);
 
             // Return error if account doesn't exist
             // I imagine we'll need to move IsDeleted later if user wants to reactivate account
@@ -135,11 +136,10 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Updates an existing account in Db
         /// </summary>
-        /// <param name="ownerId"></param>
         /// <param name="userAccountResource"></param>
         /// <returns>A resource of the updated account</returns>
-        [HttpPut("{ownerId}"), Authorize]
-        public async Task<IActionResult> EditAccountAsync(int ownerId, [FromBody]UserAccountResource userAccountResource)
+        [HttpPut, Authorize]
+        public async Task<IActionResult> EditAccountAsync([FromBody]UserAccountResource userAccountResource)
         {
             // How does this validate against the UserAccount model?
             if(!ModelState.IsValid)
@@ -147,15 +147,11 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
-            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
-            if (!tokenOwnerId.Equals(ownerId)) 
-            {
-                return Forbid();
-            }
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
 
             // Retrieve ownerId account from database
-            var account = await unitOfWork.userAccountRepository
-                .GetUserAccountAsync(ownerId);
+            var account = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(tokenOwnerEmail);
 
             // No account matches ownerId
             if(account == null || account.IsDeleted)
@@ -183,13 +179,13 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Get all the teams a user is on.
         /// </summary>
-        /// <param name="ownerId">The user for which to get teams for.</param>
+        /// <param name="emailAddress">The user for which to get teams for.</param>
         /// <returns></returns>
-        [HttpGet("teams/{ownerId}"), Authorize]
-        public async Task<IActionResult> GetTeamsForAccount(int ownerId)
+        [HttpGet("teams/{emailAddress}"), Authorize]
+        public async Task<IActionResult> GetTeamsForAccount(string emailAddress)
         {
             // Check if user exists
-            var account = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
+            var account = await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress);
 
             // No account matches ownerId
             if (account == null || account.IsDeleted)
@@ -197,7 +193,7 @@ namespace SynchroLean.Controllers
                 return NotFound("No account found matching that ownerId.");
             }
 
-            var teams = await unitOfWork.teamMemberRepository.GetAllTeamsForUser(ownerId);
+            var teams = await unitOfWork.TeamMemberRepository.GetAllTeamsForUser(emailAddress);
             return Ok(teams.Select(team => _mapper.Map<TeamResource>(team)));
         }
     }

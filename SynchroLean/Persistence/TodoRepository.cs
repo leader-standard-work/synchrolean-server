@@ -44,10 +44,10 @@ namespace SynchroLean.Persistence
             return await context.Todos.FindAsync(taskId);
         }
 
-        public async Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId)
+        public async Task<IEnumerable<Todo>> GetTodoListAsync(string emailAddress)
         {
             return await context.Todos.Include(todo => todo.Task)
-                .Where(todo => todo.Task.OwnerId.Equals(ownerId))
+                .Where(todo => todo.Task.OwnerEmail.Equals(emailAddress))
                 .ToListAsync();
         }
 

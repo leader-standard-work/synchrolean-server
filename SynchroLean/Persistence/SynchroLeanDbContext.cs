@@ -22,8 +22,8 @@ namespace SynchroLean.Persistence
         {
             //Composite Keys
             modelBuilder.Entity<TeamPermission>().HasKey(perm => new { perm.SubjectTeamId, perm.ObjectTeamId });
-            modelBuilder.Entity<TeamMember>().HasKey(member => new { member.TeamId, member.MemberId });
-            modelBuilder.Entity<CompletionLogEntry>().HasKey(log => new { log.TaskId, log.OwnerId, log.EntryTime });
+            modelBuilder.Entity<TeamMember>().HasKey(member => new { member.TeamId, MemberId = member.MemberEmail });
+            modelBuilder.Entity<CompletionLogEntry>().HasKey(log => new { log.TaskId, OwnerId = log.OwnerEmail, log.EntryTime });
             modelBuilder.Entity<Todo>().HasKey(todo => todo.TaskId);
 
             //Optional relationships

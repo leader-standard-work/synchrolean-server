@@ -31,23 +31,23 @@ namespace SynchroLean.Core
         /// <summary>
         /// Get all invitations a user can accept or decline.
         /// </summary>
-        /// <param name="ownerId">The key for the user.</param>
+        /// <param name="emailAddress">The key for the user.</param>
         /// <returns></returns>
-        Task<IEnumerable<AddUserRequest>> GetAddUserRequestsPendingApprovalAsync(int ownerId);
+        Task<IEnumerable<AddUserRequest>> GetAddUserRequestsPendingApprovalAsync(string emailAddress);
 
         /// <summary>
         /// Get all invitations a user can authorize.
         /// </summary>
-        /// <param name="ownerId">The key for the user.</param>
+        /// <param name="emailAddress">The key for the user.</param>
         /// <returns></returns>
-        Task<IEnumerable<AddUserRequest>> GetAddUserRequestsPendingAcceptanceAsync(int ownerId);
+        Task<IEnumerable<AddUserRequest>> GetAddUserRequestsPendingAcceptanceAsync(string emailAddress);
 
         /// <summary>
         /// Get all invitations a user has created.
         /// </summary>
-        /// <param name="ownerId">The key for the user.</param>
+        /// <param name="emailAddress">The key for the user.</param>
         /// <returns></returns>
-        Task<IEnumerable<AddUserRequest>> GetMySentAddUserRequestsAsync(int ownerId);
+        Task<IEnumerable<AddUserRequest>> GetMySentAddUserRequestsAsync(string emailAddress);
 
         /// <summary>
         /// Check if an invitation exists.

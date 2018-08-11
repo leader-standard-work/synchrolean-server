@@ -25,9 +25,9 @@ namespace SynchroLean.Core {
         /// <summary>
         /// Retrieve all todos for a user
         /// </summary>
-        /// <param name="taskId"></param>
+        /// <param name="emailAddress"></param>
         /// <returns></returns>
-        Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId);
+        Task<IEnumerable<Todo>> GetTodoListAsync(string emailAddress);
 
         /// <summary>
         /// Remove a todo from Db
@@ -60,7 +60,6 @@ namespace SynchroLean.Core {
         /// <summary>
         /// Mark all todos as missed and delete them, if they expired before or at the threshold
         /// </summary>
-        /// <param name="threshold">The latest time for expiry.</param>
         /// <returns></returns> 
         Task CleanTodos();
 

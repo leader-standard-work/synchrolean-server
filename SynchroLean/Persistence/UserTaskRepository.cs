@@ -17,10 +17,10 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        public async Task<IEnumerable<UserTask>> GetTasksAsync(int ownerId)
+        public async Task<IEnumerable<UserTask>> GetTasksAsync(string emailAddress)
         {
             return await context.UserTasks
-                .Where(ut => ut.OwnerId.Equals(ownerId))
+                .Where(ut => ut.OwnerEmail.Equals(emailAddress))
                 .ToListAsync();
         }
 

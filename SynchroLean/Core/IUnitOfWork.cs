@@ -7,14 +7,14 @@ namespace SynchroLean.Core
 {
     public interface IUnitOfWork
     {
-        IUserAccountRepository userAccountRepository { get; }
-        IUserTeamRepository userTeamRepository { get; }
-        IUserTaskRepository userTaskRepository { get; }
-        IAddUserRequestRepository addUserRequestRepository { get; }
-        ITeamPermissionRepository teamPermissionRepository { get; }
-        ITeamMemberRepository teamMemberRepository { get; }
-        ICompletionLogEntryRepository completionLogEntryRepository { get; }
-        ITodoRepository todoList { get; }
+        IUserAccountRepository UserAccountRepository { get; }
+        IUserTeamRepository UserTeamRepository { get; }
+        IUserTaskRepository UserTaskRepository { get; }
+        IAddUserRequestRepository AddUserRequestRepository { get; }
+        ITeamPermissionRepository TeamPermissionRepository { get; }
+        ITeamMemberRepository TeamMemberRepository { get; }
+        ICompletionLogEntryRepository CompletionLogEntryRepository { get; }
+        ITodoRepository TodoRepository { get; }
 
         /// <summary>
         /// Saves changes to Db context asynchronously

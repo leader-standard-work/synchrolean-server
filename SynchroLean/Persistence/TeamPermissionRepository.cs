@@ -49,11 +49,11 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
         }
 
-        public async Task<ISet<int>> GetTeamIdsUserIdSees(int subjectId)
+        public async Task<ISet<int>> GetTeamIdsUserIdSees(string userEmail)
         {
             var teamsUserIsOn = await
                 (from membership in context.TeamMembers
-                 where membership.MemberId == subjectId
+                 where membership.MemberEmail == userEmail
                  select membership.TeamId).ToListAsync();
             var teamsUserCanSee = await
                (from permissionRelation in context.TeamPermissions
@@ -77,11 +77,11 @@ namespace SynchroLean.Persistence
             }
         }
 
-        public async Task<bool> UserIsPermittedToSeeTeam(int subjectUserId, int objectId)
+        public async Task<bool> UserIsPermittedToSeeTeam(string subjectUserEmail, int objectId)
         {
             var teamsUserIsIn =
                 from membership in context.TeamMembers
-                where membership.MemberId == subjectUserId
+                where membership.MemberEmail == subjectUserEmail
                 select membership.TeamId;
             var result = false;
             result = await teamsUserIsIn.AnyAsync(x => x == objectId);
@@ -97,16 +97,16 @@ namespace SynchroLean.Persistence
             }
         }
 
-        public async Task<bool> UserIsPermittedToSeeUser(int subjectUserId, int objectUserId)
+        public async Task<bool> UserIsPermittedToSeeUser(string subjectUserEmail, string objectUserEmail)
         {
             //Trivial case
-            if (subjectUserId == objectUserId) return true;
+            if (subjectUserEmail == objectUserEmail) return true;
             var possibleRelations =
                 from subjectMembership in context.TeamMembers
                 from objectMembership in context.TeamMembers
-                where subjectMembership.MemberId == subjectUserId && objectMembership.MemberId == objectUserId
-                select subjectMembership.MemberId == objectMembership.MemberId
-                       || null != context.TeamPermissions.Find(subjectMembership.MemberId, objectMembership.MemberId);
+                where subjectMembership.MemberEmail == subjectUserEmail && objectMembership.MemberEmail == objectUserEmail
+                select subjectMembership.MemberEmail == objectMembership.MemberEmail
+                       || null != context.TeamPermissions.Find(subjectMembership.MemberEmail, objectMembership.MemberEmail);
             return await possibleRelations.AnyAsync(x => x);
         }
     }

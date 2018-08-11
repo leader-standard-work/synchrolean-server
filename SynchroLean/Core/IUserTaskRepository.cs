@@ -11,9 +11,9 @@ namespace SynchroLean.Core
         /// <summary>
         /// Retrieves a user's UserTasks from the database
         /// </summary>
-        /// <param name="ownerId">The key to identify the owner</param>
+        /// <param name="emailAddress">The key to identify the owner</param>
         /// <returns>A list of UserTasks for the owner</returns>
-        Task<IEnumerable<UserTask>> GetTasksAsync(int ownerId);
+        Task<IEnumerable<UserTask>> GetTasksAsync(string emailAddress);
 
         /// <summary>
         /// Retrieves a UserTask from the database
@@ -25,7 +25,7 @@ namespace SynchroLean.Core
         /// <summary>
         /// Adds a UserTask to the database
         /// </summary>
-        /// <param name="userTask">UserTask to be added</param>
+        /// <param name="task">UserTask to be added</param>
         /// <returns></returns>
         Task AddAsync(UserTask task);
 

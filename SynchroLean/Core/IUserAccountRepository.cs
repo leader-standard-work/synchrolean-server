@@ -9,18 +9,11 @@ namespace SynchroLean.Core
     public interface IUserAccountRepository
     {
         /// <summary>
-        /// Retrieves a UserAccount from the database
-        /// </summary>
-        /// <param name="ownerId">The key of the UserAccount</param>
-        /// <returns>The UserAccount fetched from the database</returns>
-        Task<UserAccount> GetUserAccountAsync(int ownerId);
-
-        /// <summary>
         /// Retrieves a UserAccount with the specified email address from the database
         /// </summary>
         /// <param name="emailAddress">The email address of the UserAccount</param>
         /// <returns>The UserAccount fetched from the database</returns>
-        Task<UserAccount> GetUserAccountByEmailAsync(string emailAddress);
+        Task<UserAccount> GetUserAccountAsync(string emailAddress);
 
         /// <summary>
         /// Adds a UserAccount to the database
@@ -32,9 +25,9 @@ namespace SynchroLean.Core
         /// <summary>
         /// /// Checks to see if an account exists in the database
         /// </summary>
-        /// <param name="ownerId">Account id to check existence for</param>
+        /// <param name="emailAddress">Account email to check existence for</param>
         /// <returns>True if account exists, false otherwise</returns>
-        Task<Boolean> UserAccountExists(int ownerId);
+        Task<Boolean> UserAccountExists(string emailAddress);
 
     }
 }

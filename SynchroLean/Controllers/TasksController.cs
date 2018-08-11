@@ -44,8 +44,8 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
-            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
-            if (!tokenOwnerId.Equals(userTaskResource.OwnerId)) 
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            if (!tokenOwnerEmail.Equals(userTaskResource.OwnerEmail)) 
             {
                 return Forbid();
             }
@@ -54,14 +54,14 @@ namespace SynchroLean.Controllers
             var userTask = _mapper.Map<UserTask>(userTaskResource);
 
             // Save userTask to database
-            await unitOfWork.userTaskRepository.AddAsync(userTask);
-            await unitOfWork.todoList.AddTodoAsync(userTask.Id);
+            await unitOfWork.UserTaskRepository.AddAsync(userTask);
+            await unitOfWork.TodoRepository.AddTodoAsync(userTask.Id);
 
             // Saves changes to database (Errors if `await` is used on this method)
             Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Retrieve userTask from database
-            userTask = await unitOfWork.userTaskRepository
+            userTask = await unitOfWork.UserTaskRepository
                 .GetTaskAsync(userTask.Id);
 
             // Return mapped resource
@@ -72,18 +72,18 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Retrieves a users tasks
         /// </summary>
-        /// <param name="ownerId"></param>
+        /// <param name="emailAddress"></param>
         /// <returns>List of a users tasks</returns>
-        [HttpGet("{ownerId}"), Authorize]
-        public async Task<IActionResult> GetTasksAsync(int ownerId)
+        [HttpGet("{emailAddress}"), Authorize]
+        public async Task<IActionResult> GetTasksAsync(string emailAddress)
         {
-            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
-            var tasks = await unitOfWork.userTaskRepository
-                .GetTasksAsync(ownerId);
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            var tasks = await unitOfWork.UserTaskRepository
+                .GetTasksAsync(emailAddress);
             IEnumerable<UserTask> visibleTasks;
-            if (tokenOwnerId != ownerId)
+            if (tokenOwnerEmail != emailAddress)
             {
-                var teamsCanSee = await unitOfWork.teamPermissionRepository.GetTeamIdsUserIdSees(ownerId);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserIdSees(emailAddress);
                 visibleTasks = tasks.Where(task => task.TeamId != null && teamsCanSee.Contains((int)task.TeamId));
             }
             else visibleTasks = tasks;
@@ -91,7 +91,7 @@ namespace SynchroLean.Controllers
             var resourceTasks = new List<UserTaskResource>();
 
             // Map each task to a corresponding resource
-            foreach (var task in tasks)
+            foreach (var task in visibleTasks)
             {
                 // Add mapped resource to resources list
                 if(!task.IsDeleted){
@@ -106,22 +106,23 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Retrieves a users tasks
         /// </summary>
-        /// <param name="ownerId"></param>
+        /// <param name="emailAddress"></param>
+        /// <param name="teamId"></param>
         /// <returns>List of a users tasks</returns>
-        [HttpGet("team/{teamId}/{ownerId}"), Authorize]
-        public async Task<IActionResult> GetTasksForTeamAsync(int ownerId, int teamId)
+        [HttpGet("team/{teamId}/{emailAddress}"), Authorize]
+        public async Task<IActionResult> GetTasksForTeamAsync(string emailAddress, int teamId)
         {
-            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
-            var userCanSee = await unitOfWork.teamPermissionRepository.UserIsPermittedToSeeTeam(ownerId,teamId);
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            var userCanSee = await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenOwnerEmail, teamId);
             if (!userCanSee) return Forbid();
-            var tasks = await unitOfWork.userTaskRepository
-                .GetTasksAsync(ownerId);
+            var tasks = await unitOfWork.UserTaskRepository
+                .GetTasksAsync(emailAddress);
             var visibleTasks = tasks.Where(task => task.TeamId != null && task.TeamId == teamId);
             // List of corresponding tasks as resources
             var resourceTasks = new List<UserTaskResource>();
 
             // Map each task to a corresponding resource
-            foreach (var task in tasks)
+            foreach (var task in visibleTasks)
             {
                 // Add mapped resource to resources list
                 if (!task.IsDeleted)
@@ -135,14 +136,14 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Retrieves the users tasks for current day
         /// </summary>
-        /// <param name="ownerId"></param>
+        /// <param name="emailAddress"></param>
         /// <returns>A list of current days tasks</returns>
-        [HttpGet("todo/{ownerId}"), Authorize]
-        public async Task<IActionResult> GetTodosAsync(int ownerId)
+        [HttpGet("todo/{emailAddress}"), Authorize]
+        public async Task<IActionResult> GetTodosAsync(string emailAddress)
         {
             // Check that account exists (can be removed with auth??)
-            var account = await unitOfWork.userAccountRepository
-                .GetUserAccountAsync(ownerId);
+            var account = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(emailAddress);
 
             if(account == null)
             {
@@ -150,7 +151,7 @@ namespace SynchroLean.Controllers
             }
 
             // Get todos from Db asynchronously
-            var todos = await unitOfWork.todoList.GetTodoListAsync(ownerId);
+            var todos = await unitOfWork.TodoRepository.GetTodoListAsync(emailAddress);
 
             // Count check might be unnecessary 
             if(todos == null || todos.Count() == 0)
@@ -164,7 +165,7 @@ namespace SynchroLean.Controllers
             foreach(var todo in todos)
             {
                 var taskResource = _mapper
-                    .Map<UserTaskResource>(unitOfWork.userTaskRepository
+                    .Map<UserTaskResource>(unitOfWork.UserTaskRepository
                     .GetTaskAsync(todo.TaskId).Result);
                 taskResource.IsCompleted = todo.IsCompleted;
                 if(todo.IsCompleted)
@@ -179,26 +180,27 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Gets a single task from user task
         /// </summary>
-        /// <param name="ownerId"></param>
+        /// <param name="emailAddress"></param>
         /// <param name="taskId"></param>
         /// <returns>A task specified by taskId</returns>
         [HttpGet("{ownerId}/{taskId}"), Authorize]
-        public async Task<IActionResult> GetTaskAsync(int ownerId, int taskId)
+        public async Task<IActionResult> GetTaskAsync(string emailAddress, int taskId)
         {
             // Check that account exists
-            if(await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId) == null)
+            if(await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress) == null)
             {
                 return NotFound("Account not found!");
             }
 
             // Retrieve task
-            var task = await unitOfWork.userTaskRepository.GetTaskAsync(taskId);
+            var task = await unitOfWork.UserTaskRepository.GetTaskAsync(taskId);
 
             // Check if task exists
             if(task == null || task.IsDeleted)
             {
                 return NotFound("Task not found!");
-            } else 
+            }
+            else 
             {
                 return Ok(_mapper.Map<UserTaskResource>(task));
             }
@@ -208,12 +210,11 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Updates a users task
         /// </summary>
-        /// <param name="ownerId"></param>
         /// <param name="taskId"></param>
         /// <param name="userTaskResource"></param>
         /// <returns>Updated user task</returns>
         [HttpPut("{ownerId}/{taskId}"), Authorize]
-        public async Task<IActionResult> EditUserTaskAsync(int ownerId, int taskId, [FromBody]UserTaskResource userTaskResource)
+        public async Task<IActionResult> EditUserTaskAsync(int taskId, [FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
             if (!ModelState.IsValid)
@@ -221,15 +222,15 @@ namespace SynchroLean.Controllers
                 return BadRequest();
             }
 
-            var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
-            if (!tokenOwnerId.Equals(userTaskResource.OwnerId)) 
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            if (!tokenOwnerEmail.Equals(userTaskResource.OwnerEmail)) 
             {
                 return Forbid();
             }
 
             // Fetch an account from the DB asynchronously
-            var account = await unitOfWork.userAccountRepository
-                .GetUserAccountAsync(ownerId);
+            var account = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(tokenOwnerEmail);
 
             // Return not found exception if account doesn't exist
             if(account == null)
@@ -238,7 +239,7 @@ namespace SynchroLean.Controllers
             }
 
             // Retrieves task from UserTasks table
-            var task = await unitOfWork.userTaskRepository
+            var task = await unitOfWork.UserTaskRepository
                 .GetTaskAsync(taskId);
 
             // Nothing was retrieved, no id match
@@ -248,27 +249,27 @@ namespace SynchroLean.Controllers
             }
 
             // Validates task belongs to correct user
-            if(task.OwnerId != account.OwnerId)
+            if(task.OwnerEmail != account.Email)
             {
                 return BadRequest("Task does not belong to this account.");
             }
 
             //Check if a todo for that task exists
-            var todo = await unitOfWork.todoList.GetTodo(taskId);
-            var todoExists = !(todo == null);
+            var todo = await unitOfWork.TodoRepository.GetTodo(taskId);
+            var todoExists = todo != null;
             //Complete the task if needed
             if(todoExists)
             {
                 if (userTaskResource.IsCompleted && !todo.IsCompleted)
-                    await unitOfWork.todoList.CompleteTodoAsync(todo.TaskId);
+                    await unitOfWork.TodoRepository.CompleteTodoAsync(todo.TaskId);
                 else if (!userTaskResource.IsCompleted && todo.IsCompleted)
-                    await unitOfWork.todoList.UndoCompleteTodoAsync(todo.TaskId);
+                    await unitOfWork.TodoRepository.UndoCompleteTodoAsync(todo.TaskId);
             }
             //Delete the task if needed
             //Remove the todo if needed
             if(userTaskResource.IsDeleted)
             {
-                await unitOfWork.todoList.RemoveTodosAsync(taskId);
+                await unitOfWork.TodoRepository.RemoveTodosAsync(taskId);
             }
 
             // Map resource to model
@@ -280,11 +281,11 @@ namespace SynchroLean.Controllers
             {
                 task.Delete();
             }
-            task.OwnerId = userTaskResource.OwnerId;
+            task.OwnerEmail = userTaskResource.OwnerEmail;
             task.TeamId = userTaskResource.TeamId;
 
             //Refresh the todo list 
-            await unitOfWork.todoList.RefreshTodo(taskId);
+            await unitOfWork.TodoRepository.RefreshTodo(taskId);
             
             // Save updated userTask to database
             await unitOfWork.CompleteAsync();
@@ -297,20 +298,20 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Get the completion rate for a user.
         /// </summary>
-        /// <param name="ownerId">The key to identify the owner.</param>
+        /// <param name="emailAddress">The key to identify the owner.</param>
         /// <param name="startDate">Beginning date range</param>
         /// <param name="endDate">Ending date range</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
         [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}"), Authorize]
-        public async Task<IActionResult> GetUserCompletionRate(int ownerId, DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> GetUserCompletionRate(string emailAddress, DateTime startDate, DateTime endDate)
         {
             //Check if user exists
-            var userExists = await unitOfWork.userAccountRepository
-                .UserAccountExists(ownerId);
+            var userExists = await unitOfWork.UserAccountRepository
+                .UserAccountExists(emailAddress);
             //User doesn't exist
             if (!userExists) return NotFound("Couldn't find user.");
             //User exists
-            Double completionRate = await unitOfWork.completionLogEntryRepository.GetUserCompletionRate(ownerId, startDate, endDate);
+            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRate(emailAddress, startDate, endDate);
             return Ok(completionRate);
         }
 
@@ -327,12 +328,12 @@ namespace SynchroLean.Controllers
 
             //Check if team exists
             //var teamExists = await context.Teams.AnyAsync(team => team.Id == id);
-            var teamExists = await unitOfWork.userTeamRepository
+            var teamExists = await unitOfWork.UserTeamRepository
                 .TeamExists(id);
             //Team doesn't exist
             if (!teamExists) return NotFound();
             //Team does exist
-            Double completionRate = await unitOfWork.completionLogEntryRepository.GetTeamCompletionRate(id, startDate, endDate);
+            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetTeamCompletionRate(id, startDate, endDate);
             return Ok(completionRate);
         }
     }

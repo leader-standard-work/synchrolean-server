@@ -31,13 +31,15 @@ namespace SynchroLean.Persistence
         /// Remove a task from the log and add it to 
         /// </summary>
         /// <param name="taskId"></param>
+        /// <param name="emailAddress"></param>
+        /// <param name="entryTime"></param>
         /// <returns></returns>
-        public void DeleteLogEntry(int taskId, int ownerId, DateTime entryTime)
+        public void DeleteLogEntry(int taskId, string emailAddress, DateTime entryTime)
         {
             // Create log entry to search table
-            CompletionLogEntry completionLogEntry = new CompletionLogEntry{ 
+            var completionLogEntry = new CompletionLogEntry{ 
                 TaskId = taskId,
-                OwnerId = ownerId,
+                OwnerEmail = emailAddress,
                 EntryTime = entryTime 
             };
             // Remove entry from Db and save changes
@@ -47,14 +49,14 @@ namespace SynchroLean.Persistence
         /// <summary>
         /// Get the completion rate for a user
         /// </summary>
-        /// <param name="ownerId">The key to identify the owner</param>
+        /// <param name="emailAddress">The key to identify the owner</param>
         /// <param name="start">The date to begin metrics from</param>
         /// <param name="end">The date to end metrics from</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed, which can be NaN for 0/0</returns>
-        public async Task<Double> GetUserCompletionRate(int ownerId, DateTime start, DateTime end)
+        public async Task<double> GetUserCompletionRate(string emailAddress, DateTime start, DateTime end)
         {
             var userTasks = await context.TaskCompletionLog
-                .Where(ut => ut.OwnerId.Equals(ownerId) && ut.EntryTime > start && ut.EntryTime <= end)
+                .Where(ut => ut.OwnerEmail.Equals(emailAddress) && ut.EntryTime > start && ut.EntryTime <= end)
                 .Select(ut => ut.IsCompleted ? 1.0 : 0.0)
                 .ToListAsync();
             if (userTasks.Count > 0)
@@ -68,7 +70,7 @@ namespace SynchroLean.Persistence
                 //If it is a question about if the user completed all their tasks, then
                 // vacuously they did because they had none.
                 //Provisionally, I am using NaN, because it is distinct from 1
-                return Double.NaN;
+                return double.NaN;
             }
         }
 
@@ -76,8 +78,10 @@ namespace SynchroLean.Persistence
         /// Get the completion rate for a team
         /// </summary>
         /// <param name="teamId">The key to identify the team</param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
         /// <returns>The proportion (between 0 and 1) of tasks completed, which can be NaN for 0/0</returns>
-        public async Task<Double> GetTeamCompletionRate(int teamId, DateTime start, DateTime end)
+        public async Task<double> GetTeamCompletionRate(int teamId, DateTime start, DateTime end)
         {
             var teamTasks = await
             (
@@ -86,14 +90,7 @@ namespace SynchroLean.Persistence
                 select task.IsCompleted ? 1.0 : 0.0
             ).ToListAsync();
             // Team has tasks
-            if (teamTasks.Count > 0)
-            {
-                return teamTasks.Average();
-            }
-            else
-            {
-                return Double.NaN;
-            }
+            return teamTasks.Count > 0 ? teamTasks.Average() : double.NaN;
         }
 
         public async Task CleanupLog(DateTime threshold)
@@ -102,32 +99,30 @@ namespace SynchroLean.Persistence
             context.TaskCompletionLog.RemoveRange(toRemove);
         }
 
-        public async Task<Double> GetUserCompletionRateOnTeam(int userId, int teamId, DateTime start, DateTime end)
+        public async Task<double> GetUserCompletionRateOnTeam(string emailAddress, int teamId, DateTime start, DateTime end)
         {
             var userTeamTasks = await
                (from task in context.TaskCompletionLog
-                where task.OwnerId == userId
+                where task.OwnerEmail == emailAddress
                 && task.TeamId != null
                 && teamId == (int)task.TeamId
                 && task.EntryTime > start
                 && task.EntryTime <= end
                 select task.IsCompleted ? 1.0 : 0.0).ToListAsync();
-            if (userTeamTasks.Count > 0) return userTeamTasks.Average();
-            else return Double.NaN;
+            return userTeamTasks.Count > 0 ? userTeamTasks.Average() : double.NaN;
         }
 
-        public async Task<Double> GetUserCompletionRateOnTeams(int userId, IEnumerable<int> teamId, DateTime start, DateTime end)
+        public async Task<double> GetUserCompletionRateOnTeams(string emailAddress, IEnumerable<int> teamId, DateTime start, DateTime end)
         {
             var userTeamTasks = await
                (from task in context.TaskCompletionLog
-                where task.OwnerId == userId
+                where task.OwnerEmail == emailAddress
                 && task.TeamId != null
                 && teamId.Contains((int)task.TeamId)
                 && task.EntryTime > start 
                 && task.EntryTime <= end
                 select task.IsCompleted ? 1.0 : 0.0).ToListAsync();
-            if (userTeamTasks.Count > 0) return userTeamTasks.Average();
-            else return Double.NaN;
+            return userTeamTasks.Count > 0 ? userTeamTasks.Average() : double.NaN;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace SynchroLean.Controllers.Resources
         public bool IsCompleted { get; set; }
         public DateTime CompletionDate { get; set; }
         public bool IsDeleted { get; set; }
-        public int OwnerId { get; set; }
+        public string OwnerEmail { get; set; }
         public Frequency Frequency { get; set; }
         public int TeamId { get; set; }
     }

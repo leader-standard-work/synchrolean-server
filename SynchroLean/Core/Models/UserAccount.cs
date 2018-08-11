@@ -11,9 +11,11 @@ namespace SynchroLean.Core.Models
     /// </summary>
     public class UserAccount
     {
-        /// <value>Gets and sets user id number</value>
+        /// <value>Gets and sets user email</value>
         [Key]
-        public int OwnerId { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string Email { get; set; }
         /// <value>Gets and sets user first name</value>
         [Required]
         [StringLength(50)]
@@ -22,10 +24,6 @@ namespace SynchroLean.Core.Models
         [Required]
         [StringLength(50)]
         public string LastName { get; set; }
-        /// <value>Gets and sets user email</value>
-        [Required]
-        [StringLength(50)]
-        public string Email { get; set; }
         /// <value>Gets and sets user password</value>
         [Required]
         public string Password { get; set; }

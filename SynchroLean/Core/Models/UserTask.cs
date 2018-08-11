@@ -17,8 +17,8 @@ namespace SynchroLean.Core.Models
         public bool IsRecurring { get; set; }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
-        public int OwnerId { get; set; }
-        [ForeignKey("OwnerId")]
+        public string OwnerEmail { get; set; }
+        [ForeignKey("OwnerEmail")]
         public virtual UserAccount Owner { get; set; }
         public Frequency Frequency { get; set; }
         public int? TeamId { get; set; }

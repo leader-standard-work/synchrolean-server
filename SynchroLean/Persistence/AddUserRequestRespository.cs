@@ -47,17 +47,17 @@ namespace SynchroLean.Persistence
             return await this.context.AddUserRequests.ToListAsync();
         }
 
-        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(string emailAddress)
         {
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.Invitee.OwnerId == ownerId && request.IsAuthorized
+                where request.Invitee.Email == emailAddress && request.IsAuthorized
                 select request
             ).ToListAsync();
         }
 
-        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(string emailAddress)
         {
             return await
             (
@@ -65,7 +65,7 @@ namespace SynchroLean.Persistence
                 join ownedteam in
                 (
                     from team in this.context.Teams
-                    where team.OwnerId == ownerId
+                    where team.OwnerEmail == emailAddress
                     select team
                 )
                 on request.DestinationTeam equals ownedteam
@@ -74,12 +74,12 @@ namespace SynchroLean.Persistence
             ).ToListAsync();
         }
 
-        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetMySentAddUserRequestsAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetMySentAddUserRequestsAsync(string emailAddress)
         {
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.Inviter.OwnerId == ownerId
+                where request.Inviter.Email == emailAddress
                 select request
             ).ToListAsync();
         }

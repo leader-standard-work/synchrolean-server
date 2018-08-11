@@ -8,15 +8,15 @@ namespace SynchroLean.Controllers.Resources
 {
     public class AddUserRequestResource
     {
-        public int InviteeId { get; set; }
-        public int InviterId { get; set; }
+        public string InviteeEmail { get; set; }
+        public string InviterEmail { get; set; }
         public int TeamId { get; set; }
         public int InviteId { get; set; }
         public bool IsAuthorized { get; set; }
         public AddUserRequestResource(AddUserRequest invite)
         {
-            this.InviteeId = invite.Invitee.OwnerId;
-            this.InviterId = invite.Inviter.OwnerId;
+            this.InviteeEmail = invite.Invitee.Email;
+            this.InviterEmail = invite.Inviter.Email;
             this.InviteId = invite.AddUserRequestId;
             this.TeamId = invite.DestinationTeam.Id;
             this.IsAuthorized = invite.IsAuthorized;

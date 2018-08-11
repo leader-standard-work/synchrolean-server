@@ -33,7 +33,7 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="teamId">Team id to check existence for.</param>
         /// <returns>True if team exists, false otherwise</returns>
-        Task<Boolean> TeamExists(int teamId);
+        Task<bool> TeamExists(int teamId);
 
         /// <summary>
         /// Mark a team as deleted and clear its tasks and users.

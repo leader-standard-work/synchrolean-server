@@ -17,15 +17,10 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        public async Task<UserAccount> GetUserAccountAsync(int ownerId)
-        {
-            return await context.UserAccounts.FindAsync(ownerId);
-        }
-
-        public async Task<UserAccount> GetUserAccountByEmailAsync(string emailAddress)
+        public async Task<UserAccount> GetUserAccountAsync(string emailAddress)
         {
             return await context.UserAccounts
-                .SingleOrDefaultAsync(ua => ua.Email.Trim().ToLower().Equals(emailAddress.Trim().ToLower()));
+                .FindAsync(emailAddress.Trim().ToLower());
         }
 
         public async Task AddAsync(UserAccount account)
@@ -33,10 +28,10 @@ namespace SynchroLean.Persistence
             await context.UserAccounts.AddAsync(account);
         }
 
-        public async Task<Boolean> UserAccountExists(int ownerId)
+        public async Task<Boolean> UserAccountExists(string emailAddress)
         {
             return await context.UserAccounts
-                .AnyAsync(user => user.OwnerId == ownerId);
+                .AnyAsync(user => user.Email == emailAddress);
         }
     }
 }
