@@ -136,6 +136,12 @@ namespace SynchroLean.Controllers
                 return NotFound("No account found matching that ownerId.");
             }
 
+            // Verify email is unchanged
+            if (account.Email != userAccountResource.Email.Trim().ToLower())
+            {
+                return BadRequest("Cannot change email address.");
+            }
+
             // See UserTask PUT for issue of mapping back to UserAccountResource
             // Map account resource to model
             account.FirstName = userAccountResource.FirstName;
