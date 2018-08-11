@@ -208,15 +208,15 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> InviteUserToTeamAsync(int ownerId, int creatorId, int teamId)
         {
             var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
-            if (team == null) return NotFound("No such team");
+            if (team == null || team.IsDeleted) return NotFound("No such team");
             //TODO: Check if creator is in the team creator is being invited into
             //blocked by the fact that teams aren't implemented yet
             var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
             var creatorIsTeamOwner = team.OwnerId == tokenOwnerId;
             var creator = await unitOfWork.userAccountRepository.GetUserAccountAsync(creatorId);
-            if (creator == null) return NotFound("User doesn't exist");
+            if (creator == null || creator.IsDeleted) return NotFound("User doesn't exist");
             var owner = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
-            if (owner == null) return NotFound("User doesn't exist");
+            if (owner == null || owner.IsDeleted) return NotFound("User doesn't exist");
             await unitOfWork.addUserRequestRepository.AddAsync(
                 new AddUserRequest
                 {
@@ -435,10 +435,10 @@ namespace SynchroLean.Controllers
             // -- We don't need to actually check who the user is, but if you want to, uncomment this
             //var ownerExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
             //if (!ownerExists) return NotFound("No such user");
-            var subjectExists = await unitOfWork.userTeamRepository.TeamExists(subjectId);
-            if (!subjectExists) return NotFound("No such team (subjectId)");
+            var subjectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(subjectId);
+            if (subjectTeam == null || subjectTeam.IsDeleted) return NotFound("No such team (subjectId)");
             var objectTeam = await unitOfWork.userTeamRepository.GetUserTeamAsync(objectId);
-            if (objectTeam == null) return NotFound("No such team (objectId)");
+            if (objectTeam == null || objectTeam.IsDeleted) return NotFound("No such team (objectId)");
 
             // Validate that the user granting permissions owns the object team
             var tokenOwnerId = Convert.ToInt32(User.FindFirst("OwnerId").Value);
@@ -527,7 +527,7 @@ namespace SynchroLean.Controllers
             var team = await unitOfWork.userTeamRepository
                 .GetUserTeamAsync(teamId);
 
-            if (team == null || !team.IsDeleted){
+            if (team == null || team.IsDeleted){
                 return NotFound("Not a valid team.");
             }
 
@@ -552,7 +552,7 @@ namespace SynchroLean.Controllers
         {
             var team = await unitOfWork.userTeamRepository.GetUserTeamAsync(teamId);
 
-            if (team == null || !team.IsDeleted)
+            if (team == null || team.IsDeleted)
             {
                 return NotFound("Not a valid team.");
             }

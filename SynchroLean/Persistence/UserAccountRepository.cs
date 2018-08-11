@@ -19,8 +19,7 @@ namespace SynchroLean.Persistence
 
         public async Task<UserAccount> GetUserAccountAsync(int ownerId)
         {
-            return await context.UserAccounts
-                .SingleOrDefaultAsync(ua => ua.OwnerId.Equals(ownerId));
+            return await context.UserAccounts.FindAsync(ownerId);
         }
 
         public async Task<UserAccount> GetUserAccountByEmailAsync(string emailAddress)
