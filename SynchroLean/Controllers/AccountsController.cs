@@ -29,7 +29,7 @@ namespace SynchroLean.Controllers
             _mapper = mapper;
         }
 
-        // Post api/accounts
+        // POST api/accounts
         /// <summary>
         /// Adds new account to UserAccounts table in Db
         /// </summary>
@@ -84,13 +84,13 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<UserAccountResource>(createdAccount));
         }
 
-        // GET api/accounts/owner/{ownerId}
+        // GET api/accounts/owner/{emailAddress}
         /// <summary>
         /// Retrieves specified account from UserAccount in Db
         /// </summary>
         /// <param name="emailAddress"></param>
         /// <returns>User account from Db</returns>
-        [HttpGet("owner/{ownerId}"), Authorize]
+        [HttpGet("owner/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetAccountAsync(string emailAddress)
         {
             // Fetch account of ownerId
@@ -132,7 +132,7 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
-        // PUT api/accounts/{ownerId}
+        // PUT api/accounts
         /// <summary>
         /// Updates an existing account in Db
         /// </summary>
@@ -170,12 +170,13 @@ namespace SynchroLean.Controllers
             }
 
             // Save updated account to database
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Return mapped resource
             return Ok(_mapper.Map<UserAccountResource>(account));
         }
 
+        // GET api/accounts/teams/{emailAddress}
         /// <summary>
         /// Get all the teams a user is on.
         /// </summary>
