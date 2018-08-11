@@ -165,12 +165,13 @@ namespace SynchroLean.Controllers
             var todos = await unitOfWork.TodoRepository
                 .GetTodoListAsync(emailAddress);
 
-            IEnumerable<Todo> visibleTasks;
+            IEnumerable<Todo> visibleTodos;
             if (tokenOwnerEmail != emailAddress)
             {
                 var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserIdSees(emailAddress);
-                visibleTasks = todos.Where(todo => todo.Task.TeamId != null && teamsCanSee.Contains((int)todo.Task.TeamId));
+                visibleTodos = todos.Where(todo => todo.Task.TeamId != null && teamsCanSee.Contains((int)todo.Task.TeamId));
             }
+            else visibleTodos = todos;
 
             if (account == null)
             {
@@ -178,7 +179,7 @@ namespace SynchroLean.Controllers
             }
 
             // Count check might be unnecessary 
-            if(todos == null || todos.Count() == 0)
+            if(visibleTodos == null || visibleTodos.Count() == 0)
             {
                 return NotFound("No Task found for today");
             }
@@ -186,7 +187,7 @@ namespace SynchroLean.Controllers
             // Return current days tasks
             var taskResources = new List<UserTaskResource>();
 
-            foreach(var todo in todos)
+            foreach(var todo in visibleTodos)
             {
                 taskResources.Add(mapToTaskResource(todo.Task));
             }
