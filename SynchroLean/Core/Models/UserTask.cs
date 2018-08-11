@@ -65,7 +65,7 @@ namespace SynchroLean.Core.Models
         public bool IsDeleted { get { return this.Deleted != null; } }
         public void Delete()
         {
-            this.Deleted = DateTime.Now;
+            if(!this.IsDeleted) this.Deleted = DateTime.Now;
         }
     }
 }

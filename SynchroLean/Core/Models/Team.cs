@@ -55,8 +55,11 @@ namespace SynchroLean.Core.Models
         public bool IsDeleted { get { return this.Deleted != null; } }
         public void Delete()
         {
-            this.Deleted = DateTime.Now;
-            this.AssociatedTasks.Clear();
+            if (!this.IsDeleted)
+            {
+                this.Deleted = DateTime.Now;
+                this.AssociatedTasks.Clear();
+            }
         }
 
         public virtual ICollection<AddUserRequest> Invites { get; set; }
