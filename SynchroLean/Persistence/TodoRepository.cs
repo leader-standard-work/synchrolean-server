@@ -128,7 +128,7 @@ namespace SynchroLean.Persistence
                             IsCompleted = false
                         }
                     );
-                if (!expired.Task.IsRecurring) expired.Task.IsRemoved = true;
+                if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }
         }

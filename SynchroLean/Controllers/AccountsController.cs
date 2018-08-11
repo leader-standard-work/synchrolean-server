@@ -44,25 +44,43 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Map account resource to model
-            var account = _mapper.Map<UserAccount>(createUserAccountResource);
-
             // Salt and hash password
             var salt = BCrypt.Net.BCrypt.GenerateSalt();
-            var saltedPassword = account.Password + salt;
-            account.Password = BCrypt.Net.BCrypt.HashPassword(saltedPassword);
-            account.Salt = salt;
+            var saltedPassword = createUserAccountResource.Password + salt;
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(saltedPassword);
 
-            // Add model to database and save changes
-            await unitOfWork.userAccountRepository.AddAsync(account);
+            var existingAccount = await unitOfWork.userAccountRepository
+                .GetUserAccountByEmailAsync(createUserAccountResource.Email);
+
+            if (existingAccount != null && existingAccount.IsDeleted)
+            {
+                // Overwrite existing account information and undelete it.
+                existingAccount.FirstName = createUserAccountResource.FirstName;
+                existingAccount.LastName = createUserAccountResource.LastName;
+                existingAccount.Password = hashedPassword;
+                existingAccount.Salt = salt;
+                existingAccount.Deleted = null;
+            }
+            else
+            {
+                // Map account resource to model
+                var account = _mapper.Map<UserAccount>(createUserAccountResource);
+
+                account.Password = hashedPassword;
+                account.Salt = salt;
+
+                // Add model to database and save changes
+                await unitOfWork.userAccountRepository.AddAsync(account);
+            }
+
             Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Retrieve account from database
-            var accountModel = await unitOfWork.userAccountRepository
-                .GetUserAccountAsync(account.OwnerId);
+            var createdAccount = await unitOfWork.userAccountRepository
+                .GetUserAccountByEmailAsync(createUserAccountResource.Email);
             
             // Return mapped account resource
-            return Ok(_mapper.Map<UserAccountResource>(account));
+            return Ok(_mapper.Map<UserAccountResource>(createdAccount));
         }
 
         // GET api/accounts/owner/{ownerId}
@@ -140,7 +158,7 @@ namespace SynchroLean.Controllers
                 .GetUserAccountAsync(ownerId);
 
             // No account matches ownerId
-            if(account == null)
+            if(account == null || account.IsDeleted)
             {
                 return NotFound("No account found matching that ownerId.");
             }
@@ -150,7 +168,10 @@ namespace SynchroLean.Controllers
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
             account.Email = userAccountResource.Email;
-            account.IsDeleted = userAccountResource.IsDeleted;
+            if (userAccountResource.IsDeleted) 
+            {
+                account.Delete();
+            }
 
             // Save updated account to database
             await unitOfWork.CompleteAsync();
@@ -168,10 +189,10 @@ namespace SynchroLean.Controllers
         public async Task<IActionResult> GetTeamsForAccount(int ownerId)
         {
             // Check if user exists
-            var userExists = await unitOfWork.userAccountRepository.UserAccountExists(ownerId);
+            var account = await unitOfWork.userAccountRepository.GetUserAccountAsync(ownerId);
 
             // No account matches ownerId
-            if (!userExists)
+            if (account == null || account.IsDeleted)
             {
                 return NotFound("No account found matching that ownerId.");
             }

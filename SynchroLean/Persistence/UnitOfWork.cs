@@ -74,7 +74,7 @@ namespace SynchroLean.Persistence
             var tasks = 
                 from task in context.UserTasks
                 where task.IsRecurring
-                      && !task.IsRemoved
+                      && !task.IsDeleted
                       && (!(task.Frequency == Frequency.Daily) || task.OccursOnDayOfWeek(DateTime.Now.DayOfWeek))
                       && !context.Todos.Any(todo => todo.TaskId == task.Id)
                 select task;
