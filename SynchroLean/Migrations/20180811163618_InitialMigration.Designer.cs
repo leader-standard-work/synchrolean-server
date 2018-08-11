@@ -9,8 +9,8 @@ using SynchroLean.Persistence;
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    [Migration("20180811060746_ChangeUserAccountKeyToEmail")]
-    partial class ChangeUserAccountKeyToEmail
+    [Migration("20180811163618_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

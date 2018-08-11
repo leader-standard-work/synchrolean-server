@@ -68,7 +68,7 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<UserTaskResource>(userTask));
         }
 
-        // GET api/tasks/{ownerId}
+        // GET api/tasks/{emailAddress}
         /// <summary>
         /// Retrieves a users tasks
         /// </summary>
@@ -102,14 +102,14 @@ namespace SynchroLean.Controllers
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
 
-        // GET api/tasks/team/{teamId}/{ownerId}
+        // GET api/tasks/team/{emailAddress}/{teamId}
         /// <summary>
         /// Retrieves a users tasks
         /// </summary>
         /// <param name="emailAddress"></param>
         /// <param name="teamId"></param>
         /// <returns>List of a users tasks</returns>
-        [HttpGet("team/{teamId}/{emailAddress}"), Authorize]
+        [HttpGet("team/{emailAddress}/{teamId}"), Authorize]
         public async Task<IActionResult> GetTasksForTeamAsync(string emailAddress, int teamId)
         {
             var tokenOwnerEmail = User.FindFirst("Email").Value;
@@ -133,6 +133,8 @@ namespace SynchroLean.Controllers
 
             return Ok(resourceTasks); // List of UserTaskResources 200OK
         }
+
+        // GET api/tasks/{emailAddress}
         /// <summary>
         /// Retrieves the users tasks for current day
         /// </summary>
@@ -177,13 +179,14 @@ namespace SynchroLean.Controllers
             return Ok(taskResources);
         }
 
+        // GET api/tasks/{emailAddress}/{taskId}
         /// <summary>
         /// Gets a single task from user task
         /// </summary>
         /// <param name="emailAddress"></param>
         /// <param name="taskId"></param>
         /// <returns>A task specified by taskId</returns>
-        [HttpGet("{ownerId}/{taskId}"), Authorize]
+        [HttpGet("{emailAddress}/{taskId}"), Authorize]
         public async Task<IActionResult> GetTaskAsync(string emailAddress, int taskId)
         {
             // Check that account exists
@@ -206,14 +209,14 @@ namespace SynchroLean.Controllers
             }
         }
 
-        // PUT api/tasks/{ownerId}/{taskId}
+        // PUT api/tasks/{taskId}
         /// <summary>
         /// Updates a users task
         /// </summary>
         /// <param name="taskId"></param>
         /// <param name="userTaskResource"></param>
         /// <returns>Updated user task</returns>
-        [HttpPut("{ownerId}/{taskId}"), Authorize]
+        [HttpPut("{taskId}"), Authorize]
         public async Task<IActionResult> EditUserTaskAsync(int taskId, [FromBody]UserTaskResource userTaskResource)
         {
             // How does this validate against the UserTask model?
@@ -288,13 +291,13 @@ namespace SynchroLean.Controllers
             await unitOfWork.TodoRepository.RefreshTodo(taskId);
             
             // Save updated userTask to database
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Return mapped resource
             return Ok(_mapper.Map<UserTaskResource>(task));
         }
 
-        // GET api/tasks/metrics/user/{ownerId}
+        // GET api/tasks/metrics/user/{emailAddress}/{startDate}/{endDate}
         /// <summary>
         /// Get the completion rate for a user.
         /// </summary>
@@ -302,7 +305,7 @@ namespace SynchroLean.Controllers
         /// <param name="startDate">Beginning date range</param>
         /// <param name="endDate">Ending date range</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/user/{ownerId}/{startDate}/{endDate}"), Authorize]
+        [HttpGet("metrics/user/{emailAddress}/{startDate}/{endDate}"), Authorize]
         public async Task<IActionResult> GetUserCompletionRate(string emailAddress, DateTime startDate, DateTime endDate)
         {
             //Check if user exists
@@ -315,6 +318,7 @@ namespace SynchroLean.Controllers
             return Ok(completionRate);
         }
 
+        // GET api/tasks/metrics/team/{id}/{startDate}/{endDate}
         /// <summary>
         /// See how much of their tasks a team has completed.
         /// </summary>

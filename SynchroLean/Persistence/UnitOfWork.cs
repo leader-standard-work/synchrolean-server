@@ -64,7 +64,7 @@ namespace SynchroLean.Persistence
 
             //Clean up the to-do list for the night
             TodoRepository.CleanTodos();
-            CompleteAsync().Wait();
+            CompleteAsync();
 
             //Do cleanup of old tasks and log entries
             CompletionLogEntryRepository.CleanupLog(DateTime.Now.Date-TimeSpan.FromDays(730.5)); //2a

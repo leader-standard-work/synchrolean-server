@@ -18,17 +18,17 @@ namespace SynchroLean.Controllers
     /// This class handles HTTP requests for teams
     /// </summary>
     [Route("api/[controller]")]
-    public class TeamController : Controller
+    public class TeamsController : Controller
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper _mapper;
-        public TeamController(IUnitOfWork unitOfWork, IMapper mapper)
+        public TeamsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        // POST api/team
+        // POST api/teams
         /// <summary>
         /// Adds a new team to the Db asynchronously
         /// </summary>
@@ -55,7 +55,7 @@ namespace SynchroLean.Controllers
 
             // Add the team to context and save changes
             await unitOfWork.UserTeamRepository.AddAsync(teamModel);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Fetch the newly created team from the DB
             var team = await unitOfWork.UserTeamRepository
@@ -64,6 +64,7 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<TeamResource>(team)); // Return newly created mapped team resource to client
         }
 
+        // GET api/teams
         /// <summary>
         /// Acts as a get all teams method. The reasoning for this is... if a user
         /// is supposed to be able to view aggregate metrics for other teams then
@@ -91,6 +92,8 @@ namespace SynchroLean.Controllers
 
             return Ok(resourceTeams); // Return the collection of team resources
         }
+
+        // GET api/teams/{teamId}
         /// <summary>
         /// Get the given team.
         /// </summary>
@@ -113,6 +116,7 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<TeamResource>(team)); // Return mapped team to client
         }
 
+        // GET api/teams/members/{teamId}
         /// <summary>
         /// Get a list of all members for a team.
         /// </summary>
@@ -135,7 +139,7 @@ namespace SynchroLean.Controllers
             return Ok(teamMembers.Select(member => _mapper.Map<UserAccountResource>(member)));
         }
 
-        // PUT api/team/ownerId/teamId
+        // PUT api/teams/teamId
         /// <summary>
         /// Updates an existing team in the Db
         /// </summary>
@@ -190,11 +194,13 @@ namespace SynchroLean.Controllers
             }
 
             // Save updated team to database
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
 
             // Return mapped team resource
             return Ok(_mapper.Map<TeamResource>(team));
         }
+
+        // PUT api/teams/invite/{emailAddress}/{teamId}
         /// <summary>
         /// Create a new invite for a user.
         /// </summary>
@@ -223,10 +229,11 @@ namespace SynchroLean.Controllers
                     IsAuthorized = creatorIsTeamOwner,
                     DestinationTeam = team
                 });
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // PUT api/teams/invite/accept/{addUserRequestId}
         /// <summary>
         /// Accept a user's authorized invite.
         /// </summary>
@@ -247,10 +254,11 @@ namespace SynchroLean.Controllers
 
             await unitOfWork.TeamMemberRepository.AddUserToTeam(invite.DestinationTeam.Id, invite.Invitee.Email);
             await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // PUT api/teams/invite/reject/{addUserRequestId}
         /// <summary>
         /// Reject a specific invitation for your account
         /// </summary>
@@ -270,10 +278,11 @@ namespace SynchroLean.Controllers
             }
 
             await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // PUT api/teams/invite/rescind/{addUserRequestId}
         /// <summary>
         /// Rescind an invitation you gave someone.
         /// </summary>
@@ -293,10 +302,11 @@ namespace SynchroLean.Controllers
             }
 
             await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // PUT api/teams/invite/authorize/{addUserRequestId}
         /// <summary>
         /// Authorize an invitation by a team member
         /// </summary>
@@ -319,16 +329,17 @@ namespace SynchroLean.Controllers
             }
 
             invite.IsAuthorized = true;
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // PUT api/teams/invite/veto/{addUserRequestId}
         /// <summary>
         /// Veto an invitation by a team member
         /// </summary>
         /// <param name="addUserRequestId"></param>
         /// <returns></returns>
-        [HttpPut("invite/veto/{addUserRequestId}/{ownerId}"), Authorize]
+        [HttpPut("invite/veto/{addUserRequestId}"), Authorize]
         public async Task<IActionResult> VetoTeamInvite(int addUserRequestId)
         {
             var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
@@ -345,10 +356,11 @@ namespace SynchroLean.Controllers
             }
 
             await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // GET api/teams/invite/incoming/accept
         /// <summary>
         /// Get all the pending invites that can be accepted by a given user.
         /// </summary>
@@ -364,6 +376,7 @@ namespace SynchroLean.Controllers
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
+        // GET api/teams/invite/incoming/authorize
         /// <summary>
         /// Get all the pending invites a user can authorize.
         /// </summary>
@@ -379,6 +392,7 @@ namespace SynchroLean.Controllers
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
+        // GET api/teams/invite/outgoing
         /// <summary>
         /// Get all the pending invites a user has created and can rescind.
         /// </summary>
@@ -394,6 +408,7 @@ namespace SynchroLean.Controllers
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
+        // PUT api/teams/permissions/grant/{objectId}/{subjectId}
         /// <summary>
         /// Permit a team to see detailed stats on one of a user's teams.
         /// </summary>
@@ -419,10 +434,11 @@ namespace SynchroLean.Controllers
             }
 
             await unitOfWork.TeamPermissionRepository.Permit(subjectId, objectId);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // PUT api/teams/permissions/revoke/{objectId}/{subjectId}
         /// <summary>
         /// Forbid a team from seeing detailed stats on one of a user's teams.
         /// </summary>
@@ -448,10 +464,11 @@ namespace SynchroLean.Controllers
             }
 
             await unitOfWork.TeamPermissionRepository.Forbid(subjectId, objectId);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }        
 
+        // PUT api/teams/remove/{targetEmail}/{teamId}
         /// <summary>
         /// Removes a user from a team, except a team owner (currently)
         /// </summary>
@@ -481,10 +498,11 @@ namespace SynchroLean.Controllers
             }
 
             await unitOfWork.TeamMemberRepository.RemoveUserFromTeam(teamId,targetEmail);
-            await unitOfWork.CompleteAsync();
+            Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
 
+        // GET api/teams/rollup/{teamId}
         /// <summary>
         ///  Returns a list of tasks for a team
         /// </summary>
@@ -511,6 +529,7 @@ namespace SynchroLean.Controllers
             return Ok(teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)));      
         }
 
+        // POST api/teams/delete/{teamId}
         /// <summary>
         /// Allow a team owner to delete a team. By popular demand.
         /// </summary>
