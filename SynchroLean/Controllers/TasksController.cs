@@ -196,14 +196,24 @@ namespace SynchroLean.Controllers
         [HttpGet("{emailAddress}/{taskId}"), Authorize]
         public async Task<IActionResult> GetTaskAsync(string emailAddress, int taskId)
         {
+            var tokenEmailId = User.FindFirst("Email").Value;
             // Check that account exists
-            if(await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress) == null)
+            if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress) == null)
             {
                 return NotFound("Account not found!");
             }
 
             // Retrieve task
             var task = await unitOfWork.UserTaskRepository.GetTaskAsync(taskId);
+
+            // Check if the task has a team
+            var taskTeam = task.Team;
+
+            // Check if user can see the task
+            var isUsersOwnTask = tokenEmailId == emailAddress;
+            var userCanSee = isUsersOwnTask || unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenEmailId, task.TeamId);
+
+            if (!userCanSee) return Forbid();
 
             // Check if task exists
             if(task == null || task.IsDeleted)
