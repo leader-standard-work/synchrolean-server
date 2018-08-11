@@ -1,4 +1,5 @@
 using System;
+using SynchroLean.Core.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using SynchroLean.Core;
@@ -14,7 +15,7 @@ namespace SynchroLean.Controllers.Resources
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
         public bool IsCompleted { get; set; }
-        public DateTime CompletionDate { get; set; }
+        public DateTime? CompletionDate { get; set; }
         public bool IsDeleted { get; set; }
         public string OwnerEmail { get; set; }
         public Frequency Frequency { get; set; }

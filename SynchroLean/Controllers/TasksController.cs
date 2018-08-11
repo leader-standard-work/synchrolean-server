@@ -29,6 +29,20 @@ namespace SynchroLean.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Map a task to a resource
+        /// </summary>
+        /// <param name="task">The task to be mapped</param>
+        /// <returns>A UserTaskResource representing it</returns>
+        protected UserTaskResource mapToTaskResource(UserTask task)
+        {
+            var mapped = _mapper.Map<UserTaskResource>(task);
+            var todo = task.Todo;
+            mapped.IsCompleted = todo != null && todo.IsCompleted;
+            mapped.CompletionDate = todo != null ? todo.Completed : null;
+            return mapped;
+        }
+
         // POST api/tasks
         /// <summary>
         /// Adds new task to DB
@@ -65,7 +79,7 @@ namespace SynchroLean.Controllers
                 .GetTaskAsync(userTask.Id);
 
             // Return mapped resource
-            return Ok(_mapper.Map<UserTaskResource>(userTask));
+            return Ok(mapToTaskResource(userTask));
         }
 
         // GET api/tasks/{ownerId}
@@ -95,7 +109,7 @@ namespace SynchroLean.Controllers
             {
                 // Add mapped resource to resources list
                 if(!task.IsDeleted){
-                    resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
+                    resourceTasks.Add(mapToTaskResource(task));
                 }
             }
                 
@@ -127,7 +141,7 @@ namespace SynchroLean.Controllers
                 // Add mapped resource to resources list
                 if (!task.IsDeleted)
                 {
-                    resourceTasks.Add(_mapper.Map<UserTaskResource>(task));
+                    resourceTasks.Add(mapToTaskResource(task));
                 }
             }
 
@@ -164,14 +178,7 @@ namespace SynchroLean.Controllers
 
             foreach(var todo in todos)
             {
-                var taskResource = _mapper
-                    .Map<UserTaskResource>(unitOfWork.UserTaskRepository
-                    .GetTaskAsync(todo.TaskId).Result);
-                taskResource.IsCompleted = todo.IsCompleted;
-                if(todo.IsCompleted)
-                    taskResource.CompletionDate = (DateTime)todo.Completed;
-
-                taskResources.Add(taskResource);
+                taskResources.Add(mapToTaskResource(todo.Task));
             }
             
             return Ok(taskResources);
@@ -202,7 +209,7 @@ namespace SynchroLean.Controllers
             }
             else 
             {
-                return Ok(_mapper.Map<UserTaskResource>(task));
+                return Ok(mapToTaskResource(task));
             }
         }
 
@@ -291,7 +298,7 @@ namespace SynchroLean.Controllers
             await unitOfWork.CompleteAsync();
 
             // Return mapped resource
-            return Ok(_mapper.Map<UserTaskResource>(task));
+            return Ok(mapToTaskResource(task));
         }
 
         // GET api/tasks/metrics/user/{ownerId}
