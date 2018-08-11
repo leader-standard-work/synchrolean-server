@@ -220,7 +220,8 @@ namespace SynchroLean.Controllers
 
             // Check if user can see the task
             var isUsersOwnTask = tokenEmailId == emailAddress;
-            var userCanSee = isUsersOwnTask || unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenEmailId, task.TeamId);
+            var userPermittedToSeeTeam = task.Team != null && await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenEmailId, (int)task.TeamId);
+            var userCanSee = isUsersOwnTask || userPermittedToSeeTeam;
 
             if (!userCanSee) return Forbid();
 
