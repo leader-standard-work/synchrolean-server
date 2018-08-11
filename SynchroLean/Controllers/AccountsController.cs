@@ -61,7 +61,7 @@ namespace SynchroLean.Controllers
                 existingAccount.Salt = salt;
                 existingAccount.Deleted = null;
             }
-            else
+            else if (existingAccount == null)
             {
                 // Map account resource to model
                 var account = _mapper.Map<UserAccount>(createUserAccountResource);
@@ -73,6 +73,7 @@ namespace SynchroLean.Controllers
                 // Add model to database and save changes
                 await unitOfWork.UserAccountRepository.AddAsync(account);
             }
+            else return BadRequest("Account already exists");
 
             Task.WaitAll(unitOfWork.CompleteAsync());
 
