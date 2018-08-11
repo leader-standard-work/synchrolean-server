@@ -311,7 +311,7 @@ namespace SynchroLean.Controllers
             {
                 task.Delete();
             }
-            task.OwnerEmail = userTaskResource.OwnerEmail;
+            //Don't change the email associated with the task
             task.TeamId = userTaskResource.TeamId;
 
             //Refresh the todo list 
