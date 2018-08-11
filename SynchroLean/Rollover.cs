@@ -22,7 +22,7 @@ namespace SynchroLean
             using(var scope = _serviceProvider.CreateScope()){
 
                 var context = scope.ServiceProvider.GetService<SynchroLeanDbContext>();
-                IUnitOfWork _unitOfWork = scope.ServiceProvider.GetService<IUnitOfWork>();
+                var _unitOfWork = scope.ServiceProvider.GetService<IUnitOfWork>();
 
                 //Determine important times
                 var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
@@ -50,10 +50,11 @@ namespace SynchroLean
                         && !context.Todos.Any(todo => todo.TaskId == task.Id)
                         && (// Check that there's not already a log entry for current month for monthly task
                             (task.Frequency == Frequency.Monthly 
-                                    && !context.TaskCompletionLog.Any(log => log.EntryTime.Month == DateTime.Now.Month))
+                                    && !context.TaskCompletionLog.Any(log => log.TaskId == task.Id 
+                                        && log.EntryTime.Month == DateTime.Now.Month))
                             // Check that there's not already a log entry for current week for weekly task
                             || (task.Frequency == Frequency.Weekly
-                                && !context.TaskCompletionLog.Any(log => 
+                                && !context.TaskCompletionLog.Any(log => log.TaskId == task.Id &&
                                     log.EntryTime.AddDays(-1 * (int)cal.GetDayOfWeek(log.EntryTime)) ==
                                     DateTime.Today.AddDays(-1 * (int)cal.GetDayOfWeek(DateTime.Today))
                                     )
