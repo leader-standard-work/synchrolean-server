@@ -161,13 +161,21 @@ namespace SynchroLean.Controllers
             var account = await unitOfWork.UserAccountRepository
                 .GetUserAccountAsync(emailAddress);
 
-            if(account == null)
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            var todos = await unitOfWork.TodoRepository
+                .GetTodoListAsync(emailAddress);
+
+            IEnumerable<Todo> visibleTasks;
+            if (tokenOwnerEmail != emailAddress)
+            {
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserIdSees(emailAddress);
+                visibleTasks = todos.Where(todo => todo.Task.TeamId != null && teamsCanSee.Contains((int)todo.Task.TeamId));
+            }
+
+            if (account == null)
             {
                 return NotFound("Account was not found!");
             }
-
-            // Get todos from Db asynchronously
-            var todos = await unitOfWork.TodoRepository.GetTodoListAsync(emailAddress);
 
             // Count check might be unnecessary 
             if(todos == null || todos.Count() == 0)
