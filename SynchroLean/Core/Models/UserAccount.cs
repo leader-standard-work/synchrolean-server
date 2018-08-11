@@ -50,8 +50,6 @@ namespace SynchroLean.Core.Models
         public void Delete()
         {
             this.Deleted = DateTime.Now;
-            this.Tasks.Clear();
-            // Do we need to clear TeamMembershipRelations or IncomingInvites?
         }
     }
 }
