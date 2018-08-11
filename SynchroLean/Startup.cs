@@ -1,23 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using SynchroLean.Controllers.Resources;
-using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 using SynchroLean.Profile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.Hosting;
 
 namespace SynchroLean
 {
@@ -43,6 +35,8 @@ namespace SynchroLean
             services.AddSingleton<IUserAccountRepository, UserAccountRepository>();
             services.AddSingleton<IUserTaskRepository, UserTaskRepository>();
             services.AddSingleton<IUserTeamRepository, UserTeamRepository>();
+            services.AddSingleton<Rollover>();
+            services.AddSingleton<IHostedService, RolloverService>();
 
             // AutoMapper
             var config = new AutoMapper.MapperConfiguration(c => {
@@ -71,7 +65,7 @@ namespace SynchroLean
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
