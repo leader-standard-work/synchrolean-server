@@ -9,8 +9,8 @@ using SynchroLean.Persistence;
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    [Migration("20180811163618_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20180812004315_ReleaseCandidateOne")]
+    partial class ReleaseCandidateOne
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,23 +20,17 @@ namespace SynchroLean.Migrations
 
             modelBuilder.Entity("SynchroLean.Core.Models.AddUserRequest", b =>
                 {
-                    b.Property<int>("AddUserRequestId")
-                        .ValueGeneratedOnAdd();
+                    b.Property<string>("InviteeEmail");
 
                     b.Property<int>("DestinationTeamId");
-
-                    b.Property<string>("InviteeEmail")
-                        .IsRequired();
 
                     b.Property<string>("InviterEmail");
 
                     b.Property<bool>("IsAuthorized");
 
-                    b.HasKey("AddUserRequestId");
+                    b.HasKey("InviteeEmail", "DestinationTeamId");
 
                     b.HasIndex("DestinationTeamId");
-
-                    b.HasIndex("InviteeEmail");
 
                     b.HasIndex("InviterEmail");
 
@@ -191,16 +185,19 @@ namespace SynchroLean.Migrations
                     b.HasOne("SynchroLean.Core.Models.Team", "DestinationTeam")
                         .WithMany("Invites")
                         .HasForeignKey("DestinationTeamId")
+                        .HasConstraintName("FK_AddUserRequest_Team_TeamId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Invitee")
                         .WithMany("IncomingInvites")
                         .HasForeignKey("InviteeEmail")
+                        .HasConstraintName("FK_AddUserRequest_InviteeEmail_UserAccount_Email")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Inviter")
                         .WithMany("OutgoingInvites")
                         .HasForeignKey("InviterEmail")
+                        .HasConstraintName("FK_AddUserRequest_InviterEmail_UserAccount_Email")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 

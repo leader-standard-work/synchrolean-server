@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SynchroLean.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class ReleaseCandidateOne : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -67,8 +67,6 @@ namespace SynchroLean.Migrations
                 name: "AddUserRequests",
                 columns: table => new
                 {
-                    AddUserRequestId = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
                     DestinationTeamId = table.Column<int>(nullable: false),
                     InviteeEmail = table.Column<string>(nullable: false),
                     InviterEmail = table.Column<string>(nullable: true),
@@ -76,21 +74,21 @@ namespace SynchroLean.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AddUserRequests", x => x.AddUserRequestId);
+                    table.PrimaryKey("PK_AddUserRequests", x => new { x.InviteeEmail, x.DestinationTeamId });
                     table.ForeignKey(
-                        name: "FK_AddUserRequests_Teams_DestinationTeamId",
+                        name: "FK_AddUserRequest_Team_TeamId",
                         column: x => x.DestinationTeamId,
                         principalTable: "Teams",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AddUserRequests_UserAccounts_InviteeEmail",
+                        name: "FK_AddUserRequest_InviteeEmail_UserAccount_Email",
                         column: x => x.InviteeEmail,
                         principalTable: "UserAccounts",
                         principalColumn: "Email",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_AddUserRequests_UserAccounts_InviterEmail",
+                        name: "FK_AddUserRequest_InviterEmail_UserAccount_Email",
                         column: x => x.InviterEmail,
                         principalTable: "UserAccounts",
                         principalColumn: "Email",
@@ -210,11 +208,6 @@ namespace SynchroLean.Migrations
                 name: "IX_AddUserRequests_DestinationTeamId",
                 table: "AddUserRequests",
                 column: "DestinationTeamId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AddUserRequests_InviteeEmail",
-                table: "AddUserRequests",
-                column: "InviteeEmail");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AddUserRequests_InviterEmail",
