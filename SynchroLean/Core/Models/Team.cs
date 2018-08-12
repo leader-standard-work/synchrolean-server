@@ -12,6 +12,8 @@ namespace SynchroLean.Core.Models
         public int Id { get; set; }
         [Required]
         public string OwnerEmail { get; set; }
+        [ForeignKey("OwnerEmail")]
+        public virtual UserAccount Owner { get; set; }
         [Required]
         [StringLength(25)]
         public string TeamName { get; set; }
