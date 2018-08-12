@@ -85,7 +85,7 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<UserAccountResource>(createdAccount));
         }
 
-        // GET api/accounts/owner/{emailAddress}
+        // GET api/accounts/{emailAddress}
         /// <summary>
         /// Retrieves a UserAccount with the specified email address
         /// </summary>

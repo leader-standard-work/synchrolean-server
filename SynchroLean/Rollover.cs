@@ -33,7 +33,7 @@ namespace SynchroLean
 
                 //Clean up the to-do list for the night
                 await _unitOfWork.TodoRepository.Clean();
-                _unitOfWork.CompleteAsync().Wait();
+                Task.WaitAll(_unitOfWork.CompleteAsync());
 
                 //Do cleanup
                 await _unitOfWork.UserTeamRepository.Clean();

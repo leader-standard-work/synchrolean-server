@@ -73,7 +73,6 @@ namespace SynchroLean.Controllers
         /// teams aggregate metrics...
         /// </summary>
         /// <returns>A list of all teams</returns>
-        // GET api/team
         [HttpGet, Authorize]
         public async Task<IActionResult> GetTeamsAsync()
         {
@@ -99,7 +98,6 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="teamId">The id for the team to fetch.</param>
         /// <returns>A team resource</returns>
-        // GET api/team/tid
         [HttpGet("{teamId}"), Authorize]
         public async Task<IActionResult> GetUserTeamAsync(int teamId)
         {
@@ -185,7 +183,11 @@ namespace SynchroLean.Controllers
             team.TeamName = teamResource.TeamName;
             team.TeamDescription = teamResource.TeamDescription;
 
-            await unitOfWork.TeamMemberRepository.ChangeTeamOwnership(teamId, teamResource.OwnerEmail);
+            // check if owner is changing
+            if (tokenOwnerEmail != teamResource.OwnerEmail)
+            {
+                await unitOfWork.TeamMemberRepository.ChangeTeamOwnership(teamId, teamResource.OwnerEmail);
+            }
 
             //this stops default edit team from giving teams to user 0
             if (team.OwnerEmail == null)
@@ -200,22 +202,26 @@ namespace SynchroLean.Controllers
             return Ok(_mapper.Map<TeamResource>(team));
         }
 
-        // PUT api/teams/invite/{emailAddress}/{teamId}
+        // PUT api/teams/invite/{teamId}/{emailAddress}
         /// <summary>
         /// Create a new invite for a user.
         /// </summary>
         /// <param name="emailAddress"></param>
         /// <param name="teamId"></param>
         /// <returns></returns>
-        // PUT api/team/invite/
         [HttpPut("invite/{teamId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> InviteUserToTeamAsync(string emailAddress, int teamId)
         {
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(teamId);
             if (team == null || team.IsDeleted) return NotFound("No such team");
-            //TODO: Check if creator is in the team creator is being invited into
-            //blocked by the fact that teams aren't implemented yet
+
             var tokenOwnerEmail = User.FindFirst("Email").Value;
+            // Check that inviter is on team and invitee isn't on team
+            var inviterIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, tokenOwnerEmail);
+            var inviteeIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, emailAddress);
+            if (!inviterIsTeamMember || inviteeIsTeamMember) return BadRequest();
+            
+            // Check if inviter is team owner
             var creatorIsTeamOwner = team.OwnerEmail == tokenOwnerEmail;
             var inviter = await unitOfWork.UserAccountRepository.GetUserAccountAsync(tokenOwnerEmail);
             if (inviter == null || inviter.IsDeleted) return NotFound("User doesn't exist");
@@ -236,6 +242,7 @@ namespace SynchroLean.Controllers
             }
             else
             {
+                // Authorize existing invite
                 if(creatorIsTeamOwner)
                 {
                     invite.InviterEmail = tokenOwnerEmail;
@@ -246,7 +253,7 @@ namespace SynchroLean.Controllers
             return Ok();
         }
 
-        // PUT api/teams/invite/accept/{addUserRequestId}
+        // PUT api/teams/invite/accept/{teamId}
         /// <summary>
         /// Accept a user's authorized invite.
         /// </summary>
@@ -267,7 +274,7 @@ namespace SynchroLean.Controllers
             return Ok();
         }
 
-        // PUT api/teams/invite/reject/{addUserRequestId}
+        // PUT api/teams/invite/reject/{teamId}
         /// <summary>
         /// Reject a specific invitation for your account
         /// </summary>
@@ -285,7 +292,7 @@ namespace SynchroLean.Controllers
             return Ok();
         }
 
-        // PUT api/teams/invite/rescind/{addUserRequestId}
+        // PUT api/teams/invite/rescind/{teamId}/{inviteeEmail}
         /// <summary>
         /// Rescind an invitation you gave someone.
         /// </summary>
@@ -309,7 +316,7 @@ namespace SynchroLean.Controllers
             return Ok();
         }
 
-        // PUT api/teams/invite/authorize/{addUserRequestId}
+        // PUT api/teams/invite/authorize/{teamId}/{inviteeEmail}
         /// <summary>
         /// Authorize an invitation by a team member
         /// </summary>
@@ -334,7 +341,7 @@ namespace SynchroLean.Controllers
             return Ok();
         }
 
-        // PUT api/teams/invite/veto/{addUserRequestId}
+        // PUT api/teams/invite/veto/{teamId}/{inviteeEmail}
         /// <summary>
         /// Veto an invitation by a team member
         /// </summary>
@@ -468,7 +475,7 @@ namespace SynchroLean.Controllers
             return Ok();
         }        
 
-        // PUT api/teams/remove/{targetEmail}/{teamId}
+        // PUT api/teams/remove/{teamId}/{targetEmail}
         /// <summary>
         /// Removes a user from a team, except a team owner (currently)
         /// </summary>
