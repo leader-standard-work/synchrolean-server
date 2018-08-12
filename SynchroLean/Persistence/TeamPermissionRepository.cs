@@ -49,7 +49,7 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
         }
 
-        public async Task<ISet<int>> GetTeamIdsUserIdSees(string userEmail)
+        public async Task<ISet<int>> GetTeamIdsUserEmailSees(string userEmail)
         {
             var teamsUserIsOn = await
                 (from membership in context.TeamMembers

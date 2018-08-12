@@ -105,7 +105,7 @@ namespace SynchroLean.Controllers
             IEnumerable<UserTask> visibleTasks;
             if (tokenOwnerEmail != emailAddress)
             {
-                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserIdSees(emailAddress);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(emailAddress);
                 visibleTasks = tasks.Where(task => task.TeamId != null && teamsCanSee.Contains((int)task.TeamId));
             }
             else visibleTasks = tasks;
@@ -197,7 +197,7 @@ namespace SynchroLean.Controllers
             IEnumerable<Todo> visibleTodos;
             if (tokenOwnerEmail != emailAddress)
             {
-                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserIdSees(emailAddress);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(emailAddress);
                 visibleTodos = todos.Where(todo => todo.Task.TeamId != null && teamsCanSee.Contains((int)todo.Task.TeamId));
             }
             else visibleTodos = todos;
@@ -392,6 +392,62 @@ namespace SynchroLean.Controllers
             //Team does exist
             double completionRate = await unitOfWork.CompletionLogEntryRepository.GetTeamCompletionRate(id, startDate, endDate);
             return Ok(completionRate);
+        }
+
+        // GET api/tasks/metrics/user/team/{teamId}/{startDate}/{endDate}/{emailAddress}
+        /// <summary>
+        /// Retrieves a users completion rate for a specified team if allowed
+        /// </summary>
+        /// <param name="teamId">Team identifier</param>
+        /// <param name="emailAddress">User identifier</param>
+        /// <param name="startDate">Beginning date range</param>
+        /// <param name="endDate">Ending date range</param>
+        /// <returns></returns>
+        [HttpGet("metrics/user/team/{teamId}/{startDate}/{endDate}/{emailAddress}")]
+        public async Task<IActionResult> GetUserCompletionRateForTeamAsync(int teamId, string emailAddress, DateTime startDate, DateTime endDate)
+        {
+            // Get users email address from token
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+
+            // Check that team exists
+            var teamExists = await unitOfWork.UserTeamRepository.TeamExists(teamId);
+            if (!teamExists)
+            {
+                return NotFound("Team does not exist!");
+            }
+
+            if(tokenOwnerEmail != emailAddress)
+            {
+                // Check that user has permission to see team
+                var permitted = await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenOwnerEmail, teamId);
+                if (!permitted)
+                {
+                    return BadRequest("User is not permitted to view metrics");
+                }
+            }
+
+            // Get metrics
+            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeam(emailAddress, teamId, startDate, endDate);
+            return Ok(completionRate);
+        }
+
+        // GET api/tasks/metrics/user/teams/{startDate}/{endDate}/{emailAddress}
+        /// <summary>
+        /// Retrieves completion rate for all teams a user is permitted to see
+        /// </summary>
+        /// <param name="emailAddress">User identifier</param>
+        /// <param name="startDate">Beginning date range</param>
+        /// <param name="endDate">Ending date range</param>
+        /// <returns></returns>
+        [HttpGet("metrics/user/teams/{startDate}/{endDate}/{emailAddress}")]
+        public async Task<IActionResult> GetUserCompletionRateForTeamsAsync(string emailAddress, DateTime startDate, DateTime endDate)
+        {
+            ISet<int> teams;
+            // Get team Ids for user
+            teams = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(User.FindFirst("Email").Value);
+                    
+            // Get completion rates for user
+            return Ok(await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeams(emailAddress, teams, startDate, endDate));
         }
     }
 }

@@ -50,7 +50,7 @@ namespace SynchroLean.Persistence
         {
             var team = await context.Teams.FindAsync(teamId);
             if (team == null) return; //No such team, nothing to do
-            if (team.OwnerEmail == userEmail) return; //The owner of a team is always part of that team
+            //if (team.OwnerEmail == userEmail) return; //The owner of a team is always part of that team
             context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
         }
 
