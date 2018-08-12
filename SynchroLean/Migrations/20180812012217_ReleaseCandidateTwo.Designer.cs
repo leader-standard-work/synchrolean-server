@@ -9,8 +9,8 @@ using SynchroLean.Persistence;
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    [Migration("20180812004315_ReleaseCandidateOne")]
-    partial class ReleaseCandidateOne
+    [Migration("20180812012217_ReleaseCandidateTwo")]
+    partial class ReleaseCandidateTwo
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -76,6 +76,8 @@ namespace SynchroLean.Migrations
                         .HasMaxLength(25);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerEmail");
 
                     b.ToTable("Teams");
                 });
@@ -165,7 +167,8 @@ namespace SynchroLean.Migrations
                         .IsRequired()
                         .HasMaxLength(255);
 
-                    b.Property<string>("OwnerEmail");
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired();
 
                     b.Property<int?>("TeamId");
 
@@ -219,6 +222,14 @@ namespace SynchroLean.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("SynchroLean.Core.Models.Team", b =>
+                {
+                    b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerEmail")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("SynchroLean.Core.Models.TeamMember", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Member")
@@ -258,7 +269,8 @@ namespace SynchroLean.Migrations
                 {
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
                         .WithMany("Tasks")
-                        .HasForeignKey("OwnerEmail");
+                        .HasForeignKey("OwnerEmail")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
                         .WithMany("AssociatedTasks")

@@ -123,7 +123,7 @@ namespace SynchroLean.Controllers
         /// <param name="emailAddress"></param>
         /// <param name="teamId"></param>
         /// <returns>List of a users tasks</returns>
-        [HttpGet("team/{emailAddress}/{teamId}"), Authorize]
+        [HttpGet("team/{teamId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTasksForTeamAsync(string emailAddress, int teamId)
         {
             var tokenOwnerEmail = User.FindFirst("Email").Value;
@@ -202,7 +202,7 @@ namespace SynchroLean.Controllers
         /// <param name="emailAddress"></param>
         /// <param name="taskId"></param>
         /// <returns>A task specified by taskId</returns>
-        [HttpGet("{emailAddress}/{taskId}"), Authorize]
+        [HttpGet("{taskId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTaskAsync(string emailAddress, int taskId)
         {
             var tokenEmailId = User.FindFirst("Email").Value;
@@ -332,7 +332,7 @@ namespace SynchroLean.Controllers
         /// <param name="startDate">Beginning date range</param>
         /// <param name="endDate">Ending date range</param>
         /// <returns>The proportion (between 0 and 1) of tasks completed.</returns>
-        [HttpGet("metrics/user/{emailAddress}/{startDate}/{endDate}"), Authorize]
+        [HttpGet("metrics/user/{startDate}/{endDate}/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetUserCompletionRate(string emailAddress, DateTime startDate, DateTime endDate)
         {
             //Check if user exists
