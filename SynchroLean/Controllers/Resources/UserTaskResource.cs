@@ -19,6 +19,6 @@ namespace SynchroLean.Controllers.Resources
         public bool IsDeleted { get; set; }
         public string OwnerEmail { get; set; }
         public Frequency Frequency { get; set; }
-        public int TeamId { get; set; }
+        public int? TeamId { get; set; }
     }
 }
