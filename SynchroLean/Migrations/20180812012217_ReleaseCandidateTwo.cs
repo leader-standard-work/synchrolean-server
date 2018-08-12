@@ -3,26 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SynchroLean.Migrations
 {
-    public partial class ReleaseCandidateOne : Migration
+    public partial class ReleaseCandidateTwo : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Teams",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    OwnerEmail = table.Column<string>(nullable: false),
-                    TeamName = table.Column<string>(maxLength: 25, nullable: false),
-                    TeamDescription = table.Column<string>(maxLength: 250, nullable: true),
-                    Deleted = table.Column<DateTime>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Teams", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "UserAccounts",
                 columns: table => new
@@ -40,26 +24,24 @@ namespace SynchroLean.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TeamPermissions",
+                name: "Teams",
                 columns: table => new
                 {
-                    SubjectTeamId = table.Column<int>(nullable: false),
-                    ObjectTeamId = table.Column<int>(nullable: false)
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OwnerEmail = table.Column<string>(nullable: false),
+                    TeamName = table.Column<string>(maxLength: 25, nullable: false),
+                    TeamDescription = table.Column<string>(maxLength: 250, nullable: true),
+                    Deleted = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TeamPermissions", x => new { x.SubjectTeamId, x.ObjectTeamId });
+                    table.PrimaryKey("PK_Teams", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TeamPermissions_Teams_ObjectTeamId",
-                        column: x => x.ObjectTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TeamPermissions_Teams_SubjectTeamId",
-                        column: x => x.SubjectTeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id",
+                        name: "FK_Teams_UserAccounts_OwnerEmail",
+                        column: x => x.OwnerEmail,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Email",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -120,6 +102,30 @@ namespace SynchroLean.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TeamPermissions",
+                columns: table => new
+                {
+                    SubjectTeamId = table.Column<int>(nullable: false),
+                    ObjectTeamId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TeamPermissions", x => new { x.SubjectTeamId, x.ObjectTeamId });
+                    table.ForeignKey(
+                        name: "FK_TeamPermissions_Teams_ObjectTeamId",
+                        column: x => x.ObjectTeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TeamPermissions_Teams_SubjectTeamId",
+                        column: x => x.SubjectTeamId,
+                        principalTable: "Teams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserTasks",
                 columns: table => new
                 {
@@ -130,7 +136,7 @@ namespace SynchroLean.Migrations
                     IsRecurring = table.Column<bool>(nullable: false),
                     Weekdays = table.Column<byte>(nullable: false),
                     CreationDate = table.Column<DateTime>(nullable: false),
-                    OwnerEmail = table.Column<string>(nullable: true),
+                    OwnerEmail = table.Column<string>(nullable: false),
                     Frequency = table.Column<int>(nullable: false),
                     TeamId = table.Column<int>(nullable: true),
                     Deleted = table.Column<DateTime>(nullable: true)
@@ -143,7 +149,7 @@ namespace SynchroLean.Migrations
                         column: x => x.OwnerEmail,
                         principalTable: "UserAccounts",
                         principalColumn: "Email",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserTasks_Teams_TeamId",
                         column: x => x.TeamId,
@@ -235,6 +241,11 @@ namespace SynchroLean.Migrations
                 column: "ObjectTeamId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Teams_OwnerEmail",
+                table: "Teams",
+                column: "OwnerEmail");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserTasks_OwnerEmail",
                 table: "UserTasks",
                 column: "OwnerEmail");
@@ -266,10 +277,10 @@ namespace SynchroLean.Migrations
                 name: "UserTasks");
 
             migrationBuilder.DropTable(
-                name: "UserAccounts");
+                name: "Teams");
 
             migrationBuilder.DropTable(
-                name: "Teams");
+                name: "UserAccounts");
         }
     }
 }
