@@ -50,7 +50,7 @@ namespace SynchroLean.Persistence
 
         public async Task Clean()
         {
-            var startOfLastYear = new DateTime(DateTime.Now.Year, 1, 1);
+            var startOfLastYear = new DateTime(DateTime.Now.Year-1, 1, 1);
             var teamsToDelete = await
                 (from team in context.Teams
                  where team.IsDeleted && team.Deleted < startOfLastYear
