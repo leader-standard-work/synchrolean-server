@@ -208,7 +208,7 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"></param>
         /// <returns></returns>
         // PUT api/team/invite/
-        [HttpPut("invite/{emailAddress}/{teamId}"), Authorize]
+        [HttpPut("invite/{teamId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> InviteUserToTeamAsync(string emailAddress, int teamId)
         {
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(teamId);
@@ -475,7 +475,7 @@ namespace SynchroLean.Controllers
         /// <param name="targetEmail">The user to be removed from the team.</param>
         /// <param name="teamId"> The team the user is too be removed from.</param>
         /// <returns></returns>
-        [HttpPut("remove/{targetEmail}/{teamId}"), Authorize]
+        [HttpPut("remove/{teamId}/{targetEmail}"), Authorize]
         public async Task<IActionResult> RemoveMemberAsync(string targetEmail, int teamId){
         
             var targetTeam = await unitOfWork.UserTeamRepository
