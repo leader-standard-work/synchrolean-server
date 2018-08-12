@@ -14,9 +14,9 @@ namespace SynchroLean.Controllers.Resources
         public bool IsAuthorized { get; set; }
         public AddUserRequestResource(AddUserRequest invite)
         {
-            this.InviteeEmail = invite.Invitee.Email;
-            this.InviterEmail = invite.Inviter.Email;
-            this.TeamId = invite.DestinationTeam.Id;
+            this.InviteeEmail = invite.InviteeEmail;
+            this.InviterEmail = invite.InviterEmail;
+            this.TeamId = invite.DestinationTeamId;
             this.IsAuthorized = invite.IsAuthorized;
         }
     }
