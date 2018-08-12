@@ -9,19 +9,11 @@ namespace SynchroLean.Core.Models
 {
     public class Todo
     {
-        public int Id { get; set; }
         public int TaskId { get; set; }
-        [ForeignKey("TaskId")]
         public virtual UserTask Task { get; set; }
-        public int OwnerId { get; set; }
-        [ForeignKey("OwnerId")]
-        public virtual UserAccount Owner { get; set; }
         public DateTime? Completed { get; set; }
         [Required]
         public DateTime Expires { get; set; }
-        public int? TeamId { get; set; }
-        [ForeignKey("TeamId")]
-        public virtual Team Team { get; set; }
         [NotMapped]
         public bool IsCompleted
         {
@@ -41,9 +33,7 @@ namespace SynchroLean.Core.Models
             return new Todo
             {
                 TaskId = userTask.Id,
-                OwnerId = userTask.OwnerId,
-                Expires = expires,
-                TeamId = userTask.TeamId
+                Expires = expires
             };
         }
     }

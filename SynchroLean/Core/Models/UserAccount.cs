@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace SynchroLean.Core.Models
 {
@@ -8,12 +11,11 @@ namespace SynchroLean.Core.Models
     /// </summary>
     public class UserAccount
     {
+        /// <value>Gets and sets user email</value>
         [Key]
-        /// <value>Gets and sets user id number</value>
-        public int OwnerId { get; set; }
-        /// <value>Gets and sets team id number of user</value>
-        [Obsolete]
-        public int TeamId { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string Email { get; set; }
         /// <value>Gets and sets user first name</value>
         [Required]
         [StringLength(50)]
@@ -22,17 +24,30 @@ namespace SynchroLean.Core.Models
         [Required]
         [StringLength(50)]
         public string LastName { get; set; }
-        /// <value>Gets and sets user email</value>
-        [Required]
-        [StringLength(50)]
-        public string Email { get; set; }
         /// <value>Gets and sets user password</value>
         [Required]
         public string Password { get; set; }
         /// <value>Gets and sets user salt</value>
         [Required]
         public string Salt { get; set; }
-        /// <value>Gets and sets account active/inactive state</value>
-        public bool IsDeleted { get; set; }
+        public virtual ICollection<UserTask> Tasks { get; set; }
+        public virtual ICollection<TeamMember> TeamMembershipRelations { get; set; }
+        public virtual ICollection<AddUserRequest> OutgoingInvites { get; set; }
+        public virtual ICollection<AddUserRequest> IncomingInvites { get; set; }
+        [NotMapped]
+        public IEnumerable<Todo> TodoList
+        {
+            get
+            {
+                return this.Tasks.Select(taskItem => taskItem.Todo);
+            }
+        }
+        public DateTime? Deleted { get; set; }
+        [NotMapped]
+        public bool IsDeleted { get { return this.Deleted != null; } }
+        public void Delete()
+        {
+            if(!this.IsDeleted) this.Deleted = DateTime.Now;
+        }
     }
 }

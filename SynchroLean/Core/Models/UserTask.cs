@@ -17,12 +17,10 @@ namespace SynchroLean.Core.Models
         public bool IsRecurring { get; set; }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
-        [Obsolete]
-        public bool IsCompleted { get; set; }
-        [Obsolete]
-        public DateTime CompletionDate { get; set; }
-        public bool IsRemoved { get; set; }
-        public int OwnerId { get; set; }
+        [Required]
+        public string OwnerEmail { get; set; }
+        [ForeignKey("OwnerEmail")]
+        public virtual UserAccount Owner { get; set; }
         public Frequency Frequency { get; set; }
         public int? TeamId { get; set; }
         [ForeignKey("TeamId")]
@@ -31,7 +29,15 @@ namespace SynchroLean.Core.Models
         {
             return this.Frequency != Frequency.Daily || 0 < (Weekdays & (1 << (byte)day));
         }
-
+        public virtual Todo Todo { get; set; }
+        [NotMapped]
+        public bool IsActive
+        {
+            get
+            {
+                return null == this.Todo;
+            }
+        }
         [NotMapped]
         public IEnumerable<DayOfWeek> DaysOfWeek
         {
@@ -55,10 +61,12 @@ namespace SynchroLean.Core.Models
                 Weekdays = result;
             }
         }
-
-        public void deleteTask()
+        public DateTime? Deleted { get; set; }
+        [NotMapped]
+        public bool IsDeleted { get { return this.Deleted != null; } }
+        public void Delete()
         {
-            IsRemoved = true;
+            if(!this.IsDeleted) this.Deleted = DateTime.Now;
         }
     }
 }

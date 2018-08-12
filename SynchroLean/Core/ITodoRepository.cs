@@ -16,19 +16,18 @@ namespace SynchroLean.Core {
         Task AddTodoAsync(int taskId);
 
         /// <summary>
-        /// Get a specific user's todo for a task.
+        /// Get a specific todo for a task.
         /// </summary>
-        /// <param name="userId">The id for the user.</param>
         /// <param name="taskId">The id for the task.</param>
         /// <returns>The todo item for the task. Null if the task wasn't assigned today.</returns>
-        Task<Todo> GetUserTodo(int userId, int taskId);
+        Task<Todo> GetTodo(int taskId);
 
         /// <summary>
-        /// Retrieve a todo from Db asynchronously
+        /// Retrieve all todos for a user
         /// </summary>
-        /// <param name="taskId"></param>
+        /// <param name="emailAddress"></param>
         /// <returns></returns>
-        Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId);
+        Task<IEnumerable<Todo>> GetTodoListAsync(string emailAddress);
 
         /// <summary>
         /// Remove a todo from Db
@@ -61,7 +60,6 @@ namespace SynchroLean.Core {
         /// <summary>
         /// Mark all todos as missed and delete them, if they expired before or at the threshold
         /// </summary>
-        /// <param name="threshold">The latest time for expiry.</param>
         /// <returns></returns> 
         Task CleanTodos();
 

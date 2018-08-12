@@ -12,17 +12,17 @@ namespace SynchroLean.Core
         /// Add a user into a team.
         /// </summary>
         /// <param name="teamId">The team the user will be added into.</param>
-        /// <param name="userId">The user that will be added to the team.</param>
+        /// <param name="userEmail">The user that will be added to the team.</param>
         /// <returns></returns>
-        Task AddUserToTeam(int teamId, int userId);
+        Task AddUserToTeam(int teamId, string userEmail);
 
         /// <summary>
         /// Remove a user from a team.
         /// </summary>
         /// <param name="teamId">The team the user will be removed from.</param>
-        /// <param name="userId">The user that will be removed from the team.</param>
+        /// <param name="userEmail">The user that will be removed from the team.</param>
         /// <returns></returns>
-        Task RemoveUserFromTeam(int teamId, int userId);
+        Task RemoveUserFromTeam(int teamId, string userEmail);
 
         /// <summary>
         /// Get all the membership relationships from the database.
@@ -33,9 +33,9 @@ namespace SynchroLean.Core
         /// <summary>
         /// Get all the teams a user belongs to.
         /// </summary>
-        /// <param name="userId">The user in the teams.</param>
+        /// <param name="userEmail">The user in the teams.</param>
         /// <returns>All teams that the user belongs to.</returns>
-        Task<IEnumerable<Team>> GetAllTeamsForUser(int userId);
+        Task<IEnumerable<Team>> GetAllTeamsForUser(string userEmail);
 
         /// <summary>
         /// Get all the users in a team.
@@ -48,16 +48,16 @@ namespace SynchroLean.Core
         /// Test if a user is in a team.
         /// </summary>
         /// <param name="teamId"></param>
-        /// <param name="userId"></param>
+        /// <param name="userEmail"></param>
         /// <returns></returns>
-        Task<bool> UserIsInTeam(int teamId, int userId);
+        Task<bool> UserIsInTeam(int teamId, string userEmail);
 
         /// <summary>
         /// Transfer ownership of a team to a new team member.
         /// </summary>
         /// <param name="teamId">The team whose ownership will be changed.</param>
-        /// <param name="newOwnerId">The new owner of the team.</param>
+        /// <param name="newOwnerEmail">The new owner of the team.</param>
         /// <returns></returns>
-        Task ChangeTeamOwnership(int teamId, int newOwnerId);
+        Task ChangeTeamOwnership(int teamId, string newOwnerEmail);
     }
 }

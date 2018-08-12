@@ -10,12 +10,12 @@ namespace SynchroLean.Core.Models
     {
         public int TeamId { get; set; }
 
-        public int MemberId { get; set; }
+        public string MemberEmail { get; set; }
 
         [ForeignKey("TeamId")]
         public virtual Team Team { get; set; }
 
-        [ForeignKey("MemberId")]
+        [ForeignKey("MemberEmail")]
         public virtual UserAccount Member { get; set; }
     }
 }

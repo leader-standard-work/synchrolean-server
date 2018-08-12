@@ -18,24 +18,19 @@ namespace SynchroLean.Migrations
 
             modelBuilder.Entity("SynchroLean.Core.Models.AddUserRequest", b =>
                 {
-                    b.Property<int>("AddUserRequestId")
-                        .ValueGeneratedOnAdd();
+                    b.Property<string>("InviteeEmail");
 
                     b.Property<int>("DestinationTeamId");
 
-                    b.Property<int>("InviteeOwnerId");
-
-                    b.Property<int?>("InviterOwnerId");
+                    b.Property<string>("InviterEmail");
 
                     b.Property<bool>("IsAuthorized");
 
-                    b.HasKey("AddUserRequestId");
+                    b.HasKey("InviteeEmail", "DestinationTeamId");
 
                     b.HasIndex("DestinationTeamId");
 
-                    b.HasIndex("InviteeOwnerId");
-
-                    b.HasIndex("InviterOwnerId");
+                    b.HasIndex("InviterEmail");
 
                     b.ToTable("AddUserRequests");
                 });
@@ -44,7 +39,7 @@ namespace SynchroLean.Migrations
                 {
                     b.Property<int>("TaskId");
 
-                    b.Property<int>("OwnerId");
+                    b.Property<string>("OwnerEmail");
 
                     b.Property<DateTime>("EntryTime");
 
@@ -52,9 +47,9 @@ namespace SynchroLean.Migrations
 
                     b.Property<int?>("TeamId");
 
-                    b.HasKey("TaskId", "OwnerId", "EntryTime");
+                    b.HasKey("TaskId", "OwnerEmail", "EntryTime");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("OwnerEmail");
 
                     b.HasIndex("TeamId");
 
@@ -68,7 +63,8 @@ namespace SynchroLean.Migrations
 
                     b.Property<DateTime?>("Deleted");
 
-                    b.Property<int>("OwnerId");
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired();
 
                     b.Property<string>("TeamDescription")
                         .HasMaxLength(250);
@@ -79,6 +75,8 @@ namespace SynchroLean.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OwnerEmail");
+
                     b.ToTable("Teams");
                 });
 
@@ -86,11 +84,11 @@ namespace SynchroLean.Migrations
                 {
                     b.Property<int>("TeamId");
 
-                    b.Property<int>("MemberId");
+                    b.Property<string>("MemberEmail");
 
-                    b.HasKey("TeamId", "MemberId");
+                    b.HasKey("TeamId", "MemberEmail");
 
-                    b.HasIndex("MemberId");
+                    b.HasIndex("MemberEmail");
 
                     b.ToTable("TeamMembers");
                 });
@@ -110,44 +108,28 @@ namespace SynchroLean.Migrations
 
             modelBuilder.Entity("SynchroLean.Core.Models.Todo", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                    b.Property<int>("TaskId");
 
                     b.Property<DateTime?>("Completed");
 
                     b.Property<DateTime>("Expires");
 
-                    b.Property<int>("OwnerId");
-
-                    b.Property<int>("TaskId");
-
-                    b.Property<int?>("TeamId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.HasIndex("TaskId");
-
-                    b.HasIndex("TeamId");
+                    b.HasKey("TaskId");
 
                     b.ToTable("Todos");
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.UserAccount", b =>
                 {
-                    b.Property<int>("OwnerId")
-                        .ValueGeneratedOnAdd();
-
                     b.Property<string>("Email")
-                        .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50);
+
+                    b.Property<DateTime?>("Deleted");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(50);
-
-                    b.Property<bool>("IsDeleted");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -159,9 +141,7 @@ namespace SynchroLean.Migrations
                     b.Property<string>("Salt")
                         .IsRequired();
 
-                    b.Property<int>("TeamId");
-
-                    b.HasKey("OwnerId");
+                    b.HasKey("Email");
 
                     b.ToTable("UserAccounts");
                 });
@@ -171,31 +151,30 @@ namespace SynchroLean.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CompletionDate");
-
                     b.Property<DateTime>("CreationDate");
+
+                    b.Property<DateTime?>("Deleted");
 
                     b.Property<string>("Description");
 
                     b.Property<int>("Frequency");
 
-                    b.Property<bool>("IsCompleted");
-
                     b.Property<bool>("IsRecurring");
-
-                    b.Property<bool>("IsRemoved");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255);
 
-                    b.Property<int>("OwnerId");
+                    b.Property<string>("OwnerEmail")
+                        .IsRequired();
 
                     b.Property<int?>("TeamId");
 
                     b.Property<byte>("Weekdays");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerEmail");
 
                     b.HasIndex("TeamId");
 
@@ -205,25 +184,29 @@ namespace SynchroLean.Migrations
             modelBuilder.Entity("SynchroLean.Core.Models.AddUserRequest", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.Team", "DestinationTeam")
-                        .WithMany()
+                        .WithMany("Invites")
                         .HasForeignKey("DestinationTeamId")
+                        .HasConstraintName("FK_AddUserRequest_Team_TeamId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Invitee")
-                        .WithMany()
-                        .HasForeignKey("InviteeOwnerId")
+                        .WithMany("IncomingInvites")
+                        .HasForeignKey("InviteeEmail")
+                        .HasConstraintName("FK_AddUserRequest_InviteeEmail_UserAccount_Email")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Inviter")
-                        .WithMany()
-                        .HasForeignKey("InviterOwnerId");
+                        .WithMany("OutgoingInvites")
+                        .HasForeignKey("InviterEmail")
+                        .HasConstraintName("FK_AddUserRequest_InviterEmail_UserAccount_Email")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.CompletionLogEntry", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
                         .WithMany()
-                        .HasForeignKey("OwnerId")
+                        .HasForeignKey("OwnerEmail")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.UserTask", "Task")
@@ -234,18 +217,26 @@ namespace SynchroLean.Migrations
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
                         .WithMany("AssociatedLogEntries")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("SynchroLean.Core.Models.Team", b =>
+                {
+                    b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerEmail")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.TeamMember", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.UserAccount", "Member")
-                        .WithMany()
-                        .HasForeignKey("MemberId")
+                        .WithMany("TeamMembershipRelations")
+                        .HasForeignKey("MemberEmail")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
-                        .WithMany()
+                        .WithMany("TeamMembershipRelations")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -253,40 +244,36 @@ namespace SynchroLean.Migrations
             modelBuilder.Entity("SynchroLean.Core.Models.TeamPermission", b =>
                 {
                     b.HasOne("SynchroLean.Core.Models.Team", "ObjectTeam")
-                        .WithMany()
+                        .WithMany("PermissionsWhereThisIsObject")
                         .HasForeignKey("ObjectTeamId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SynchroLean.Core.Models.Team", "SubjectTeam")
-                        .WithMany()
+                        .WithMany("PermissionsWhereThisIsSubject")
                         .HasForeignKey("SubjectTeamId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.Todo", b =>
                 {
-                    b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("SynchroLean.Core.Models.UserTask", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
+                        .WithOne("Todo")
+                        .HasForeignKey("SynchroLean.Core.Models.Todo", "TaskId")
+                        .HasConstraintName("FK_Todo_Tasks_TaskId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SynchroLean.Core.Models.Team", "Team")
-                        .WithMany("AssociatedTodos")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SynchroLean.Core.Models.UserTask", b =>
                 {
+                    b.HasOne("SynchroLean.Core.Models.UserAccount", "Owner")
+                        .WithMany("Tasks")
+                        .HasForeignKey("OwnerEmail")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("SynchroLean.Core.Models.Team", "Team")
                         .WithMany("AssociatedTasks")
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

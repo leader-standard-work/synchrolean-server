@@ -19,25 +19,25 @@ namespace SynchroLean.Persistence
          * than exposing the repositories/context in the controller.
          **/
         private readonly SynchroLeanDbContext context;
-        public IUserTaskRepository userTaskRepository { get; }
-        public IUserAccountRepository userAccountRepository { get; }
-        public IUserTeamRepository userTeamRepository { get; }
-        public IAddUserRequestRepository addUserRequestRepository { get; }
-        public ITeamPermissionRepository teamPermissionRepository { get; }
-        public ITeamMemberRepository teamMemberRepository { get; }
-        public ICompletionLogEntryRepository completionLogEntryRepository { get; }
-        public ITodoRepository todoList { get; }
+        public IUserTaskRepository UserTaskRepository { get; }
+        public IUserAccountRepository UserAccountRepository { get; }
+        public IUserTeamRepository UserTeamRepository { get; }
+        public IAddUserRequestRepository AddUserRequestRepository { get; }
+        public ITeamPermissionRepository TeamPermissionRepository { get; }
+        public ITeamMemberRepository TeamMemberRepository { get; }
+        public ICompletionLogEntryRepository CompletionLogEntryRepository { get; }
+        public ITodoRepository TodoRepository { get; }
         public UnitOfWork(SynchroLeanDbContext context)
         {
             this.context = context;
-            userTaskRepository = new UserTaskRepository(context);
-            userAccountRepository = new UserAccountRepository(context);
-            userTeamRepository = new UserTeamRepository(context);
-            addUserRequestRepository = new AddUserRequestRespository(context);
-            teamPermissionRepository = new TeamPermissionRepository(context);
-            teamMemberRepository = new TeamMemberRepository(context);
-            completionLogEntryRepository = new CompletionLogEntryRepository(context);
-            todoList = new TodoRepository(context);
+            UserTaskRepository = new UserTaskRepository(context);
+            UserAccountRepository = new UserAccountRepository(context);
+            UserTeamRepository = new UserTeamRepository(context);
+            AddUserRequestRepository = new AddUserRequestRespository(context);
+            TeamPermissionRepository = new TeamPermissionRepository(context);
+            TeamMemberRepository = new TeamMemberRepository(context);
+            CompletionLogEntryRepository = new CompletionLogEntryRepository(context);
+            TodoRepository = new TodoRepository(context);
         }
 
         public async Task CompleteAsync()

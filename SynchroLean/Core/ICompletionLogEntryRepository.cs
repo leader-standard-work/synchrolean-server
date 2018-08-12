@@ -19,19 +19,19 @@ namespace SynchroLean.Core
         /// Delete a log entry
         /// </summary>
         /// <param name="taskId">Id of task</param>
-        /// <param name="ownerId">Owner of task</param>
+        /// <param name="emailAddress">Owner of task</param>
         /// <param name="entryTime">Time log entry was processed</param>
         /// <returns></returns>
-        void DeleteLogEntry(int taskId, int ownerId, DateTime entryTime);
+        void DeleteLogEntry(int taskId, string emailAddress, DateTime entryTime);
 
         /// <summary>
         /// Returns a Users completion rate
         /// </summary>
-        /// <param name="ownerId">Owner id</param>
+        /// <param name="emailAddress">Owner id</param>
         /// <param name="start">Starting date for owner metrics calculations</param>
         /// <param name="end">Ending date for owner metrics calculations</param>
         /// <returns></returns>
-        Task<Double> GetUserCompletionRate(int ownerId, DateTime start, DateTime end);
+        Task<double> GetUserCompletionRate(string emailAddress, DateTime start, DateTime end);
         
         /// <summary>
         /// Returns a Teams completion rate
@@ -40,7 +40,7 @@ namespace SynchroLean.Core
         /// <param name="start">Starting date for team metrics calculations</param>
         /// <param name="end">Ending date for team metrics calculations</param>
         /// <returns></returns>
-        Task<Double> GetTeamCompletionRate(int teamId, DateTime start, DateTime end);
+        Task<double> GetTeamCompletionRate(int teamId, DateTime start, DateTime end);
 
         /// <summary>
         /// Deletes all log entries older than the threshold
@@ -52,21 +52,21 @@ namespace SynchroLean.Core
         /// <summary>
         /// Get the user's completion rate for a particular team
         /// </summary>
-        /// <param name="userId">The user</param>
+        /// <param name="emailAddress">The user</param>
         /// <param name="teamId">The team</param>
         /// <param name="start">Starting date for metrics calculation</param>
         /// <param name="end">Ending date for metrics calculation</param>
         /// <returns>A rate from 0 to 1, NaN if the user had no tasks assigned on those teams.</returns>
-        Task<Double> GetUserCompletionRateOnTeam(int userId, int teamId, DateTime start, DateTime end);
+        Task<double> GetUserCompletionRateOnTeam(string emailAddress, int teamId, DateTime start, DateTime end);
 
         /// <summary>
         /// Get the user's completion rate for multiple teams
         /// </summary>
-        /// <param name="userId">The user</param>
-        /// <param name="teamId">The teams the user is one</param>
+        /// <param name="emailAddress">The user</param>
+        /// <param name="teamIds">The teams the user is one</param>
         /// <param name="start">Start date for metrics calculation</param>
         /// <param name="end">End date for metrics calculations</param>
         /// <returns>A rate from 0 to 1, NaN if the user had no tasks assigned on those teams.</returns>
-        Task<Double> GetUserCompletionRateOnTeams(int userId, IEnumerable<int> teamIds, DateTime start, DateTime end);
+        Task<double> GetUserCompletionRateOnTeams(string emailAddress, IEnumerable<int> teamIds, DateTime start, DateTime end);
     }
 }

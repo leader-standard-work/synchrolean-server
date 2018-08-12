@@ -21,25 +21,21 @@ namespace SynchroLean.Persistence
             await this.context.AddUserRequests.AddAsync(request);
         }
 
-        async Task<bool> IAddUserRequestRepository.AddUserRequestExists(int addUserRequestId)
+        async Task<bool> IAddUserRequestRepository.AddUserRequestExists(string email, int teamId)
         {
-            return await this.context.AddUserRequests.AnyAsync(request => request.AddUserRequestId == addUserRequestId);
+            var invite = await this.context.AddUserRequests.FindAsync(email, teamId);
+            return invite != null;
         }
 
-        async Task IAddUserRequestRepository.DeleteAddUserRequestAsync(int addUserRequestId)
+        async Task IAddUserRequestRepository.DeleteAddUserRequestAsync(string email, int teamId)
         {
-            var toDelete = await ((IAddUserRequestRepository)this).GetAddUserRequestAsync(addUserRequestId);
-            this.context.AddUserRequests.Remove(toDelete);
+            var toDelete = await this.context.AddUserRequests.FindAsync(email, teamId);
+            if(toDelete != null) this.context.AddUserRequests.Remove(toDelete);
         }
 
-        async Task<AddUserRequest> IAddUserRequestRepository.GetAddUserRequestAsync(int addUserRequestId)
+        async Task<AddUserRequest> IAddUserRequestRepository.GetAddUserRequestAsync(string email, int teamId)
         {
-            return await
-            (
-                from request in this.context.AddUserRequests
-                where request.AddUserRequestId == addUserRequestId
-                select request
-            ).SingleOrDefaultAsync();
+            return await this.context.AddUserRequests.FindAsync(email, teamId);
         }
 
         async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsAsync()
@@ -47,17 +43,17 @@ namespace SynchroLean.Persistence
             return await this.context.AddUserRequests.ToListAsync();
         }
 
-        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingAcceptanceAsync(string emailAddress)
         {
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.Invitee.OwnerId == ownerId && request.IsAuthorized
+                where request.Invitee.Email == emailAddress && request.IsAuthorized
                 select request
             ).ToListAsync();
         }
 
-        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsPendingApprovalAsync(string emailAddress)
         {
             return await
             (
@@ -65,7 +61,7 @@ namespace SynchroLean.Persistence
                 join ownedteam in
                 (
                     from team in this.context.Teams
-                    where team.OwnerId == ownerId
+                    where team.OwnerEmail == emailAddress
                     select team
                 )
                 on request.DestinationTeam equals ownedteam
@@ -74,12 +70,12 @@ namespace SynchroLean.Persistence
             ).ToListAsync();
         }
 
-        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetMySentAddUserRequestsAsync(int ownerId)
+        async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetMySentAddUserRequestsAsync(string emailAddress)
         {
             return await
             (
                 from request in this.context.AddUserRequests
-                where request.Inviter.OwnerId == ownerId
+                where request.Inviter.Email == emailAddress
                 select request
             ).ToListAsync();
         }

@@ -60,7 +60,7 @@ namespace SynchroLean.Tests
                 IsRecurring = true,
                 Weekdays = 40,
                 //IsCompleted = false,
-                IsRemoved = false
+                Deleted = null
             };
             
             // Creates the TaskController with DbContext and adds newUserTask to InMemory database
@@ -70,7 +70,7 @@ namespace SynchroLean.Tests
                 unitOfWork = new UnitOfWork(context);
 
                 // Add the task to the Db asynchronously
-                await unitOfWork.userTaskRepository.AddAsync(newUserTask);
+                await unitOfWork.UserTaskRepository.AddAsync(newUserTask);
                 await unitOfWork.CompleteAsync();
             }
 
@@ -85,7 +85,7 @@ namespace SynchroLean.Tests
                 unitOfWork = new UnitOfWork(context);
 
                 // Retrieve the task from the Db asynchronously
-                var userTask = await unitOfWork.userTaskRepository.GetTaskAsync(newUserTask.Id);
+                var userTask = await unitOfWork.UserTaskRepository.GetTaskAsync(newUserTask.Id);
                 await unitOfWork.CompleteAsync();
                 Assert.NotNull(userTask);
 
@@ -96,7 +96,7 @@ namespace SynchroLean.Tests
                 Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                 Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
                 //Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
-                Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
+                Assert.True(newUserTask.Deleted.Equals(userTask.Deleted));
             }
         }
 
@@ -127,7 +127,7 @@ namespace SynchroLean.Tests
                     IsRecurring = true,
                     Weekdays = 40,
                     //IsCompleted = false,
-                    IsRemoved = false
+                    Deleted = null
                 };
 
                 // Create the schema in the database
@@ -143,7 +143,7 @@ namespace SynchroLean.Tests
                     unitOfWork = new UnitOfWork(context);
 
                     // Add newUserTask to UserTasks table in Db asynchronously
-                    await unitOfWork.userTaskRepository.AddAsync(newUserTask);
+                    await unitOfWork.UserTaskRepository.AddAsync(newUserTask);
                     await unitOfWork.CompleteAsync();
                 }
 
@@ -157,7 +157,7 @@ namespace SynchroLean.Tests
                     Assert.Equal(1, context.UserTasks.Count());
                     
                     // Retrieve the task from the Db asynchronously
-                    var userTask = await unitOfWork.userTaskRepository.GetTaskAsync(newUserTask.Id);
+                    var userTask = await unitOfWork.UserTaskRepository.GetTaskAsync(newUserTask.Id);
                     await unitOfWork.CompleteAsync();
                     Assert.NotNull(userTask);
                     
@@ -168,7 +168,7 @@ namespace SynchroLean.Tests
                     Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                     Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
                     //Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
-                    Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
+                    Assert.True(newUserTask.Deleted.Equals(userTask.Deleted));
                 }
             }
             finally
@@ -213,7 +213,7 @@ namespace SynchroLean.Tests
                     IsRecurring = true,
                     Weekdays = 40,
                     IsCompleted = false,
-                    IsRemoved = false
+                    IsDeleted = false
                 };
 
                 // Add newUserTask to UserTasks table in Db asynchronously
@@ -229,7 +229,7 @@ namespace SynchroLean.Tests
                 Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                 Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
                 Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
-                Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
+                Assert.True(newUserTask.IsDeleted.Equals(userTask.IsDeleted));
             }
             finally
             {
@@ -271,7 +271,7 @@ namespace SynchroLean.Tests
                     IsRecurring = true,
                     Weekdays = 40,
                     IsCompleted = false,
-                    IsRemoved = false
+                    IsDeleted = false
                 };
                 
                 // Run the test against one instance of the context
@@ -296,7 +296,7 @@ namespace SynchroLean.Tests
                     controller = new TasksController(unitOfWork, mapper);
 
                     // Retrieve the task from the Db asynchronously
-                    var taskResult = controller.GetTasksAsync(newUserTask.Id);
+                    var taskResult = controller.GetTaskAsync("cophares@pdx.edu", newUserTask.Id);
                     var actionResult = taskResult.Result;
                     var okObjectResult = actionResult as OkObjectResult;
                     var userTaskList = okObjectResult.Value as List<UserTaskResource>;
@@ -314,7 +314,7 @@ namespace SynchroLean.Tests
                     Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                     Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
                     Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
-                    Assert.True(newUserTask.IsRemoved.Equals(userTask.IsRemoved));
+                    Assert.True(newUserTask.IsDeleted.Equals(userTask.IsDeleted));
                 }
             }
             finally
@@ -355,8 +355,8 @@ namespace SynchroLean.Tests
                     Weekdays = 40,
                     CreationDate = DateTime.Now,
                     IsCompleted = false,
-                    IsRemoved = false,
-                    OwnerId = 1
+                    IsDeleted = false,
+                    OwnerEmail = "cophares@pdx.edu"
                 };
 
                 // Create a newUserTask to send to HTTPPost method (without dates)
@@ -367,8 +367,8 @@ namespace SynchroLean.Tests
                     Weekdays = 0,
                     CreationDate = DateTime.Now,
                     IsCompleted = false,
-                    IsRemoved = false,
-                    OwnerId = 1
+                    IsDeleted = false,
+                    OwnerEmail = "cophares@pdx.edu"
                 };
 
                 var account = new UserAccountResource {
@@ -407,14 +407,14 @@ namespace SynchroLean.Tests
                     
                     startDate = DateTime.Now;
                     
-                    await taskController.EditUserTaskAsync(1, 2, 
+                    await taskController.EditUserTaskAsync(2, 
                         new UserTaskResource {
                             Name = "User metrics",
                             Description = "complete this to have 50% completion rate",
                             IsRecurring = true,
                             Weekdays = 0,
                             IsCompleted = true,
-                            IsRemoved = false,
+                            IsDeleted = false,
                         }
                     );
                 }
@@ -432,10 +432,10 @@ namespace SynchroLean.Tests
                     DateTime endDate = DateTime.Now;
 
                     // Retrieve the task from the Db asynchronously
-                    var completionRateResult = taskController.GetUserCompletionRate(1, startDate, endDate);
+                    var completionRateResult = taskController.GetUserCompletionRate("cophares@pdx.edu", startDate, endDate);
                     var actionResult = completionRateResult.Result;
                     var okObjectResult = actionResult as OkObjectResult;
-                    var completionRate = okObjectResult.Value as Double?;
+                    var completionRate = okObjectResult.Value as double?;
 
                     Assert.True(completionRate.Equals(.5));
                 }

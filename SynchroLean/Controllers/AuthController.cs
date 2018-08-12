@@ -28,8 +28,8 @@ namespace SynchroLean.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody]LoginResource loginResource)
         {
-            var account = await unitOfWork.userAccountRepository
-                .GetUserAccountByEmailAsync(loginResource.Email);
+            var account = await unitOfWork.UserAccountRepository
+                .GetUserAccountAsync(loginResource.Email);
 
             if (account == null || account.IsDeleted)
             {
@@ -49,7 +49,7 @@ namespace SynchroLean.Controllers
                     audience: "http://localhost:4200",
                     claims: new List<Claim>
                     {
-                        new Claim("OwnerId", account.OwnerId.ToString())
+                        new Claim("Email", account.Email)
                     },
                     signingCredentials: signingCredentials
                 );

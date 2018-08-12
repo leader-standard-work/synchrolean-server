@@ -39,23 +39,21 @@ namespace SynchroLean.Persistence
             await context.Todos.AddAsync(Todo.FromTask(task, expiry));
         }
 
-        public async Task<Todo> GetUserTodo(int userId, int taskId)
+        public async Task<Todo> GetTodo(int taskId)
         {
-            return await context.Todos
-                .Where(todo => todo.OwnerId == userId && todo.TaskId == taskId)
-                .SingleOrDefaultAsync();
+            return await context.Todos.FindAsync(taskId);
         }
 
-        public async Task<IEnumerable<Todo>> GetTodoListAsync(int ownerId)
+        public async Task<IEnumerable<Todo>> GetTodoListAsync(string emailAddress)
         {
-            return await context.Todos
-                .Where(todo => todo.OwnerId.Equals(ownerId))
+            return await context.Todos.Include(todo => todo.Task)
+                .Where(todo => todo.Task.OwnerEmail.Equals(emailAddress))
                 .ToListAsync();
         }
 
         public void RemoveTodo(int taskId)
         {
-            context.Remove(new Todo { Id = taskId});
+            context.Remove(new Todo { TaskId = taskId});
         }
 
         public async Task RemoveTodosAsync(int taskId)
@@ -82,7 +80,6 @@ namespace SynchroLean.Persistence
                 //Create log entry and add to log
                 var entry = new CompletionLogEntry {
                     TaskId = todo.TaskId,
-                    OwnerId = todo.OwnerId,
                     EntryTime = DateTime.Now,
                     IsCompleted = todo.IsCompleted
                 };
@@ -104,7 +101,6 @@ namespace SynchroLean.Persistence
                 //Find and remove log entry
                 var entry = new CompletionLogEntry {
                     TaskId = todo.TaskId,
-                    OwnerId = todo.OwnerId,
                     EntryTime = (DateTime)todo.Completed
                 };
 
@@ -128,12 +124,11 @@ namespace SynchroLean.Persistence
                         new CompletionLogEntry
                         {
                             TaskId = expired.TaskId,
-                            OwnerId = expired.OwnerId,
                             EntryTime = expired.Expires,
                             IsCompleted = false
                         }
                     );
-                if (!expired.Task.IsRecurring) expired.Task.IsRemoved = true;
+                if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }
         }
