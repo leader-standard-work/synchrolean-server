@@ -47,5 +47,15 @@ namespace SynchroLean.Persistence
             foreach (var member in members) context.TeamMembers.Remove(member);
             team.Delete();
         }
+
+        public async Task Clean()
+        {
+            var startOfLastYear = new DateTime(DateTime.Now.Year, 1, 1);
+            var teamsToDelete = await
+                (from team in context.Teams
+                 where team.IsDeleted && team.Deleted < startOfLastYear
+                 select team).ToListAsync();
+            foreach (var teamToDelete in teamsToDelete) context.Teams.Remove(teamToDelete);
+        }
     }
 }

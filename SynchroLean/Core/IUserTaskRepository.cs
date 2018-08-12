@@ -33,7 +33,7 @@ namespace SynchroLean.Core
         /// Deletes all tasks that can be safely removed.
         /// </summary>
         /// <returns></returns>
-        Task CleanTasks();
+        Task Clean();
 
         /// <summary>
         /// Get all the tasks for a specific team

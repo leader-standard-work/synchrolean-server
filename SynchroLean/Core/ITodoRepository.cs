@@ -61,7 +61,7 @@ namespace SynchroLean.Core {
         /// Mark all todos as missed and delete them, if they expired before or at the threshold
         /// </summary>
         /// <returns></returns> 
-        Task CleanTodos();
+        Task Clean();
 
         /// <summary> 
         /// Make sure a todo is up to date after a task has been edited. 

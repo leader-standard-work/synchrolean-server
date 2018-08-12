@@ -109,7 +109,7 @@ namespace SynchroLean.Persistence
             }
         }
 
-        public async Task CleanTodos()
+        public async Task Clean()
         {
             DateTime threshold = DateTime.Now;
             var expireds = await 

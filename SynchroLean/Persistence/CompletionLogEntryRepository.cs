@@ -93,10 +93,14 @@ namespace SynchroLean.Persistence
             return teamTasks.Count > 0 ? teamTasks.Average() : double.NaN;
         }
 
-        public async Task CleanupLog(DateTime threshold)
+        public async Task Clean()
         {
-            var toRemove = await context.TaskCompletionLog.Where(entry => entry.EntryTime < threshold).ToListAsync();
-            context.TaskCompletionLog.RemoveRange(toRemove);
+            var startOfLastYear = new DateTime(DateTime.Now.Year, 1, 1);
+            var entriesToDelete = await
+                (from entry in context.TaskCompletionLog
+                 where entry.EntryTime < startOfLastYear
+                 select entry).ToListAsync();
+            foreach (var entryToDelete in entriesToDelete) context.TaskCompletionLog.Remove(entryToDelete);
         }
 
         public async Task<double> GetUserCompletionRateOnTeam(string emailAddress, int teamId, DateTime start, DateTime end)

@@ -47,7 +47,7 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="threshold">The oldest a kept log entry can be</param>
         /// <returns></returns>
-        Task CleanupLog(DateTime threshold);
+        Task Clean();
 
         /// <summary>
         /// Get the user's completion rate for a particular team

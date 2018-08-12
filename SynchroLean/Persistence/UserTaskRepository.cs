@@ -39,14 +39,12 @@ namespace SynchroLean.Persistence
             return await context.UserTasks.Where(task => task.TeamId != null && (int)task.TeamId == teamId).ToListAsync();
         }
 
-        public async Task CleanTasks()
+        public async Task Clean()
         {
-            //Left outer join
+            var startOfLastYear = new DateTime(DateTime.Now.Year, 1, 1);
             var tasksToDelete = await
                 (from task in context.UserTasks
-                 join entry in context.TaskCompletionLog on task.Id equals entry.TaskId into taskentries
-                 from taskentry in taskentries.DefaultIfEmpty()
-                 where task.IsDeleted && taskentry == null
+                 where task.IsDeleted && task.Deleted < startOfLastYear
                  select task).ToListAsync();
             foreach (var taskToDelete in tasksToDelete) context.UserTasks.Remove(taskToDelete);
         }

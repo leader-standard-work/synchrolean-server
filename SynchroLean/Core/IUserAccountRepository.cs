@@ -29,5 +29,10 @@ namespace SynchroLean.Core
         /// <returns>True if account exists, false otherwise</returns>
         Task<Boolean> UserAccountExists(string emailAddress);
 
+        /// <summary>
+        /// Delete all accounts that can safely be removed
+        /// </summary>
+        /// <returns></returns>
+        Task Clean();
     }
 }

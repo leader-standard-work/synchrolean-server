@@ -33,5 +33,15 @@ namespace SynchroLean.Persistence
             return await context.UserAccounts
                 .AnyAsync(user => user.Email == emailAddress);
         }
+
+        public async Task Clean()
+        {
+            var startOfLastYear = new DateTime(DateTime.Now.Year, 1, 1);
+            var accountsToDelete = await
+                (from account in context.UserAccounts
+                 where account.IsDeleted && account.Deleted < startOfLastYear
+                 select account).ToListAsync();
+            foreach (var accountToDelete in accountsToDelete) context.UserAccounts.Remove(accountToDelete);
+        }
     }
 }

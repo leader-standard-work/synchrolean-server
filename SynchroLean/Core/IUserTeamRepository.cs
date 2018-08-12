@@ -41,5 +41,11 @@ namespace SynchroLean.Core
         /// <param name="teamId"></param>
         /// <returns></returns>
         Task DeleteTeamAsync(int teamId);
+
+        /// <summary>
+        /// Delete all teams that can be safely removed
+        /// </summary>
+        /// <returns></returns>
+        Task Clean();
     }
 }

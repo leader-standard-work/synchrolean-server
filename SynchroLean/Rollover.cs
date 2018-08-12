@@ -32,12 +32,14 @@ namespace SynchroLean
                     .AddDays((int)(DayOfWeek.Saturday) - (int)(DateTime.Now.DayOfWeek) + 1);
 
                 //Clean up the to-do list for the night
-                await _unitOfWork.TodoRepository.CleanTodos();
+                await _unitOfWork.TodoRepository.Clean();
                 _unitOfWork.CompleteAsync().Wait();
 
-                //Do cleanup of old tasks and log entries
-                await _unitOfWork.CompletionLogEntryRepository.CleanupLog(DateTime.Now.Date - TimeSpan.FromDays(730.5)); //2a
-                await _unitOfWork.UserTaskRepository.CleanTasks();
+                //Do cleanup
+                await _unitOfWork.UserTeamRepository.Clean();
+                await _unitOfWork.UserAccountRepository.Clean();
+                await _unitOfWork.UserTaskRepository.Clean();
+                await _unitOfWork.CompletionLogEntryRepository.Clean();
 
                 var cal = System.Globalization.DateTimeFormatInfo.CurrentInfo.Calendar;
 
