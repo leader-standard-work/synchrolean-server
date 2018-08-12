@@ -20,7 +20,7 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="addUserRequestId">The key to the invitation.</param>
         /// <returns></returns>
-        Task<AddUserRequest> GetAddUserRequestAsync(int addUserRequestId);
+        Task<AddUserRequest> GetAddUserRequestAsync(string emailAddress, int teamId);
 
         /// <summary>
         /// Get all invitations.
@@ -54,13 +54,13 @@ namespace SynchroLean.Core
         /// </summary>
         /// <param name="addUserRequestId">The key for the invitation.</param>
         /// <returns>True if an invitation with a given key is in the database.</returns>
-        Task<Boolean> AddUserRequestExists(int addUserRequestId);
+        Task<Boolean> AddUserRequestExists(string emailAddress, int teamId);
 
         /// <summary>
         /// Delete an invitation from the database.
         /// </summary>
         /// <param name="addUserRequestId">The key for the invitation to delete.</param>
         /// <returns></returns>
-        Task DeleteAddUserRequestAsync(int addUserRequestId);
+        Task DeleteAddUserRequestAsync(string emailAddress, int teamId);
     }
 }

@@ -221,14 +221,27 @@ namespace SynchroLean.Controllers
             if (inviter == null || inviter.IsDeleted) return NotFound("User doesn't exist");
             var invitee = await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress);
             if (invitee == null || invitee.IsDeleted) return NotFound("User doesn't exist");
-            await unitOfWork.AddUserRequestRepository.AddAsync(
-                new AddUserRequest
+            //Check if invite already exists
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(emailAddress, teamId);
+            if(invite == null)
+            {
+                await unitOfWork.AddUserRequestRepository.AddAsync(
+                    new AddUserRequest
+                    {
+                        Invitee = invitee,
+                        Inviter = inviter,
+                        IsAuthorized = creatorIsTeamOwner,
+                        DestinationTeam = team
+                    });
+            }
+            else
+            {
+                if(creatorIsTeamOwner)
                 {
-                    Invitee = invitee,
-                    Inviter = inviter,
-                    IsAuthorized = creatorIsTeamOwner,
-                    DestinationTeam = team
-                });
+                    invite.InviterEmail = tokenOwnerEmail;
+                    invite.IsAuthorized = true;
+                }
+            }
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -239,21 +252,17 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="addUserRequestId">The invite being accepted.</param>
         /// <returns></returns>
-        [HttpPut("invite/accept/{addUserRequestId}"), Authorize]
-        public async Task<IActionResult> AcceptTeamInvite(int addUserRequestId)
+        [HttpPut("invite/accept/{teamId}"), Authorize]
+        public async Task<IActionResult> AcceptTeamInvite(int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(tokenOwnerEmail,teamId);
             if (invite == null || !invite.IsAuthorized) return NotFound("No such invite");
 
             // Validate that the accepting user is the invitee
-            var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(invite.Invitee.Email)) 
-            {
-                return Forbid();
-            }
 
             await unitOfWork.TeamMemberRepository.AddUserToTeam(invite.DestinationTeam.Id, invite.Invitee.Email);
-            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(tokenOwnerEmail,teamId);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -264,20 +273,14 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="addUserRequestId"></param>
         /// <returns></returns>
-        [HttpPut("invite/reject/{addUserRequestId}"), Authorize]
-        public async Task<IActionResult> RejectTeamInvite(int addUserRequestId)
+        [HttpPut("invite/reject/{teamId}"), Authorize]
+        public async Task<IActionResult> RejectTeamInvite(int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
-            if (invite == null || !invite.IsAuthorized) return NotFound("No such invite");
-            
-            // Validate that the rejecting user is the invitee
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(invite.Invitee.Email)) 
-            {
-                return Forbid();
-            }
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(tokenOwnerEmail, teamId);
+            if (invite == null || !invite.IsAuthorized) return NotFound("No such invite");
 
-            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(tokenOwnerEmail, teamId);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -288,10 +291,10 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="addUserRequestId"></param>
         /// <returns></returns>
-        [HttpPut("invite/rescind/{addUserRequestId}"), Authorize]
-        public async Task<IActionResult> RescindTeamInvite(int addUserRequestId)
+        [HttpPut("invite/rescind/{teamId}/{inviteeEmail}"), Authorize]
+        public async Task<IActionResult> RescindTeamInvite(string inviteeEmail, int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(inviteeEmail, teamId);
             if (invite == null) return NotFound("No such invite");
 
             // Validate that the rescinding user is the inviter
@@ -301,7 +304,7 @@ namespace SynchroLean.Controllers
                 return Forbid();
             }
 
-            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(inviteeEmail, teamId);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -310,25 +313,23 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Authorize an invitation by a team member
         /// </summary>
-        /// <param name="addUserRequestId"></param>
         /// <returns></returns>
-        [HttpPut("invite/authorize/{addUserRequestId}"), Authorize]
-        public async Task<IActionResult> AuthorizeTeamInvite(int addUserRequestId)
+        [HttpPut("invite/authorize/{teamId}/{inviteeEmail}"), Authorize]
+        public async Task<IActionResult> AuthorizeTeamInvite(string inviteeEmail, int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(inviteeEmail,teamId);
             if (invite == null) return NotFound("No such invite");
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
             if (team == null) return NotFound("No such team");
-
             // Validate that the authorizing user is the team owner
             var tokenOwnerEmail = User.FindFirst("Email").Value;
             if (!tokenOwnerEmail.Equals(team.OwnerEmail)) 
             {
                 return Forbid();
             }
-
             invite.IsAuthorized = true;
+            invite.Inviter = await unitOfWork.UserAccountRepository.GetUserAccountAsync(tokenOwnerEmail);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -337,12 +338,11 @@ namespace SynchroLean.Controllers
         /// <summary>
         /// Veto an invitation by a team member
         /// </summary>
-        /// <param name="addUserRequestId"></param>
         /// <returns></returns>
-        [HttpPut("invite/veto/{addUserRequestId}"), Authorize]
-        public async Task<IActionResult> VetoTeamInvite(int addUserRequestId)
+        [HttpPut("invite/veto/{teamId}/{inviteeEmail}"), Authorize]
+        public async Task<IActionResult> VetoTeamInvite(string inviteeEmail, int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(addUserRequestId);
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(inviteeEmail, teamId);
             if (invite == null) return NotFound("No such invite");
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
@@ -355,7 +355,7 @@ namespace SynchroLean.Controllers
                 return Forbid();
             }
 
-            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(addUserRequestId);
+            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(inviteeEmail, teamId);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }

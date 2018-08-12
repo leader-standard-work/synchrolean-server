@@ -25,6 +25,7 @@ namespace SynchroLean.Persistence
             modelBuilder.Entity<TeamMember>().HasKey(member => new { member.TeamId, MemberId = member.MemberEmail });
             modelBuilder.Entity<CompletionLogEntry>().HasKey(log => new { log.TaskId, OwnerId = log.OwnerEmail, log.EntryTime });
             modelBuilder.Entity<Todo>().HasKey(todo => todo.TaskId);
+            modelBuilder.Entity<AddUserRequest>().HasKey(invite => new { invite.InviteeEmail, invite.DestinationTeamId });
 
             //Optional relationships
             modelBuilder.Entity<Todo>()
