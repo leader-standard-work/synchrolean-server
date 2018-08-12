@@ -214,9 +214,14 @@ namespace SynchroLean.Controllers
         {
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(teamId);
             if (team == null || team.IsDeleted) return NotFound("No such team");
-            //TODO: Check if creator is in the team creator is being invited into
-            //blocked by the fact that teams aren't implemented yet
+
             var tokenOwnerEmail = User.FindFirst("Email").Value;
+            // Check that inviter is on team and invitee isn't on team
+            var inviterIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, tokenOwnerEmail);
+            var inviteeIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, emailAddress);
+            if (!inviterIsTeamMember || inviteeIsTeamMember) return BadRequest();
+            
+            // Check if inviter is team owner
             var creatorIsTeamOwner = team.OwnerEmail == tokenOwnerEmail;
             var inviter = await unitOfWork.UserAccountRepository.GetUserAccountAsync(tokenOwnerEmail);
             if (inviter == null || inviter.IsDeleted) return NotFound("User doesn't exist");
@@ -237,6 +242,7 @@ namespace SynchroLean.Controllers
             }
             else
             {
+                // Authorize existing invite
                 if(creatorIsTeamOwner)
                 {
                     invite.InviterEmail = tokenOwnerEmail;
