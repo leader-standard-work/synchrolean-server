@@ -551,6 +551,7 @@ namespace SynchroLean.Controllers
             else
             {
                 await unitOfWork.UserTeamRepository.DeleteTeamAsync(teamId);
+                Task.WaitAll(unitOfWork.CompleteAsync());
                 return Ok();
             }
         }
