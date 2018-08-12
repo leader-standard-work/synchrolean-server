@@ -60,7 +60,6 @@ namespace SynchroLean.Core.Models
             if (!this.IsDeleted)
             {
                 this.Deleted = DateTime.Now;
-                this.AssociatedTasks.Clear();
             }
         }
 
