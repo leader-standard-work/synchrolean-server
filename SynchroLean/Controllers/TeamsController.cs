@@ -86,7 +86,9 @@ namespace SynchroLean.Controllers
             // Map each team to a resource
             foreach (var team in teams)
             {
-                resourceTeams.Add(_mapper.Map<TeamResource>(team));
+                if(!team.IsDeleted){
+                    resourceTeams.Add(_mapper.Map<TeamResource>(team));
+                }
             }
 
             return Ok(resourceTeams); // Return the collection of team resources
@@ -106,7 +108,7 @@ namespace SynchroLean.Controllers
                 .GetUserTeamAsync(teamId);
 
             // Check to see if a team corresponding to the given team id was found
-            if (team == null)
+            if (team == null || team.IsDeleted)
             {
                 return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
@@ -128,7 +130,7 @@ namespace SynchroLean.Controllers
                 .GetUserTeamAsync(teamId);
 
             // Check to see if a team corresponding to the given team id was found
-            if (team == null)
+            if (team == null || team.IsDeleted)
             {
                 return NotFound("Couldn't find a team matching that id."); // Team wasn't found
             }
@@ -174,7 +176,7 @@ namespace SynchroLean.Controllers
                 .GetUserTeamAsync(teamId);
 
             // Nothing was retrieved, no id match
-            if (team == null)
+            if (team == null || team.IsDeleted)
             {
                 return NotFound("Couldn't find a team matching that teamId.");
             }
@@ -189,11 +191,6 @@ namespace SynchroLean.Controllers
                 await unitOfWork.TeamMemberRepository.ChangeTeamOwnership(teamId, teamResource.OwnerEmail);
             }
 
-            //this stops default edit team from giving teams to user 0
-            if (team.OwnerEmail == null)
-            {
-                team.OwnerEmail = tokenOwnerEmail;
-            }
 
             // Save updated team to database
             Task.WaitAll(unitOfWork.CompleteAsync());
@@ -328,7 +325,7 @@ namespace SynchroLean.Controllers
             if (invite == null) return NotFound("No such invite");
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
-            if (team == null) return NotFound("No such team");
+            if (team == null || team.IsDeleted) return NotFound("No such team");
             // Validate that the authorizing user is the team owner
             var tokenOwnerEmail = User.FindFirst("Email").Value;
             if (!tokenOwnerEmail.Equals(team.OwnerEmail)) 
@@ -353,7 +350,7 @@ namespace SynchroLean.Controllers
             if (invite == null) return NotFound("No such invite");
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
-            if (team == null) return NotFound("No such team");
+            if (team == null || team.IsDeleted) return NotFound("No such team");
             
             // Validate that the vetoing user is the team owner
             var tokenOwnerEmail = User.FindFirst("Email").Value;
@@ -461,7 +458,7 @@ namespace SynchroLean.Controllers
             var subjectExists = await unitOfWork.UserTeamRepository.TeamExists(subjectId);
             if (!subjectExists) return NotFound();
             var objectTeam = await unitOfWork.UserTeamRepository.GetUserTeamAsync(objectId);
-            if (objectTeam == null) return NotFound("No such team (objectId)");
+            if (objectTeam == null || objectTeam.IsDeleted) return NotFound("No such team (objectId)");
 
             // Validate that the user revoking permissions owns the object team
             var tokenOwnerEmail = User.FindFirst("Email").Value;
@@ -483,12 +480,12 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"> The team the user is too be removed from.</param>
         /// <returns></returns>
         [HttpPut("remove/{teamId}/{targetEmail}"), Authorize]
-        public async Task<IActionResult> RemoveMemberAsync(string targetEmail, int teamId){
+        public async Task<IActionResult> RemoveMemberAsync(int teamId, string targetEmail){
         
             var targetTeam = await unitOfWork.UserTeamRepository
                 .GetUserTeamAsync(teamId);
             
-            if (targetTeam == null){
+            if (targetTeam == null || targetTeam.IsDeleted){
                 return NotFound("Not a valid team.");
             }
 
@@ -497,16 +494,23 @@ namespace SynchroLean.Controllers
             var tokenOwnerEmail = User.FindFirst("Email").Value;
             if (!tokenOwnerEmail.Equals(targetTeam.OwnerEmail) && !tokenOwnerEmail.Equals(targetEmail)) 
             {
-                return Forbid();
+                return Forbid("Access denied");
             }
 
             if(targetTeam.OwnerEmail == targetEmail){
-                return BadRequest("Can't remove the team owner");
+                var members = targetTeam.Members;
+                if (members.Count() > 1){
+    	            return Forbid("Cannot remove team with other members.");
+                }
+
+                await unitOfWork.UserTeamRepository.DeleteTeamAsync(teamId);
+                Task.WaitAll(unitOfWork.CompleteAsync());
+                return Ok("Owner left, team marked for deletion");
             }
 
             await unitOfWork.TeamMemberRepository.RemoveUserFromTeam(teamId,targetEmail);
             Task.WaitAll(unitOfWork.CompleteAsync());
-            return Ok();
+            return Ok("User removed from team");
         }
 
         // GET api/teams/rollup/{teamId}
