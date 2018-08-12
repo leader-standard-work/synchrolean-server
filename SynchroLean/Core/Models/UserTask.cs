@@ -17,6 +17,7 @@ namespace SynchroLean.Core.Models
         public bool IsRecurring { get; set; }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
+        [Required]
         public string OwnerEmail { get; set; }
         [ForeignKey("OwnerEmail")]
         public virtual UserAccount Owner { get; set; }
