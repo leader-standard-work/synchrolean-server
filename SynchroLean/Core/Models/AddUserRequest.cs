@@ -15,7 +15,6 @@ namespace SynchroLean.Core.Models
         /// Which team the user will be added to.
         /// </summary>
         [Required]
-        [ForeignKey("DestinationTeamId")]
         public virtual Team DestinationTeam { get; set; }
 
         [Required]
@@ -25,7 +24,6 @@ namespace SynchroLean.Core.Models
         /// Who will join the team.
         /// </summary>
         [Required]
-        [ForeignKey("InviteeEmail")]
         public virtual UserAccount Invitee { get; set; }
         
         public virtual string InviterEmail { get; set; }
@@ -33,7 +31,6 @@ namespace SynchroLean.Core.Models
         /// <summary>
         /// Who sent out the invitation.
         /// </summary>
-        [ForeignKey("InviterEmail")]
         public virtual UserAccount Inviter { get; set; }
 
         /// <summary>

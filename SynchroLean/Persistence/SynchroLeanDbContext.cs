@@ -39,10 +39,19 @@ namespace SynchroLean.Persistence
             modelBuilder.Entity<Team>().HasMany(team => team.AssociatedTasks).WithOne(task => task.Team).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Team>().HasMany(team => team.AssociatedLogEntries).WithOne(entry => entry.Team).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<UserAccount>().HasMany(account => account.Tasks).WithOne(task => task.Owner);
-            modelBuilder.Entity<Team>().HasMany(team => team.Invites).WithOne(invite => invite.DestinationTeam);
-            modelBuilder.Entity<UserAccount>().HasMany(account => account.OutgoingInvites).WithOne(invite => invite.Inviter).OnDelete(DeleteBehavior.SetNull);
-            modelBuilder.Entity<UserAccount>().HasMany(account => account.IncomingInvites).WithOne(invite => invite.Invitee);
-
+            modelBuilder.Entity<AddUserRequest>().HasOne(invite => invite.DestinationTeam).WithMany(team => team.Invites)
+                .HasForeignKey(invite => invite.DestinationTeamId)
+                .HasPrincipalKey(team => team.Id)
+                .HasConstraintName("FK_AddUserRequest_Team_TeamId");
+            modelBuilder.Entity<AddUserRequest>().HasOne(invite => invite.Invitee).WithMany(account => account.IncomingInvites)
+                .HasForeignKey(invite => invite.InviteeEmail)
+                .HasPrincipalKey(account => account.Email)
+                .HasConstraintName("FK_AddUserRequest_InviteeEmail_UserAccount_Email");
+            modelBuilder.Entity<AddUserRequest>().HasOne(invite => invite.Inviter).WithMany(account => account.OutgoingInvites)
+                .HasForeignKey(invite => invite.InviterEmail)
+                .HasPrincipalKey(account => account.Email)
+                .HasConstraintName("FK_AddUserRequest_InviterEmail_UserAccount_Email")
+                .OnDelete(DeleteBehavior.SetNull);
             //Many to Many relationships
             //In EF core we must explicitly name and create the joining table
             modelBuilder.Entity<TeamMember>().HasOne(membership => membership.Member).WithMany(account => account.TeamMembershipRelations);
