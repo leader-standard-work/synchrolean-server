@@ -33,7 +33,7 @@ namespace SynchroLean.Persistence
             if (teamDeleted) return;
             //Check that user is in the team
             var user = task.Owner;
-            var ownerNotInTeam = !(team.Members.Contains(user));
+            var ownerNotInTeam = team != null && !(team.Members.Contains(user));
             if(ownerNotInTeam) return;
             //Otherwise, go ahead and add it
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
