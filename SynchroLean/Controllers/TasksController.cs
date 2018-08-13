@@ -450,7 +450,10 @@ namespace SynchroLean.Controllers
             return Ok(await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeams(emailAddress, teams, startDate, endDate));
         }
 
-
+        /// <summary>
+        /// Retrieves all tasks that a user must choose to delete or reassign to a new team.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("orphans"), Authorize]
         public async Task<IActionResult> GetOrphanedTasks()
         {
