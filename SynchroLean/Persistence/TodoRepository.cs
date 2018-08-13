@@ -25,6 +25,9 @@ namespace SynchroLean.Persistence
             var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
             //Doesn't apply to us
             var notToday = !task.OccursOnDayOfWeek(DateTime.Today.DayOfWeek);
+            //Team that it is assigned to was deleted
+            var team = task.Team;
+            var teamDeleted = team != null && team.IsDeleted;
             if(alreadyExists || notToday) return;
             //Otherwise, go ahead and add it
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
