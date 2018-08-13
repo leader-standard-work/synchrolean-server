@@ -137,7 +137,7 @@ namespace SynchroLean.Persistence
         { 
             var task = context.UserTasks.Find(taskId); 
             if (task == null) return; //invalid, nothing to do 
-            var todo = await context.Todos.Where(td => td.TaskId == taskId).FirstOrDefaultAsync(); 
+            var todo = await context.Todos.FindAsync(taskId); 
             DateTime? todoCompletion = null; 
             if (todo != null) 
             { 
@@ -145,7 +145,7 @@ namespace SynchroLean.Persistence
                 context.Todos.Remove(todo); 
             } 
             await this.AddTodoAsync(taskId); 
-            var newTodo = await context.Todos.Where(td => td.TaskId == taskId).FirstOrDefaultAsync(); 
+            var newTodo = await context.Todos.FindAsync(taskId); 
             if (newTodo != null) newTodo.Completed = todoCompletion; 
         } 
     }
