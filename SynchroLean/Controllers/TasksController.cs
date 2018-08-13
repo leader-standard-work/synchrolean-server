@@ -241,7 +241,7 @@ namespace SynchroLean.Controllers
             var task = await unitOfWork.UserTaskRepository.GetTaskAsync(taskId);
 
             // Check if the task has a team
-            var taskTeam = task.Team;
+            var taskTeam = task.Team != null ? task.Team : null;
 
             // Check if user can see the task
             var isUsersOwnTask = tokenEmailId == emailAddress;
