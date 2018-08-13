@@ -449,5 +449,14 @@ namespace SynchroLean.Controllers
             // Get completion rates for user
             return Ok(await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeams(emailAddress, teams, startDate, endDate));
         }
+
+
+        [HttpGet("orphans"), Authorize]
+        public async Task<IActionResult> GetOrphanedTasks()
+        {
+            var tokenOwnerEmail = User.FindFirst("Email").Value;
+            var tasks = await unitOfWork.UserTaskRepository.GetOrphanedTasks(tokenOwnerEmail);
+            return Ok(tasks);
+        }
     }
 }
