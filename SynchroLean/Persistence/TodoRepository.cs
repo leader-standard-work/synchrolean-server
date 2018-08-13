@@ -23,12 +23,18 @@ namespace SynchroLean.Persistence
             var task = await context.UserTasks.FindAsync(taskId);
             //Already in the list
             var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
+            if (alreadyExists) return; //abort
             //Doesn't apply to us
             var notToday = !task.OccursOnDayOfWeek(DateTime.Today.DayOfWeek);
+            if (notToday) return;
             //Team that it is assigned to was deleted
             var team = task.Team;
             var teamDeleted = team != null && team.IsDeleted;
-            if(alreadyExists || notToday) return;
+            if (teamDeleted) return;
+            //Check that user is in the team
+            var user = task.Owner;
+            var ownerNotInTeam = !(team.Members.Contains(user));
+            if(ownerNotInTeam) return;
             //Otherwise, go ahead and add it
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
             var endOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1).AddDays(-1);
