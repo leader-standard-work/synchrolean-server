@@ -65,6 +65,13 @@ namespace SynchroLean.Controllers
                 return Forbid();
             }
 
+            //Make sure that the task resource specifies a valid team
+            if(userTaskResource.TeamId != null)
+            {
+                var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync((int)userTaskResource.TeamId);
+                if (team == null || team.IsDeleted) return NotFound("No such team");
+            }
+
             // Map object from UserTaskResource into UserTask
             var userTask = _mapper.Map<UserTask>(userTaskResource);
 
@@ -312,6 +319,14 @@ namespace SynchroLean.Controllers
             if(task.OwnerEmail != account.Email)
             {
                 return BadRequest("Task does not belong to this account.");
+            }
+
+            //Make sure that the task resource specifies a valid team
+            if (userTaskResource.TeamId != null)
+            {
+                var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync((int)userTaskResource.TeamId);
+                if (team == null || (team.IsDeleted && (task.TeamId == null || userTaskResource.TeamId != task.TeamId))) 
+                    return NotFound("No such team");
             }
 
             //Check if a todo for that task exists
