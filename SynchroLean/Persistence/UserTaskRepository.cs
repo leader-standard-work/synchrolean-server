@@ -52,8 +52,12 @@ namespace SynchroLean.Persistence
         public async Task<IEnumerable<UserTask>> GetOrphanedTasks(string userEmail)
         {
             var tasksToReturn =
-                from task in context.UserTasks.Include(task => task.Team)
-                where task.OwnerEmail == userEmail && task.Deleted == null && task.Team != null && task.Team.IsDeleted
+                from task in context.UserTasks.Include(task => task.Team).ThenInclude(team => team.Members)
+                where 
+                    task.OwnerEmail == userEmail && 
+                    task.Deleted == null && 
+                    task.Team != null && 
+                    (task.Team.IsDeleted || !(task.Team.Members.Any(member => member.Email == userEmail)))
                 select task;
             return await tasksToReturn.ToListAsync();
         }
