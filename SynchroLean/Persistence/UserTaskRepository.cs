@@ -48,5 +48,14 @@ namespace SynchroLean.Persistence
                  select task).ToListAsync();
             foreach (var taskToDelete in tasksToDelete) context.UserTasks.Remove(taskToDelete);
         }
+
+        public async Task<IEnumerable<UserTask>> GetOrphanedTasks(string userEmail)
+        {
+            var tasksToReturn =
+                from task in context.UserTasks.Include(task => task.Team)
+                where task.OwnerEmail == userEmail && task.Deleted == null && task.Team != null && task.Team.IsDeleted
+                select task;
+            return await tasksToReturn.ToListAsync();
+        }
     }
 }

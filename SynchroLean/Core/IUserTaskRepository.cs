@@ -41,5 +41,12 @@ namespace SynchroLean.Core
         /// <param name="teamId">The id of all the teams</param>
         /// <returns>All tasks with the given team assigned to them</returns>
         Task<IEnumerable<UserTask>> GetTeamTasksAsync(int teamId);
+
+        /// <summary>
+        /// Get all tasks for a user assigned to deleted teams
+        /// </summary>
+        /// <param name="userEmail">The email address of the user</param>
+        /// <returns>All tasks that need to be reassigned</returns>
+        Task<IEnumerable<UserTask>> GetOrphanedTasks(string userEmail);
     }
 }
