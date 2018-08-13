@@ -237,8 +237,20 @@ namespace SynchroLean.Controllers
                 return NotFound("Account not found!");
             }
 
+
+            if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress) == null)
+            {
+                return NotFound("Account not found!");
+            }
+
             // Retrieve task
             var task = await unitOfWork.UserTaskRepository.GetTaskAsync(taskId);
+
+            // Check if task exists
+            if (task == null || task.IsDeleted)
+            {
+                return NotFound("Task not found!");
+            }
 
             // Check if the task has a team
             var taskTeam = task.Team;
@@ -250,15 +262,7 @@ namespace SynchroLean.Controllers
 
             if (!userCanSee) return Forbid();
 
-            // Check if task exists
-            if(task == null || task.IsDeleted)
-            {
-                return NotFound("Task not found!");
-            }
-            else 
-            {
-                return Ok(mapToTaskResource(task));
-            }
+            return Ok(mapToTaskResource(task));
         }
 
         // PUT api/tasks/{taskId}
