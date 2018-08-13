@@ -253,7 +253,7 @@ namespace SynchroLean.Controllers
             }
 
             // Check if the task has a team
-            var taskTeam = task.Team;
+            var taskTeam = task.Team != null ? task.Team : null;
 
             // Check if user can see the task
             var isUsersOwnTask = tokenEmailId == emailAddress;
