@@ -10,6 +10,7 @@ using SynchroLean.Controllers.Resources;
 using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
+using SynchroLean.Extensions;
 using Microsoft.AspNetCore.Authorization;
 
 namespace SynchroLean.Controllers
@@ -209,23 +210,30 @@ namespace SynchroLean.Controllers
         [HttpPut("invite/{teamId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> InviteUserToTeamAsync(string emailAddress, int teamId)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(teamId);
             if (team == null || team.IsDeleted) return NotFound("No such team");
 
             var tokenOwnerEmail = User.FindFirst("Email").Value;
             // Check that inviter is on team and invitee isn't on team
             var inviterIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, tokenOwnerEmail);
-            var inviteeIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, emailAddress);
+            var inviteeIsTeamMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, normalizedAddress);
             if (!inviterIsTeamMember || inviteeIsTeamMember) return BadRequest();
             
             // Check if inviter is team owner
             var creatorIsTeamOwner = team.OwnerEmail == tokenOwnerEmail;
             var inviter = await unitOfWork.UserAccountRepository.GetUserAccountAsync(tokenOwnerEmail);
             if (inviter == null || inviter.IsDeleted) return NotFound("User doesn't exist");
-            var invitee = await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress);
+            var invitee = await unitOfWork.UserAccountRepository.GetUserAccountAsync(normalizedAddress);
             if (invitee == null || invitee.IsDeleted) return NotFound("User doesn't exist");
             //Check if invite already exists
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(emailAddress, teamId);
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(normalizedAddress, teamId);
             if(invite == null)
             {
                 await unitOfWork.AddUserRequestRepository.AddAsync(
@@ -298,7 +306,14 @@ namespace SynchroLean.Controllers
         [HttpPut("invite/rescind/{teamId}/{inviteeEmail}"), Authorize]
         public async Task<IActionResult> RescindTeamInvite(string inviteeEmail, int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(inviteeEmail, teamId);
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(inviteeEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(normalizedAddress, teamId);
             if (invite == null) return NotFound("No such invite");
 
             // Validate that the rescinding user is the inviter
@@ -308,7 +323,7 @@ namespace SynchroLean.Controllers
                 return Forbid();
             }
 
-            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(inviteeEmail, teamId);
+            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(normalizedAddress, teamId);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -321,7 +336,14 @@ namespace SynchroLean.Controllers
         [HttpPut("invite/authorize/{teamId}/{inviteeEmail}"), Authorize]
         public async Task<IActionResult> AuthorizeTeamInvite(string inviteeEmail, int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(inviteeEmail,teamId);
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(inviteeEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(normalizedAddress,teamId);
             if (invite == null) return NotFound("No such invite");
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
@@ -346,7 +368,14 @@ namespace SynchroLean.Controllers
         [HttpPut("invite/veto/{teamId}/{inviteeEmail}"), Authorize]
         public async Task<IActionResult> VetoTeamInvite(string inviteeEmail, int teamId)
         {
-            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(inviteeEmail, teamId);
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(inviteeEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
+            var invite = await unitOfWork.AddUserRequestRepository.GetAddUserRequestAsync(normalizedAddress, teamId);
             if (invite == null) return NotFound("No such invite");
             // Note: ensure up cascade deletion for team invites, we should be able to assume the team exists here
             var team = await unitOfWork.UserTeamRepository.GetUserTeamAsync(invite.DestinationTeam.Id);
@@ -359,7 +388,7 @@ namespace SynchroLean.Controllers
                 return Forbid();
             }
 
-            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(inviteeEmail, teamId);
+            await unitOfWork.AddUserRequestRepository.DeleteAddUserRequestAsync(normalizedAddress, teamId);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok();
         }
@@ -480,8 +509,15 @@ namespace SynchroLean.Controllers
         /// <param name="teamId"> The team the user is too be removed from.</param>
         /// <returns></returns>
         [HttpPut("remove/{teamId}/{targetEmail}"), Authorize]
-        public async Task<IActionResult> RemoveMemberAsync(int teamId, string targetEmail){
-        
+        public async Task<IActionResult> RemoveMemberAsync(int teamId, string targetEmail)
+        {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(targetEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             var targetTeam = await unitOfWork.UserTeamRepository
                 .GetUserTeamAsync(teamId);
             
@@ -492,12 +528,12 @@ namespace SynchroLean.Controllers
             // Validate that the user removing another user is either the team owner
             // or they are removing themselves (leaving the team).
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(targetTeam.OwnerEmail) && !tokenOwnerEmail.Equals(targetEmail)) 
+            if (!tokenOwnerEmail.Equals(targetTeam.OwnerEmail) && !tokenOwnerEmail.Equals(normalizedAddress)) 
             {
                 return Forbid("Access denied");
             }
 
-            if(targetTeam.OwnerEmail == targetEmail){
+            if(targetTeam.OwnerEmail == normalizedAddress){
                 var members = targetTeam.Members;
                 if (members.Count() > 1){
     	            return Forbid("Cannot remove team with other members.");
@@ -508,7 +544,7 @@ namespace SynchroLean.Controllers
                 return Ok("Owner left, team marked for deletion");
             }
 
-            await unitOfWork.TeamMemberRepository.RemoveUserFromTeam(teamId,targetEmail);
+            await unitOfWork.TeamMemberRepository.RemoveUserFromTeam(teamId,normalizedAddress);
             Task.WaitAll(unitOfWork.CompleteAsync());
             return Ok("User removed from team");
         }

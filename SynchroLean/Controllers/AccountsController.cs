@@ -10,6 +10,7 @@ using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 using Microsoft.AspNetCore.Authorization;
+using SynchroLean.Extensions;
 
 namespace SynchroLean.Controllers
 {
@@ -42,6 +43,13 @@ namespace SynchroLean.Controllers
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(createUserAccountResource.Email, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
             }
 
             // Salt and hash password
@@ -94,9 +102,16 @@ namespace SynchroLean.Controllers
         [HttpGet("{emailAddress}"), Authorize]
         public async Task<IActionResult> GetAccountAsync(string emailAddress)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Fetch account of ownerId
             var account = await unitOfWork.UserAccountRepository
-                .GetUserAccountAsync(emailAddress);
+                .GetUserAccountAsync(normalizedAddress);
 
             // Return error if account doesn't exist
             // I imagine we'll need to move IsDeleted later if user wants to reactivate account
@@ -168,8 +183,15 @@ namespace SynchroLean.Controllers
         [HttpGet("teams/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTeamsForAccount(string emailAddress)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Check if user exists
-            var account = await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress);
+            var account = await unitOfWork.UserAccountRepository.GetUserAccountAsync(normalizedAddress);
 
             // No account matches ownerId
             if (account == null || account.IsDeleted)
@@ -177,7 +199,7 @@ namespace SynchroLean.Controllers
                 return NotFound("No account found matching that ownerId.");
             }
 
-            var teams = await unitOfWork.TeamMemberRepository.GetAllTeamsForUser(emailAddress);
+            var teams = await unitOfWork.TeamMemberRepository.GetAllTeamsForUser(normalizedAddress);
             return Ok(teams.Select(team => _mapper.Map<TeamResource>(team)));
         }
     }

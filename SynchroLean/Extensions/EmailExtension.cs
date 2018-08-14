@@ -2,7 +2,7 @@ using System.Net.Mail;
 
 namespace SynchroLean.Extensions
 {
-    public static class StringExtension
+    public static class EmailExtension
     {
         public static bool TryNormalizeEmail(this string readIn, out string writeTo)
         {

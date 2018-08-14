@@ -11,6 +11,7 @@ using SynchroLean.Core.Models;
 using SynchroLean.Persistence;
 using SynchroLean.Core;
 using Microsoft.AspNetCore.Authorization;
+using SynchroLean.Extensions;
 
 namespace SynchroLean.Controllers
 {
@@ -99,20 +100,27 @@ namespace SynchroLean.Controllers
         [HttpGet("{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTasksAsync(string emailAddress)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Get users email address from token
             var tokenOwnerEmail = User.FindFirst("Email").Value;
 
             // Get the tasks associated with users email
             var tasks = await unitOfWork.UserTaskRepository
-                .GetTasksAsync(emailAddress);
+                .GetTasksAsync(normalizedAddress);
             
             // If requesteder's email is different from requestee's (online dictionary says it's a word) email
             // determine which tasks user has access to and add to list of visible tasks,
             // Otherwise get users tasks
             IEnumerable<UserTask> visibleTasks;
-            if (tokenOwnerEmail != emailAddress)
+            if (tokenOwnerEmail != normalizedAddress)
             {
-                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(emailAddress);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(normalizedAddress);
                 visibleTasks = tasks.Where(task => task.TeamId != null && teamsCanSee.Contains((int)task.TeamId));
             }
             else visibleTasks = tasks;
@@ -142,6 +150,13 @@ namespace SynchroLean.Controllers
         [HttpGet("team/{teamId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTasksForTeamAsync(string emailAddress, int teamId)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Get users email address from token
             var tokenOwnerEmail = User.FindFirst("Email").Value;
             
@@ -151,7 +166,7 @@ namespace SynchroLean.Controllers
 
             // Retrieve tasks from db
             var tasks = await unitOfWork.UserTaskRepository
-                .GetTasksAsync(emailAddress);
+                .GetTasksAsync(normalizedAddress);
 
             // Filter tasks that belong to team
             var visibleTasks = tasks.Where(task => task.TeamId != null && task.TeamId == teamId);
@@ -181,9 +196,16 @@ namespace SynchroLean.Controllers
         [HttpGet("todo/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTodosAsync(string emailAddress)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Check that account exists (can be removed with auth??)
             var account = await unitOfWork.UserAccountRepository
-                .GetUserAccountAsync(emailAddress);
+                .GetUserAccountAsync(normalizedAddress);
 
             // Return error if no account found
             if (account == null)
@@ -196,15 +218,15 @@ namespace SynchroLean.Controllers
 
             // Get todo list of for requested email
             var todos = await unitOfWork.TodoRepository
-                .GetTodoListAsync(emailAddress);
+                .GetTodoListAsync(normalizedAddress);
 
             // If requester's email is different from user requestee's email
             // determine which tasks user has access to and add to list of visible tasks,
             // Otherwise get users todos
             IEnumerable<Todo> visibleTodos;
-            if (tokenOwnerEmail != emailAddress)
+            if (tokenOwnerEmail != normalizedAddress)
             {
-                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(emailAddress);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(normalizedAddress);
                 visibleTodos = todos.Where(todo => todo.Task.TeamId != null && teamsCanSee.Contains((int)todo.Task.TeamId));
             }
             else visibleTodos = todos;
@@ -236,16 +258,23 @@ namespace SynchroLean.Controllers
         [HttpGet("{taskId}/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetTaskAsync(string emailAddress, int taskId)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Get users email address from token
             var tokenEmailId = User.FindFirst("Email").Value;
             // Check that account exists
-            if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress) == null)
+            if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(normalizedAddress) == null)
             {
                 return NotFound("Account not found!");
             }
 
 
-            if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(emailAddress) == null)
+            if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(normalizedAddress) == null)
             {
                 return NotFound("Account not found!");
             }
@@ -263,7 +292,7 @@ namespace SynchroLean.Controllers
             var taskTeam = task.Team;
 
             // Check if user can see the task
-            var isUsersOwnTask = tokenEmailId == emailAddress;
+            var isUsersOwnTask = tokenEmailId == normalizedAddress;
             var userPermittedToSeeTeam = task.Team != null && await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenEmailId, (int)task.TeamId);
             var userCanSee = isUsersOwnTask || userPermittedToSeeTeam;
 
@@ -380,13 +409,19 @@ namespace SynchroLean.Controllers
         [HttpGet("metrics/user/{startDate}/{endDate}/{emailAddress}"), Authorize]
         public async Task<IActionResult> GetUserCompletionRate(string emailAddress, DateTime startDate, DateTime endDate)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
             // Check if user exists
             var userExists = await unitOfWork.UserAccountRepository
-                .UserAccountExists(emailAddress);
+                .UserAccountExists(normalizedAddress);
             // User doesn't exist
             if (!userExists) return NotFound("Couldn't find user.");
             //User exists
-            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRate(emailAddress, startDate, endDate);
+            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRate(normalizedAddress, startDate, endDate);
             return Ok(completionRate);
         }
 
@@ -425,6 +460,13 @@ namespace SynchroLean.Controllers
         [HttpGet("metrics/user/team/{teamId}/{startDate}/{endDate}/{emailAddress}")]
         public async Task<IActionResult> GetUserCompletionRateForTeamAsync(int teamId, string emailAddress, DateTime startDate, DateTime endDate)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Get users email address from token
             var tokenOwnerEmail = User.FindFirst("Email").Value;
 
@@ -435,7 +477,7 @@ namespace SynchroLean.Controllers
                 return NotFound("Team does not exist!");
             }
 
-            if(tokenOwnerEmail != emailAddress)
+            if(tokenOwnerEmail != normalizedAddress)
             {
                 // Check that user has permission to see team
                 var permitted = await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenOwnerEmail, teamId);
@@ -446,7 +488,7 @@ namespace SynchroLean.Controllers
             }
 
             // Get metrics
-            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeam(emailAddress, teamId, startDate, endDate);
+            double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeam(normalizedAddress, teamId, startDate, endDate);
             return Ok(completionRate);
         }
 
@@ -461,12 +503,19 @@ namespace SynchroLean.Controllers
         [HttpGet("metrics/user/teams/{startDate}/{endDate}/{emailAddress}")]
         public async Task<IActionResult> GetUserCompletionRateForTeamsAsync(string emailAddress, DateTime startDate, DateTime endDate)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(emailAddress, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+            
             ISet<int> teams;
             // Get team Ids for user
             teams = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(User.FindFirst("Email").Value);
                     
             // Get completion rates for user
-            return Ok(await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeams(emailAddress, teams, startDate, endDate));
+            return Ok(await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeams(normalizedAddress, teams, startDate, endDate));
         }
 
         /// <summary>

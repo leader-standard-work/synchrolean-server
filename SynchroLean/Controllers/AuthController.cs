@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SynchroLean.Controllers.Resources;
 using SynchroLean.Core;
+using SynchroLean.Extensions;
 
 namespace SynchroLean.Controllers
 {
@@ -34,6 +35,13 @@ namespace SynchroLean.Controllers
             if (account == null || account.IsDeleted)
             {
                 return NotFound("Account could not be found.");
+            }
+
+            // Verify email address has valid structure
+            string writeTo;
+            if (!EmailExtension.TryNormalizeEmail(loginResource.Email, out writeTo))
+            {
+                return BadRequest("Not a valid email address!");
             }
 
             var password = loginResource.Password + account.Salt;
