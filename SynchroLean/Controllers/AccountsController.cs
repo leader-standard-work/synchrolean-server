@@ -72,6 +72,7 @@ namespace SynchroLean.Controllers
             else if (existingAccount == null)
             {
                 // Map account resource to model
+                createUserAccountResource.Email = normalizedAddress;
                 var account = _mapper.Map<UserAccount>(createUserAccountResource);
 
                 account.Password = hashedPassword;
@@ -87,7 +88,7 @@ namespace SynchroLean.Controllers
 
             // Retrieve account from database
             var createdAccount = await unitOfWork.UserAccountRepository
-                .GetUserAccountAsync(createUserAccountResource.Email);
+                .GetUserAccountAsync(normalizedAddress);
             
             // Return mapped account resource
             return Ok(_mapper.Map<UserAccountResource>(createdAccount));

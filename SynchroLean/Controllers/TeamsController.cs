@@ -59,6 +59,7 @@ namespace SynchroLean.Controllers
             }
 
             // Map the team resource to a model
+            teamResource.OwnerEmail = normalizedAddress;
             var teamModel = _mapper.Map<Team>(teamResource);
 
             // Add the team to context and save changes

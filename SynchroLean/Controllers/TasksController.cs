@@ -81,6 +81,7 @@ namespace SynchroLean.Controllers
             }
 
             // Map object from UserTaskResource into UserTask
+            userTaskResource.OwnerEmail = normalizedAddress;
             var userTask = _mapper.Map<UserTask>(userTaskResource);
 
             // Save userTask to database
