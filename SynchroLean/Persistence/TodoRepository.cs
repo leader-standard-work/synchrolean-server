@@ -89,8 +89,10 @@ namespace SynchroLean.Persistence
                 //Create log entry and add to log
                 var entry = new CompletionLogEntry {
                     TaskId = todo.TaskId,
+                    OwnerEmail = task.OwnerEmail,
                     EntryTime = DateTime.Now,
-                    IsCompleted = todo.IsCompleted
+                    IsCompleted = todo.IsCompleted,
+                    TeamId = task.TeamId
                 };
                 await context.TaskCompletionLog.AddAsync(entry);
             }

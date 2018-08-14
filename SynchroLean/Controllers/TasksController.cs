@@ -396,18 +396,18 @@ namespace SynchroLean.Controllers
             task.Description = userTaskResource.Description;
             task.IsRecurring = userTaskResource.IsRecurring;
             task.Weekdays = userTaskResource.Weekdays;
+            //Don't change the email associated with the task
+            task.TeamId = userTaskResource.TeamId;
             if (userTaskResource.IsDeleted)
             {
                 task.Delete();
             }
-            //Don't change the email associated with the task
-            task.TeamId = userTaskResource.TeamId;
 
             //Refresh the todo list 
             await unitOfWork.TodoRepository.RefreshTodo(taskId);
             
             // Save updated userTask to database
-            Task.WaitAll(unitOfWork.CompleteAsync());
+            await unitOfWork.CompleteAsync();
 
             // Return mapped resource
             return Ok(mapToTaskResource(task));
