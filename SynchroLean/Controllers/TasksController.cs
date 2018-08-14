@@ -59,9 +59,16 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(userTaskResource.OwnerEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Get users email address from token and verify that task owner email is the same
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(userTaskResource.OwnerEmail)) 
+            if (!tokenOwnerEmail.Equals(normalizedAddress)) 
             {
                 return Forbid();
             }
@@ -317,9 +324,16 @@ namespace SynchroLean.Controllers
                 return BadRequest();
             }
 
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(userTaskResource.OwnerEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Get users email address from token
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(userTaskResource.OwnerEmail)) 
+            if (!tokenOwnerEmail.Equals(normalizedAddress)) 
             {
                 return Forbid();
             }
@@ -509,7 +523,7 @@ namespace SynchroLean.Controllers
             {
                 return BadRequest("Not a valid email address!");
             }
-            
+
             ISet<int> teams;
             // Get team Ids for user
             teams = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(User.FindFirst("Email").Value);

@@ -133,6 +133,13 @@ namespace SynchroLean.Controllers
         [HttpPut, Authorize]
         public async Task<IActionResult> EditAccountAsync([FromBody]UserAccountResource userAccountResource)
         {
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(userAccountResource.Email, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // How does this validate against the UserAccount model?
             if(!ModelState.IsValid)
             {
@@ -152,7 +159,7 @@ namespace SynchroLean.Controllers
             }
 
             // Verify email is unchanged
-            if (account.Email != userAccountResource.Email.Trim().ToLower())
+            if (account.Email != normalizedAddress.Trim().ToLower())
             {
                 return BadRequest("Cannot change email address.");
             }
@@ -161,7 +168,7 @@ namespace SynchroLean.Controllers
             // Map account resource to model
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
-            account.Email = userAccountResource.Email;
+            account.Email = normalizedAddress;
             if (userAccountResource.IsDeleted) 
             {
                 account.Delete();

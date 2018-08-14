@@ -44,9 +44,16 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(teamResource.OwnerEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Validate that the user creating the team is the assigned owner
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(teamResource.OwnerEmail)) 
+            if (!tokenOwnerEmail.Equals(normalizedAddress)) 
             {
                 return Forbid();
             }
@@ -155,9 +162,16 @@ namespace SynchroLean.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(teamResource.OwnerEmail, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
             // Validate that the user editing the team is the owner
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(teamResource.OwnerEmail))
+            if (!tokenOwnerEmail.Equals(normalizedAddress))
             {
                 return Forbid();
             }
@@ -187,9 +201,9 @@ namespace SynchroLean.Controllers
             team.TeamDescription = teamResource.TeamDescription;
 
             // check if owner is changing
-            if (tokenOwnerEmail != teamResource.OwnerEmail)
+            if (tokenOwnerEmail != normalizedAddress)
             {
-                await unitOfWork.TeamMemberRepository.ChangeTeamOwnership(teamId, teamResource.OwnerEmail);
+                await unitOfWork.TeamMemberRepository.ChangeTeamOwnership(teamId, normalizedAddress);
             }
 
 
