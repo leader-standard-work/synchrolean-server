@@ -34,14 +34,12 @@ namespace SynchroLean.Persistence
         /// <param name="emailAddress"></param>
         /// <param name="entryTime"></param>
         /// <returns></returns>
-        public void DeleteLogEntry(int taskId, string emailAddress, DateTime entryTime)
+        public async void DeleteLogEntry(int taskId, string emailAddress, DateTime entryTime)
         {
+            var task = await context.UserTasks.FindAsync(taskId);
+            if (task == null) return;
             // Create log entry to search table
-            var completionLogEntry = new CompletionLogEntry{ 
-                TaskId = taskId,
-                OwnerEmail = emailAddress,
-                EntryTime = entryTime 
-            };
+            var completionLogEntry = new CompletionLogEntry(task, entryTime, true);
             // Remove entry from Db and save changes
             context.TaskCompletionLog.Remove(completionLogEntry);
         }

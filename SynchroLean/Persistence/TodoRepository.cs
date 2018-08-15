@@ -128,7 +128,7 @@ namespace SynchroLean.Persistence
         { 
             var task = context.UserTasks.Find(taskId); 
             if (task == null) return; //invalid, nothing to do 
-            var todo = await context.Todos.FindAsync(taskId); 
+            var todo = task.Todo; 
             DateTime? todoCompletion = null; 
             if (todo != null) 
             { 
