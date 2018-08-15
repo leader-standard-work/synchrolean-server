@@ -86,7 +86,7 @@ namespace SynchroLean.Persistence
                 if (!todo.Task.IsRecurring) todo.Expires = DateTime.Today.AddDays(1);
 
                 //Create log entry and add to log
-                var entry = new CompletionLogEntry(todo);
+                var entry = CompletionLogEntry.FromTodo(todo);
                 await context.TaskCompletionLog.AddAsync(entry);
             }
         }
@@ -98,7 +98,7 @@ namespace SynchroLean.Persistence
             // Check that todo is completed
             if(todo.IsCompleted)
             {//Find and remove log entry
-                var entry = new CompletionLogEntry(todo);
+                var entry = CompletionLogEntry.FromTodo(todo);
                 context.TaskCompletionLog.Remove(entry);
 
                 //For outstanding tasks without a due date, make sure it isn't deleted at the end of the day
@@ -118,7 +118,7 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
             foreach(var expired in expireds)
             {
-                context.TaskCompletionLog.Add(new CompletionLogEntry(expired));
+                context.TaskCompletionLog.Add(CompletionLogEntry.FromTodo(expired));
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }

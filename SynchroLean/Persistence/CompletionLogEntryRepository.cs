@@ -39,7 +39,7 @@ namespace SynchroLean.Persistence
             var task = await context.UserTasks.FindAsync(taskId);
             if (task == null) return;
             // Create log entry to search table
-            var completionLogEntry = new CompletionLogEntry(task, entryTime, true);
+            var completionLogEntry = CompletionLogEntry.FromTask(task, entryTime, true);
             // Remove entry from Db and save changes
             context.TaskCompletionLog.Remove(completionLogEntry);
         }

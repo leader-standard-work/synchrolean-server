@@ -17,23 +17,29 @@ namespace SynchroLean.Core.Models
         public int? TeamId { get; set; }
         [ForeignKey("TeamId")]
         public virtual Team Team { get; set; }
-        public CompletionLogEntry(UserTask task, DateTime entryTime, bool completed)
+        public static CompletionLogEntry FromTask(UserTask task, DateTime entryTime, bool completed)
         {
-            this.TaskId = task.Id;
-            this.OwnerEmail = task.OwnerEmail;
-            this.EntryTime = entryTime;
-            this.IsCompleted = completed;
-            this.TeamId = task.TeamId;
+            return new CompletionLogEntry
+            {
+                TaskId = task.Id,
+                OwnerEmail = task.OwnerEmail,
+                EntryTime = entryTime,
+                IsCompleted = completed,
+                TeamId = task.TeamId
+            };
         }
-        public CompletionLogEntry(Todo todo)
+        public static CompletionLogEntry FromTodo(Todo todo)
         {
             var entryTime = todo.IsCompleted ? (DateTime)todo.Completed : todo.Expires;
             var task = todo.Task;
-            this.TaskId = task.Id;
-            this.OwnerEmail = task.OwnerEmail;
-            this.EntryTime = entryTime;
-            this.IsCompleted = todo.IsCompleted;
-            this.TeamId = task.TeamId;
+            return new CompletionLogEntry
+            {
+                TaskId = task.Id,
+                OwnerEmail = task.OwnerEmail,
+                EntryTime = entryTime,
+                IsCompleted = todo.IsCompleted,
+                TeamId = task.TeamId
+            };
         }
     }
 }
