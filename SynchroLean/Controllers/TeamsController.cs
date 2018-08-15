@@ -548,6 +548,9 @@ namespace SynchroLean.Controllers
                 return Forbid("Access denied");
             }
 
+            //The repository handles this now with a different behavior: randomly picking a new team owner.
+            //We can change it back if desired, if we decide we won't, delete this code.
+            /*
             if(targetTeam.OwnerEmail == normalizedAddress){
                 var members = targetTeam.Members;
                 if (members.Count() > 1){
@@ -558,6 +561,7 @@ namespace SynchroLean.Controllers
                 Task.WaitAll(unitOfWork.CompleteAsync());
                 return Ok("Owner left, team marked for deletion");
             }
+            */
 
             await unitOfWork.TeamMemberRepository.RemoveUserFromTeam(teamId,normalizedAddress);
             Task.WaitAll(unitOfWork.CompleteAsync());

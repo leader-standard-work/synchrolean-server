@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SynchroLean.Core;
 using SynchroLean.Core.Models;
+using SynchroLean.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,8 +51,24 @@ namespace SynchroLean.Persistence
         {
             var team = await context.Teams.FindAsync(teamId);
             if (team == null) return; //No such team, nothing to do
-            if (team.OwnerEmail == userEmail) return; //The owner of a team is always part of that team
-            context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
+            if (team.OwnerEmail == userEmail)
+            {
+                var othermembers =
+                    from teammember in context.TeamMembers
+                    where teammember.TeamId == teamId && teammember.MemberEmail != userEmail
+                    select teammember.Member.Email;
+                if(othermembers.Count() > 1)
+                {
+                    team.OwnerEmail = new System.Random().SampleFrom(othermembers);
+                    context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
+                }
+                else
+                {
+                    context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
+                    team.Delete();
+                }
+            }
+            else context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
         }
 
         async Task<bool> ITeamMemberRepository.UserIsInTeam(int teamId, string userEmail)
