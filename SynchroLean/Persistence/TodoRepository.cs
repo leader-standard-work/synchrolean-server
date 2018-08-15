@@ -81,17 +81,12 @@ namespace SynchroLean.Persistence
             if(!todo.IsCompleted)
             {
                 todo.IsCompleted = true;
-
-                var task = await context.UserTasks.FindAsync(todo.TaskId);
+                
                 //For outstanding tasks without a due date, get it deleted before the end of the day
-                if (!task.IsRecurring) todo.Expires = DateTime.Today.AddDays(1);
+                if (!todo.Task.IsRecurring) todo.Expires = DateTime.Today.AddDays(1);
 
                 //Create log entry and add to log
-                var entry = new CompletionLogEntry {
-                    TaskId = todo.TaskId,
-                    EntryTime = DateTime.Now,
-                    IsCompleted = todo.IsCompleted
-                };
+                var entry = new CompletionLogEntry(todo);
                 await context.TaskCompletionLog.AddAsync(entry);
             }
         }
@@ -102,18 +97,12 @@ namespace SynchroLean.Persistence
             if (todo == null) return;
             // Check that todo is completed
             if(todo.IsCompleted)
-            {
-                var task = await context.UserTasks.FindAsync(todo.TaskId);
-                //For outstanding tasks without a due date, make sure it isn't deleted at the end of the day
-                if (!task.IsRecurring) todo.Expires = DateTime.MaxValue;
-
-                //Find and remove log entry
-                var entry = new CompletionLogEntry {
-                    TaskId = todo.TaskId,
-                    EntryTime = (DateTime)todo.Completed
-                };
-
+            {//Find and remove log entry
+                var entry = new CompletionLogEntry(todo);
                 context.TaskCompletionLog.Remove(entry);
+
+                //For outstanding tasks without a due date, make sure it isn't deleted at the end of the day
+                if (!todo.Task.IsRecurring) todo.Expires = DateTime.MaxValue;
                 todo.IsCompleted = false;
             }
         }
@@ -129,14 +118,7 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
             foreach(var expired in expireds)
             {
-                context.TaskCompletionLog.Add(
-                        new CompletionLogEntry
-                        {
-                            TaskId = expired.TaskId,
-                            EntryTime = expired.Expires,
-                            IsCompleted = false
-                        }
-                    );
+                context.TaskCompletionLog.Add(new CompletionLogEntry(expired));
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }
