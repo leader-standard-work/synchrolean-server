@@ -456,6 +456,35 @@ namespace SynchroLean.Controllers
             return Ok(invites.Select(inv => new AddUserRequestResource(inv)));
         }
 
+        // GET api/teams/permissions/{teamId}
+        /// <summary>
+        /// Returns a list of teams that has access to team of passed in id
+        /// </summary>
+        /// <param name="teamId">The id to check which teams have permission</param>
+        /// <returns>All teams that are granted permission to view a team</returns>
+        [HttpGet("permissions/{teamId}")]
+        public async Task<IActionResult> GetTeamPermissionsAsync(int teamId)
+        {
+            // Check that the team exists
+            var teamExists = await unitOfWork.UserTeamRepository.TeamExists(teamId);
+            if (!teamExists) return NotFound("No team found");
+
+            // Verify user is on team
+            var email = User.FindFirst("Email").Value;
+            var isMember = await unitOfWork.TeamMemberRepository.UserIsInTeam(teamId, email);
+            if (!isMember) return Forbid();
+            
+            // Map teams to team resources
+            var teams = await unitOfWork.TeamPermissionRepository.GetTeamsThatCanSee(teamId);
+            var resourceTeams = new List<TeamResource>();
+            foreach (var team in teams)
+            {
+                resourceTeams.Add(_mapper.Map<TeamResource>(team));
+            }
+
+            return Ok(resourceTeams);
+        }
+
         // PUT api/teams/permissions/grant/{objectId}/{subjectId}
         /// <summary>
         /// Permit a team to see detailed stats on one of a user's teams.
