@@ -463,7 +463,7 @@ namespace SynchroLean.Controllers
         /// </summary>
         /// <param name="teamId">The id to check which teams have permission</param>
         /// <returns>All teams that are granted permission to view a team</returns>
-        [HttpGet("permissions/{teamId}")]
+        [HttpGet("permissions/{teamId}"), Authorize]
         public async Task<IActionResult> GetTeamPermissionsAsync(int teamId)
         {
             // Check that the team exists
