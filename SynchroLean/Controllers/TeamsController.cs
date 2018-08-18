@@ -459,7 +459,7 @@ namespace SynchroLean.Controllers
 
         // GET api/teams/permissions/{teamId}
         /// <summary>
-        /// Returns a list of teams that has access to team of passed in id
+        /// Returns a list of team ids that have access to team of passed in id
         /// </summary>
         /// <param name="teamId">The id to check which teams have permission</param>
         /// <returns>All teams that are granted permission to view a team</returns>
@@ -484,6 +484,25 @@ namespace SynchroLean.Controllers
             }
 
             return Ok(resourceTeams);
+        }
+
+        /// <summary>
+        /// Determines if user has permission to view team tasks
+        /// </summary>
+        /// <param name="teamId">The id of the team whose tasks are being requested</param>
+        /// <returns>True if user has permission, false otherwise</returns>
+        [HttpGet("permissions/team/{teamId}"), Authorize]
+        public async Task<IActionResult> UserHasPermission(int teamId)
+        {
+            // Check that the team exists
+            var teamExists = await unitOfWork.UserTeamRepository.TeamExists(teamId);
+            if (!teamExists) return NotFound("No team found");
+
+            var memberEmail = User.FindFirst("Email").Value;
+
+            var hasPermission = await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(memberEmail, teamId);
+
+            return Ok(hasPermission);
         }
 
         // PUT api/teams/permissions/grant/{objectId}/{subjectId}
