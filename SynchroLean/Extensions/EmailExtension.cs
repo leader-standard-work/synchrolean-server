@@ -9,7 +9,7 @@ namespace SynchroLean.Extensions
             try 
             {
                 var address = new MailAddress(readIn);
-                writeTo = address.User + "@" + address.Host.ToLower();
+                writeTo = address.User.ToLower() + "@" + address.Host.ToLower();
                 return true;
             }
             catch 
