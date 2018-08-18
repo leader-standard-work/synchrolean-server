@@ -86,6 +86,8 @@ namespace SynchroLean.Controllers
 
             // Save userTask to database
             await unitOfWork.UserTaskRepository.AddAsync(userTask);
+            // Save changes so that the userTask.Id is loaded properly
+            Task.WaitAll(unitOfWork.CompleteAsync());
             await unitOfWork.TodoRepository.AddTodoAsync(userTask.Id);
 
             // Saves changes to database (Errors if `await` is used on this method)

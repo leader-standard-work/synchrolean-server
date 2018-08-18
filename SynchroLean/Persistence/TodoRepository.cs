@@ -20,7 +20,7 @@ namespace SynchroLean.Persistence
 
         public async Task AddTodoAsync(int taskId)
         {
-            var task = await context.UserTasks.FindAsync(taskId);
+            var task = await context.UserTasks.Include(ut => ut.Owner).FirstOrDefaultAsync(ut => ut.Id.Equals(taskId));
             //Already in the list
             var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
             if (alreadyExists) return; //abort
