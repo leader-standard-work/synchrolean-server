@@ -396,6 +396,7 @@ namespace SynchroLean.Controllers
             task.Description = userTaskResource.Description;
             task.IsRecurring = userTaskResource.IsRecurring;
             task.Weekdays = userTaskResource.Weekdays;
+            task.Frequency = userTaskResource.Frequency;
             //Don't change the email associated with the task
             task.TeamId = userTaskResource.TeamId;
             if (userTaskResource.IsDeleted)
