@@ -20,5 +20,6 @@ namespace SynchroLean.Controllers.Resources
         public string OwnerEmail { get; set; }
         public Frequency Frequency { get; set; }
         public int? TeamId { get; set; }
+        public bool IsActive { get; set; }
     }
 }

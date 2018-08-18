@@ -35,7 +35,7 @@ namespace SynchroLean.Core.Models
         {
             get
             {
-                return null == this.Todo;
+                return null != this.Todo;
             }
         }
         [NotMapped]
