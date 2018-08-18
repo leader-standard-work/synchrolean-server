@@ -170,9 +170,10 @@ namespace SynchroLean.Controllers
                 return BadRequest("Not a valid email address!");
             }
 
+            var dbTeam = await unitOfWork.UserTeamRepository.GetUserTeamAsync(teamId);
             // Validate that the user editing the team is the owner
             var tokenOwnerEmail = User.FindFirst("Email").Value;
-            if (!tokenOwnerEmail.Equals(normalizedAddress))
+            if(!tokenOwnerEmail.Equals(dbTeam.OwnerEmail))
             {
                 return Forbid();
             }
