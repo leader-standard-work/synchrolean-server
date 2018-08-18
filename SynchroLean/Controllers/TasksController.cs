@@ -241,12 +241,6 @@ namespace SynchroLean.Controllers
             }
             else visibleTodos = todos;
 
-            // Count check might be unnecessary 
-            if(visibleTodos == null || visibleTodos.Count() == 0)
-            {
-                return NotFound("No Task found for today");
-            }
-
             // Return current days tasks
             var taskResources = new List<UserTaskResource>();
 
