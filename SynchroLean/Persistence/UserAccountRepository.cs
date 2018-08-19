@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SynchroLean.Core;
 using SynchroLean.Core.Models;
+using SynchroLean.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,35 @@ namespace SynchroLean.Persistence
                  where account.IsDeleted && account.Deleted < startOfLastYear
                  select account).ToListAsync();
             foreach (var accountToDelete in accountsToDelete) context.UserAccounts.Remove(accountToDelete);
+        }
+
+        public async Task DeleteAccount(string email)
+        {
+            var account = 
+                await context.UserAccounts
+                .Include(acc => acc.Tasks)
+                .Include(acc => acc.TeamMembershipRelations)
+                .FirstOrDefaultAsync(x => x.Email == email);
+            foreach (var task in account.Tasks) task.Delete();
+            foreach (var teamMembership in account.TeamMembershipRelations)
+            {
+                var team = await context.Teams.FindAsync(teamMembership.TeamId);
+                if (team == null) continue; //No such team, nothing to do
+                var othermembers =
+                        from teammember in context.TeamMembers
+                        where teammember.TeamId == teamMembership.TeamId && teammember.MemberEmail != email
+                        select teammember.Member.Email;
+                if (othermembers.Count() > 1)
+                {
+                    if (team.OwnerEmail == email) team.OwnerEmail = new System.Random().SampleFrom(othermembers);
+                    context.Remove(new TeamMember { TeamId = teamMembership.TeamId, MemberEmail = email });
+                }
+                else
+                {
+                    context.Remove(new TeamMember { TeamId = teamMembership.TeamId, MemberEmail = email });
+                    team.Delete();
+                }
+            }
         }
     }
 }

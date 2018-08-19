@@ -47,28 +47,24 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
         }
 
-        async Task ITeamMemberRepository.RemoveUserFromTeam(int teamId, string userEmail)
+        async Task ITeamMemberRepository.RemoveUserFromTeam(int teamId, string email)
         {
             var team = await context.Teams.FindAsync(teamId);
             if (team == null) return; //No such team, nothing to do
-            if (team.OwnerEmail == userEmail)
-            {
-                var othermembers =
+            var othermembers =
                     from teammember in context.TeamMembers
-                    where teammember.TeamId == teamId && teammember.MemberEmail != userEmail
+                    where teammember.TeamId == teamId && teammember.MemberEmail != email
                     select teammember.Member.Email;
-                if(othermembers.Count() > 1)
-                {
-                    team.OwnerEmail = new System.Random().SampleFrom(othermembers);
-                    context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
-                }
-                else
-                {
-                    context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
-                    team.Delete();
-                }
+            if (othermembers.Count() > 1)
+            {
+                if (team.OwnerEmail == email) team.OwnerEmail = new System.Random().SampleFrom(othermembers);
+                context.Remove(new TeamMember { TeamId = teamId, MemberEmail = email });
             }
-            else context.Remove(new TeamMember { TeamId = teamId, MemberEmail = userEmail });
+            else
+            {
+                context.Remove(new TeamMember { TeamId = teamId, MemberEmail = email });
+                team.Delete();
+            }
         }
 
         async Task<bool> ITeamMemberRepository.UserIsInTeam(int teamId, string userEmail)

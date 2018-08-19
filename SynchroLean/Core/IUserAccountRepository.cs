@@ -23,11 +23,18 @@ namespace SynchroLean.Core
         Task AddAsync(UserAccount account);
 
         /// <summary>
-        /// /// Checks to see if an account exists in the database
+        /// Checks to see if an account exists in the database
         /// </summary>
         /// <param name="emailAddress">Account email to check existence for</param>
         /// <returns>True if account exists, false otherwise</returns>
         Task<Boolean> UserAccountExists(string emailAddress);
+
+        /// <summary>
+        /// Mark an account as deleted and remove all teams from the account.
+        /// </summary>
+        /// <param name="emailAddress"></param>
+        /// <returns></returns>
+        Task DeleteAccount(string emailAddress);
 
         /// <summary>
         /// Delete all accounts that can safely be removed
