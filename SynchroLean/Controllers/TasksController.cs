@@ -490,16 +490,6 @@ namespace SynchroLean.Controllers
                 return NotFound("Team does not exist!");
             }
 
-            if(tokenOwnerEmail != normalizedAddress)
-            {
-                // Check that user has permission to see team
-                var permitted = await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenOwnerEmail, teamId);
-                if (!permitted)
-                {
-                    return BadRequest("User is not permitted to view metrics");
-                }
-            }
-
             // Get metrics
             double completionRate = await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeam(normalizedAddress, teamId, startDate, endDate);
             return Ok(completionRate);
