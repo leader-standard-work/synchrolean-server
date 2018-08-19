@@ -131,7 +131,7 @@ namespace SynchroLean.Controllers
             IEnumerable<UserTask> visibleTasks;
             if (tokenOwnerEmail != normalizedAddress)
             {
-                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(normalizedAddress);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(tokenOwnerEmail);
                 visibleTasks = tasks.Where(task => task.TeamId != null && teamsCanSee.Contains((int)task.TeamId));
             }
             else visibleTasks = tasks;
@@ -237,7 +237,7 @@ namespace SynchroLean.Controllers
             IEnumerable<Todo> visibleTodos;
             if (tokenOwnerEmail != normalizedAddress)
             {
-                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(normalizedAddress);
+                var teamsCanSee = await unitOfWork.TeamPermissionRepository.GetTeamIdsUserEmailSees(tokenOwnerEmail);
                 visibleTodos = todos.Where(todo => todo.Task.TeamId != null && teamsCanSee.Contains((int)todo.Task.TeamId));
             }
             else visibleTodos = todos;
