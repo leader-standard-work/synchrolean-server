@@ -52,6 +52,7 @@ namespace SynchroLean.Persistence
                 .Include(acc => acc.Tasks)
                 .Include(acc => acc.TeamMembershipRelations)
                 .FirstOrDefaultAsync(x => x.Email == email);
+            account.Delete();
             foreach (var task in account.Tasks) task.Delete();
             foreach (var teamMembership in account.TeamMembershipRelations)
             {

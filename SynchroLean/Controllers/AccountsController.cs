@@ -169,10 +169,10 @@ namespace SynchroLean.Controllers
             // Map account resource to model
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
-            account.Email = normalizedAddress;
+            //account.Email = normalizedAddress;
             if (userAccountResource.IsDeleted) 
             {
-                account.Delete();
+                await unitOfWork.UserAccountRepository.DeleteAccount(account.Email);
             }
 
             // Save updated account to database
