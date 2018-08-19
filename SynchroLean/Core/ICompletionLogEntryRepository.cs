@@ -68,5 +68,7 @@ namespace SynchroLean.Core
         /// <param name="end">End date for metrics calculations</param>
         /// <returns>A rate from 0 to 1, NaN if the user had no tasks assigned on those teams.</returns>
         Task<double> GetUserCompletionRateOnTeams(string emailAddress, IEnumerable<int> teamIds, DateTime start, DateTime end);
+
+        Task<List<CompletionLogEntry>> GetCompletionLogEntries(int teamId, DateTime start, DateTime end);
     }
 }

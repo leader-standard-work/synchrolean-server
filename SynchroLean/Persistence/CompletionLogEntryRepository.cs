@@ -126,5 +126,16 @@ namespace SynchroLean.Persistence
                 select task.IsCompleted ? 1.0 : 0.0).ToListAsync();
             return userTeamTasks.Count > 0 ? userTeamTasks.Average() : double.NaN;
         }
+
+        public async Task<List<CompletionLogEntry>> GetCompletionLogEntries(int teamId, DateTime start, DateTime end)
+        {
+            var logEntries = await
+                (from task in context.TaskCompletionLog
+                 where task.TeamId == teamId
+                 && task.EntryTime > start
+                 && task.EntryTime <= end
+                 select task).ToListAsync();
+            return logEntries;
+        }
     }
 }
