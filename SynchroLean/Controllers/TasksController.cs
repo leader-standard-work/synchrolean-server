@@ -125,7 +125,7 @@ namespace SynchroLean.Controllers
             var tasks = await unitOfWork.UserTaskRepository
                 .GetTasksAsync(normalizedAddress);
             
-            // If requesteder's email is different from requestee's (online dictionary says it's a word) email
+            // If requesteder's email is different from requestee's (online dictionary says it's a word) email,
             // determine which tasks user has access to and add to list of visible tasks,
             // Otherwise get users tasks
             IEnumerable<UserTask> visibleTasks;
@@ -519,31 +519,6 @@ namespace SynchroLean.Controllers
                     
             // Get completion rates for user
             return Ok(await unitOfWork.CompletionLogEntryRepository.GetUserCompletionRateOnTeams(normalizedAddress, teams, startDate, endDate));
-        }
-
-        // GET api/tasks/metrics/team/log/{teamId}/{startDate}/{endDate}
-        /// <summary>
-        /// Gets the log entries for a team
-        /// </summary>
-        /// <param name="teamId">The id of the team being requested</param>
-        /// <param name="startDate">The start date range for log entries</param>
-        /// <param name="endDate">The end date range for log entries</param>
-        /// <returns></returns>
-        [HttpGet("metrics/team/log/{teamId}/{startDate}/{endDate}")]
-        public async Task<IActionResult> GetTeamCompletionLogEntries(int teamId, DateTime startDate, DateTime endDate)
-        {
-            var teamExists = await unitOfWork.UserTeamRepository.TeamExists(teamId);
-            if (!teamExists) return NotFound();
-
-            var logEntries = await unitOfWork.CompletionLogEntryRepository.GetCompletionLogEntries(teamId, startDate, endDate);
-
-            var logEntryResources = new List<CompletionLogEntryResource>();
-            foreach (var entry in logEntries)
-            {
-                logEntryResources.Add(_mapper.Map<CompletionLogEntryResource>(entry));
-            }
-
-            return Ok(logEntryResources);
         }
 
         // GET api/tasks/orphans

@@ -8,6 +8,6 @@ namespace SynchroLean.Controllers.Resources
         public string OwnerEmail { get; set; }
         public DateTime EntryTime { get; set; }
         public bool IsCompleted { get; set; }
-        public int? TeamId { get; set; }
+        public int TeamId { get; set; }
     }
 }

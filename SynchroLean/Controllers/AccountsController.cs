@@ -169,7 +169,6 @@ namespace SynchroLean.Controllers
             // Map account resource to model
             account.FirstName = userAccountResource.FirstName;
             account.LastName = userAccountResource.LastName;
-            //account.Email = normalizedAddress;
             if (userAccountResource.IsDeleted) 
             {
                 await unitOfWork.UserAccountRepository.DeleteAccount(account.Email);
@@ -180,6 +179,50 @@ namespace SynchroLean.Controllers
 
             // Return mapped resource
             return Ok(_mapper.Map<UserAccountResource>(account));
+        }
+
+        // POST api/accounts/password
+        /// <summary>
+        /// Changes a user's password
+        /// </summary>
+        /// <param name="changePasswordResource">Resource that contains old and new password</param>
+        /// <returns></returns>
+        [HttpPost("password"), Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody]ChangePasswordResource changePasswordResource)
+        {
+            var email = User.FindFirst("Email").Value;
+
+            var account = await unitOfWork.UserAccountRepository.GetUserAccountAsync(email);
+
+            if (account == null || account.IsDeleted)
+            {
+                return NotFound("Account could not be found.");
+            }
+
+            // Verify email address has valid structure
+            string normalizedAddress;
+            if (!EmailExtension.TryNormalizeEmail(email, out normalizedAddress))
+            {
+                return BadRequest("Not a valid email address!");
+            }
+
+            var password = changePasswordResource.OldPassword + account.Salt;
+            bool validPassword = BCrypt.Net.BCrypt.Verify(password, account.Password);
+
+            if (validPassword)
+            {
+                // Salt and hash password
+                var newSalt = BCrypt.Net.BCrypt.GenerateSalt();
+                var newSaltedPassword = changePasswordResource.NewPassword + newSalt;
+                var newHashedPassword = BCrypt.Net.BCrypt.HashPassword(newSaltedPassword);
+
+                account.Password = newHashedPassword;
+                account.Salt = newSalt;
+                Task.WaitAll(unitOfWork.CompleteAsync());
+                return Ok();
+            } else {
+                return Unauthorized();
+            }
         }
 
         // GET api/accounts/teams/{emailAddress}

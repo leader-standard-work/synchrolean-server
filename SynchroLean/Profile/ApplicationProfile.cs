@@ -19,8 +19,7 @@ namespace SynchroLean.Profile
             CreateMap<Team, TeamResource>()
                 .ReverseMap();
 
-            CreateMap<CompletionLogEntry, CompletionLogEntryResource>()
-                .ReverseMap();
+            CreateMap<CompletionLogEntryResource, CompletionLogEntry>();
         }
     }
 }
