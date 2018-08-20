@@ -7,5 +7,9 @@ namespace SynchroLean.Controllers.Resources
 {
     public class WeeklyRollupResource
     {
+        public int TeamId { get; set; }
+        public IList<UserTaskResource> OutstandingTasks { get; set; }
+        public IList<CompletionLogEntryResource> PastWeekTasks { get; set; }
+        public double Completion { get; set; }
     }
 }
