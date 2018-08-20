@@ -641,7 +641,16 @@ namespace SynchroLean.Controllers
             }
             
             var teamUserTasks = await unitOfWork.UserTaskRepository.GetTeamTasksAsync(teamId);
-            return Ok(teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)));      
+            var startOfWeek = DateTime.Today - TimeSpan.FromDays((int)DateTime.Today.DayOfWeek);
+            var endOfWeek = startOfWeek + TimeSpan.FromDays(7);
+            var teamTasksLastWeek = await unitOfWork.CompletionLogEntryRepository.GetCompletionLogEntries(teamId, startOfWeek, endOfWeek);
+            return Ok(new WeeklyRollupResource
+            {
+                OutstandingTasks = teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)).ToList(),
+                PastWeekTasks = teamTasksLastWeek.Select(logEntry => _mapper.Map<CompletionLogEntryResource>(logEntry)).ToList(),
+                TeamId = teamId,
+                Completion = teamTasksLastWeek.Select(logEntry => logEntry.IsCompleted ? 1 : 0).Average()
+            });
         }
 
         // POST api/teams/delete/{teamId}
