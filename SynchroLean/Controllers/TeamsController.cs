@@ -649,7 +649,7 @@ namespace SynchroLean.Controllers
                 OutstandingTasks = teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)).ToList(),
                 PastWeekTasks = teamTasksLastWeek.Select(logEntry => _mapper.Map<CompletionLogEntryResource>(logEntry)).ToList(),
                 TeamId = teamId,
-                Completion = teamTasksLastWeek.Select(logEntry => logEntry.IsCompleted ? 1 : 0).Average()
+                Completion = teamTasksLastWeek.Count > 0 ? teamTasksLastWeek.Select(logEntry => logEntry.IsCompleted ? 1 : 0).Average() : Double.NaN
             });
         }
 
