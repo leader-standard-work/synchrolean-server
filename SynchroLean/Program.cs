@@ -20,7 +20,6 @@ namespace SynchroLean
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseUrls("http://localhost:80/")
                 .Build();
     }
 }
