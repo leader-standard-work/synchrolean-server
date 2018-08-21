@@ -33,16 +33,16 @@ What you need to run Synchrolean Server on Windows
 - For Visual Studio development use the nuget package manager to restore packages and then run **dotnet run** from the command line
 
 ## Built With
-- [Visual Studio Code] (https://code.visualstudio.com) - Microsoft's source code editor with developer tooling
-- [Visual Studio] (https://visualstudio.microsoft.com) - Microsoft's IDE for development on the .NET framework
-- [ASP.NET Core 2.1] (https://docs.microsoft.com/en-us/aspnet/core/getting-started) - Microsoft's unified Web Development model
+- [Visual Studio Code](https://code.visualstudio.com) - Microsoft's source code editor with developer tooling
+- [Visual Studio](https://visualstudio.microsoft.com) - Microsoft's IDE for development on the .NET framework
+- [ASP.NET Core 2.1](https://docs.microsoft.com/en-us/aspnet/core/getting-started) - Microsoft's unified Web Development model
 
 ## Backend Authors
-- **Alex Goddard** - [AlexGoddard] (https://github.com/AlexGoddard)
+- **Alex Goddard** - [AlexGoddard](https://github.com/AlexGoddard)
 - **Barend Venter**
-- **Cole Phares** - [zedzorander] (https://github.com/zedzorander)
+- **Cole Phares** - [zedzorander](https://github.com/zedzorander)
 - **Edward Hazelwood**
-- **Alex Ferguson** - [Decklan] (https://github.com/Decklan)
+- **Alex Ferguson** - [Decklan](https://github.com/Decklan)
 
 ## License
 GNU Affero General Public License v3.0
