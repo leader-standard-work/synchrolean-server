@@ -9,8 +9,8 @@ using SynchroLean.Persistence;
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    [Migration("20180812012217_ReleaseCandidateTwo")]
-    partial class ReleaseCandidateTwo
+    [Migration("20180826192632_ReleaseCandidateThree")]
+    partial class ReleaseCandidateThree
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -160,8 +160,6 @@ namespace SynchroLean.Migrations
                     b.Property<string>("Description");
 
                     b.Property<int>("Frequency");
-
-                    b.Property<bool>("IsRecurring");
 
                     b.Property<string>("Name")
                         .IsRequired()

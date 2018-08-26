@@ -17,6 +17,11 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
+        public async Task<IEnumerable<UserTask>> GetAllTasksAsync()
+        {
+            return await context.UserTasks.ToListAsync();
+        }
+
         public async Task<IEnumerable<UserTask>> GetTasksAsync(string emailAddress)
         {
             return await context.UserTasks

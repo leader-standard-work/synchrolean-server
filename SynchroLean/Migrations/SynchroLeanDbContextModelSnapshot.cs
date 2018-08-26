@@ -159,8 +159,6 @@ namespace SynchroLean.Migrations
 
                     b.Property<int>("Frequency");
 
-                    b.Property<bool>("IsRecurring");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255);

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SynchroLean.Migrations
 {
-    public partial class ReleaseCandidateTwo : Migration
+    public partial class ReleaseCandidateThree : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -133,7 +133,6 @@ namespace SynchroLean.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(maxLength: 255, nullable: false),
                     Description = table.Column<string>(nullable: true),
-                    IsRecurring = table.Column<bool>(nullable: false),
                     Weekdays = table.Column<byte>(nullable: false),
                     CreationDate = table.Column<DateTime>(nullable: false),
                     OwnerEmail = table.Column<string>(nullable: false),
