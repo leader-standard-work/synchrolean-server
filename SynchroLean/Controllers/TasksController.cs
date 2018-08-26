@@ -391,7 +391,6 @@ namespace SynchroLean.Controllers
             // Map resource to model
             task.Name = userTaskResource.Name;
             task.Description = userTaskResource.Description;
-            task.IsRecurring = userTaskResource.IsRecurring;
             task.Weekdays = userTaskResource.Weekdays;
             task.Frequency = userTaskResource.Frequency;
             //Don't change the email associated with the task
