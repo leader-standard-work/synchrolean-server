@@ -9,6 +9,12 @@ namespace SynchroLean.Core
     public interface IUserTaskRepository
     {
         /// <summary>
+        /// Returns all tasks in the Db
+        /// </summary>
+        /// <returns></returns>
+        Task<IEnumerable<UserTask>> GetAllTasksAsync();
+
+        /// <summary>
         /// Retrieves a user's UserTasks from the database
         /// </summary>
         /// <param name="emailAddress">The key to identify the owner</param>

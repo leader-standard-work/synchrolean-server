@@ -57,7 +57,6 @@ namespace SynchroLean.Tests
             var newUserTask = new UserTask {
                 Name = "Unit test add",
                 Description = "Add a task using InMemory database",
-                IsRecurring = true,
                 Weekdays = 40,
                 //IsCompleted = false,
                 Deleted = null
@@ -124,7 +123,6 @@ namespace SynchroLean.Tests
                 var newUserTask = new UserTask {
                     Name = "SQLite unit test add",
                     Description = "Add a task using SQLite database",
-                    IsRecurring = true,
                     Weekdays = 40,
                     //IsCompleted = false,
                     Deleted = null
