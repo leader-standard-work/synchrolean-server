@@ -62,7 +62,7 @@ namespace SynchroLean.Persistence
                         from teammember in context.TeamMembers
                         where teammember.TeamId == teamMembership.TeamId && teammember.MemberEmail != email
                         select teammember.Member.Email;
-                if (othermembers.Count() > 1)
+                if (othermembers.Count() > 0)
                 {
                     if (team.OwnerEmail == email) team.OwnerEmail = new System.Random().SampleFrom(othermembers);
                     context.Remove(new TeamMember { TeamId = teamMembership.TeamId, MemberEmail = email });
