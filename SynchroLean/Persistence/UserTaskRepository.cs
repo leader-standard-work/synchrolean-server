@@ -26,7 +26,7 @@ namespace SynchroLean.Persistence
 
         public async Task<UserTask> GetTaskAsync(int taskId)
         {
-            return await context.UserTasks.FindAsync(taskId);
+            return await context.UserTasks.Include(task => task.Todo).FirstOrDefaultAsync(task => task.Id == taskId);
         }
 
         public async Task AddAsync(UserTask userTask)
