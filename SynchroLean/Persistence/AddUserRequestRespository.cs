@@ -35,7 +35,12 @@ namespace SynchroLean.Persistence
 
         async Task<AddUserRequest> IAddUserRequestRepository.GetAddUserRequestAsync(string email, int teamId)
         {
-            return await this.context.AddUserRequests.FindAsync(email, teamId);
+            return await 
+                this.context.AddUserRequests
+                .Include(invite => invite.Invitee)
+                .Include(invite => invite.Inviter)
+                .Include(invite => invite.DestinationTeam)
+                .FirstOrDefaultAsync(invite => invite.InviteeEmail == email && invite.DestinationTeamId == teamId);
         }
 
         async Task<IEnumerable<AddUserRequest>> IAddUserRequestRepository.GetAddUserRequestsAsync()

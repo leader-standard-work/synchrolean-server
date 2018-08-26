@@ -50,7 +50,7 @@ namespace SynchroLean.Persistence
 
         public async Task<Todo> GetTodo(int taskId)
         {
-            return await context.Todos.FindAsync(taskId);
+            return await context.Todos.Include(todo => todo.Task).FirstOrDefaultAsync(todo => todo.TaskId == taskId);
         }
 
         public async Task<IEnumerable<Todo>> GetTodoListAsync(string emailAddress)
@@ -76,7 +76,7 @@ namespace SynchroLean.Persistence
 
         public async Task CompleteTodoAsync(int todoId)
         {
-            var todo = await context.Todos.FindAsync(todoId);
+            var todo = await context.Todos.Include(td => td.Task).FirstOrDefaultAsync(td => td.TaskId == todoId);
             if(todo == null) return; 
             if(!todo.IsCompleted)
             {
@@ -93,7 +93,7 @@ namespace SynchroLean.Persistence
 
         public async Task UndoCompleteTodoAsync(int todoId)
         {
-            var todo = await context.Todos.FindAsync(todoId);
+            var todo = await context.Todos.Include(td => td.Task).FirstOrDefaultAsync(td => td.TaskId == todoId);
             if (todo == null) return;
             // Check that todo is completed
             if(todo.IsCompleted)
