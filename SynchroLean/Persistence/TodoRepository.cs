@@ -133,7 +133,8 @@ namespace SynchroLean.Persistence
             if (todo != null) 
             { 
                 todoCompletion = todo.Completed; 
-                context.Todos.Remove(todo); 
+                context.Todos.Remove(todo);
+                await context.SaveChangesAsync();
             }
             await this.AddTodoAsync(taskId); 
             var newTodo = await context.Todos.FindAsync(taskId); 
