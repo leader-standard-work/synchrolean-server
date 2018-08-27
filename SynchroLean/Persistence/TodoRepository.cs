@@ -21,6 +21,9 @@ namespace SynchroLean.Persistence
         public async Task AddTodoAsync(int taskId)
         {
             var task = await context.UserTasks.Include(ut => ut.Owner).FirstOrDefaultAsync(ut => ut.Id.Equals(taskId));
+            if (task == null) return; //invalid task, nothing to do
+            //Task is deleted
+            if (task.IsDeleted) return; //task is deleted, nothing to do
             //Already in the list
             var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
             if (alreadyExists) return; //abort
@@ -50,7 +53,7 @@ namespace SynchroLean.Persistence
 
         public async Task<Todo> GetTodo(int taskId)
         {
-            return await context.Todos.FindAsync(taskId);
+            return await context.Todos.Include(todo => todo.Task).FirstOrDefaultAsync(todo => todo.TaskId == taskId);
         }
 
         public async Task<IEnumerable<Todo>> GetTodoListAsync(string emailAddress)
@@ -76,7 +79,7 @@ namespace SynchroLean.Persistence
 
         public async Task CompleteTodoAsync(int todoId)
         {
-            var todo = await context.Todos.FindAsync(todoId);
+            var todo = await context.Todos.Include(td => td.Task).FirstOrDefaultAsync(td => td.TaskId == todoId);
             if(todo == null) return; 
             if(!todo.IsCompleted)
             {
@@ -93,7 +96,7 @@ namespace SynchroLean.Persistence
 
         public async Task UndoCompleteTodoAsync(int todoId)
         {
-            var todo = await context.Todos.FindAsync(todoId);
+            var todo = await context.Todos.Include(td => td.Task).FirstOrDefaultAsync(td => td.TaskId == todoId);
             if (todo == null) return;
             // Check that todo is completed
             if(todo.IsCompleted)
@@ -128,13 +131,14 @@ namespace SynchroLean.Persistence
         { 
             var task = context.UserTasks.Find(taskId); 
             if (task == null) return; //invalid, nothing to do 
-            var todo = task.Todo; 
+            var todo = context.Todos.Find(taskId); 
             DateTime? todoCompletion = null; 
             if (todo != null) 
             { 
                 todoCompletion = todo.Completed; 
-                context.Todos.Remove(todo); 
-            } 
+                context.Todos.Remove(todo);
+                await context.SaveChangesAsync();
+            }
             await this.AddTodoAsync(taskId); 
             var newTodo = await context.Todos.FindAsync(taskId); 
             if (newTodo != null) newTodo.Completed = todoCompletion; 

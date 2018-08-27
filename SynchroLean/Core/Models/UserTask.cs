@@ -14,7 +14,14 @@ namespace SynchroLean.Core.Models
         [StringLength(255)]
         public string Name { get; set; }
         public string Description { get; set; }
-        public bool IsRecurring { get; set; }
+        [NotMapped]
+        public bool IsRecurring
+        {
+            get
+            {
+                return this.Frequency == Frequency.NotAvailable;
+            }
+        }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
         [Required]

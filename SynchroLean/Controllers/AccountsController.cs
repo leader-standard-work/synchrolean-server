@@ -251,7 +251,7 @@ namespace SynchroLean.Controllers
             }
 
             var teams = await unitOfWork.TeamMemberRepository.GetAllTeamsForUser(normalizedAddress);
-            return Ok(teams.Select(team => _mapper.Map<TeamResource>(team)));
+            return Ok(teams.Where(team => !team.IsDeleted).Select(team => _mapper.Map<TeamResource>(team)));
         }
     }
 }

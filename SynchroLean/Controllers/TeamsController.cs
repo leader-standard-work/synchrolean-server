@@ -188,7 +188,7 @@ namespace SynchroLean.Controllers
                 return NotFound("Couldn't find an account matching that ownerId.");
             }
 
-            // Get the team for the currently logged in user
+            // Get the team
             var team = await unitOfWork.UserTeamRepository
                 .GetUserTeamAsync(teamId);
 
@@ -207,7 +207,6 @@ namespace SynchroLean.Controllers
             {
                 await unitOfWork.TeamMemberRepository.ChangeTeamOwnership(teamId, normalizedAddress);
             }
-
 
             // Save updated team to database
             Task.WaitAll(unitOfWork.CompleteAsync());

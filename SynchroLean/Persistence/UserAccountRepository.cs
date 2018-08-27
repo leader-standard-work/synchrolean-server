@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SynchroLean.Extensions;
 
 namespace SynchroLean.Persistence
 {
@@ -21,7 +22,7 @@ namespace SynchroLean.Persistence
         public async Task<UserAccount> GetUserAccountAsync(string emailAddress)
         {
             return await context.UserAccounts
-                .FindAsync(emailAddress.Trim().ToLower());
+                .FirstOrDefaultAsync(account => account.Email == emailAddress.Trim().ToLower());
         }
 
         public async Task AddAsync(UserAccount account)
@@ -62,7 +63,7 @@ namespace SynchroLean.Persistence
                         from teammember in context.TeamMembers
                         where teammember.TeamId == teamMembership.TeamId && teammember.MemberEmail != email
                         select teammember.Member.Email;
-                if (othermembers.Count() > 1)
+                if (othermembers.Count() > 0)
                 {
                     if (team.OwnerEmail == email) team.OwnerEmail = new System.Random().SampleFrom(othermembers);
                     context.Remove(new TeamMember { TeamId = teamMembership.TeamId, MemberEmail = email });
