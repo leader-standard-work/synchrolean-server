@@ -208,7 +208,6 @@ namespace SynchroLean.Tests
                 var newUserTask = new UserTaskResource {
                     Name = "SQLite unit test add",
                     Description = "Add a task using SQLite database",
-                    IsRecurring = true,
                     Weekdays = 40,
                     IsCompleted = false,
                     IsDeleted = false
@@ -224,7 +223,6 @@ namespace SynchroLean.Tests
                 // Not sure why userTask.Name needs to be trimmed but userTask.Description doesn't
                 Assert.True(newUserTask.Name == userTask.Name.Trim());
                 Assert.True(newUserTask.Description == userTask.Description);
-                Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                 Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
                 Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
                 Assert.True(newUserTask.IsDeleted.Equals(userTask.IsDeleted));
@@ -266,7 +264,6 @@ namespace SynchroLean.Tests
                 var newUserTask = new UserTaskResource {
                     Name = "SQLite unit test add",
                     Description = "Add a task using SQLite database",
-                    IsRecurring = true,
                     Weekdays = 40,
                     IsCompleted = false,
                     IsDeleted = false
@@ -309,7 +306,6 @@ namespace SynchroLean.Tests
                     // Not sure why userTask.Name needs to be trimmed but userTask.Description doesn't
                     Assert.True(newUserTask.Name == userTask.Name.Trim());
                     Assert.True(newUserTask.Description == userTask.Description);
-                    Assert.True(newUserTask.IsRecurring.Equals(userTask.IsRecurring));
                     Assert.True(newUserTask.Weekdays.Equals(userTask.Weekdays));
                     Assert.True(newUserTask.IsCompleted.Equals(userTask.IsCompleted));
                     Assert.True(newUserTask.IsDeleted.Equals(userTask.IsDeleted));
@@ -349,7 +345,6 @@ namespace SynchroLean.Tests
                 var newUserTask1 = new UserTaskResource {
                     Name = "User metrics",
                     Description = "Modify metrics endpoints to accept DateTimes",
-                    IsRecurring = true,
                     Weekdays = 40,
                     CreationDate = DateTime.Now,
                     IsCompleted = false,
@@ -361,7 +356,6 @@ namespace SynchroLean.Tests
                 var newUserTask2 = new UserTaskResource {
                     Name = "User metrics",
                     Description = "complete this to have 50% completion rate",
-                    IsRecurring = true,
                     Weekdays = 0,
                     CreationDate = DateTime.Now,
                     IsCompleted = false,
@@ -409,7 +403,6 @@ namespace SynchroLean.Tests
                         new UserTaskResource {
                             Name = "User metrics",
                             Description = "complete this to have 50% completion rate",
-                            IsRecurring = true,
                             Weekdays = 0,
                             IsCompleted = true,
                             IsDeleted = false,

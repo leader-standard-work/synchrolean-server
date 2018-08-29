@@ -1,4 +1,4 @@
-# synchrolean-server
+# Synchrolean-server
 Synchrolean is a task management application with a focus on team collaboration and transparency. Synchrolean promotes individual bottom up organization. Synchrolean Server acts as the web api for both the front end web application and the front end mobile application.
 
 ## Getting Started
