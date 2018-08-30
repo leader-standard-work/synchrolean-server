@@ -29,6 +29,16 @@ namespace SynchroLean.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Map a task to a resource
+        /// </summary>
+        /// <param name="task">The task to be mapped</param>
+        /// <returns>A UserTaskResource representing it</returns>
+        protected UserTaskResource mapToTaskResource(UserTask task)
+        {
+            return UserTaskResource.CreateWithMapper(_mapper, task);
+        }
+
         // POST api/teams
         /// <summary>
         /// Adds a new team to the Db asynchronously
@@ -645,7 +655,7 @@ namespace SynchroLean.Controllers
             var teamTasksLastWeek = await unitOfWork.CompletionLogEntryRepository.GetCompletionLogEntries(teamId, startOfWeek, endOfWeek);
             return Ok(new WeeklyRollupResource
             {
-                OutstandingTasks = teamUserTasks.Select(task => _mapper.Map<UserTaskResource>(task)).ToList(),
+                OutstandingTasks = teamUserTasks.Select(task => mapToTaskResource(task)).ToList(),
                 PastWeekTasks = teamTasksLastWeek.Select(logEntry => _mapper.Map<CompletionLogEntryResource>(logEntry)).ToList(),
                 TeamId = teamId,
                 Completion = teamTasksLastWeek.Count > 0 ? teamTasksLastWeek.Select(logEntry => logEntry.IsCompleted ? 1 : 0).Average() : Double.NaN
