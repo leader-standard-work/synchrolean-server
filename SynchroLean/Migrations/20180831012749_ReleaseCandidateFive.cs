@@ -1,9 +1,10 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace SynchroLean.Migrations
 {
-    public partial class ReleaseCandidateThree : Migration
+    public partial class ReleaseCandidateFive : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -28,7 +29,7 @@ namespace SynchroLean.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     OwnerEmail = table.Column<string>(nullable: false),
                     TeamName = table.Column<string>(maxLength: 25, nullable: false),
                     TeamDescription = table.Column<string>(maxLength: 250, nullable: true),
@@ -130,7 +131,7 @@ namespace SynchroLean.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     Name = table.Column<string>(maxLength: 255, nullable: false),
                     Description = table.Column<string>(nullable: true),
                     Weekdays = table.Column<byte>(nullable: false),

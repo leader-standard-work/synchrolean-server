@@ -4,19 +4,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SynchroLean.Persistence;
 
 namespace SynchroLean.Migrations
 {
     [DbContext(typeof(SynchroLeanDbContext))]
-    [Migration("20180826192632_ReleaseCandidateThree")]
-    partial class ReleaseCandidateThree
+    [Migration("20180831012749_ReleaseCandidateFive")]
+    partial class ReleaseCandidateFive
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.1-rtm-30846");
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
+                .HasAnnotation("ProductVersion", "2.1.1-rtm-30846")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("SynchroLean.Core.Models.AddUserRequest", b =>
                 {

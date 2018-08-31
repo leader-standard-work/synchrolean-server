@@ -28,7 +28,7 @@ namespace SynchroLean
             services.AddCors();
             services.AddMvc();
             services.AddDbContext<SynchroLeanDbContext>(options => options.UseLazyLoadingProxies()
-                                                                          .UseSqlite(Configuration.GetConnectionString("SQLite")));
+                                                                          .UseNpgsql(Configuration.GetConnectionString("Postgres")));
 
             // Some research needs to be done in terms of managing instances...
             services.AddScoped<IUnitOfWork, UnitOfWork>();
