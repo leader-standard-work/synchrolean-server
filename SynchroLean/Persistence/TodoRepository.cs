@@ -121,7 +121,8 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
             foreach(var expired in expireds)
             {
-                context.TaskCompletionLog.Add(CompletionLogEntry.FromTodo(expired));
+                if(!context.TaskCompletionLog.Contains(CompletionLogEntry.FromTodo(expired)))
+                    context.TaskCompletionLog.Add(CompletionLogEntry.FromTodo(expired));
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }
