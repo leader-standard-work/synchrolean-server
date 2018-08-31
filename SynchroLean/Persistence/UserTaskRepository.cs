@@ -19,12 +19,13 @@ namespace SynchroLean.Persistence
 
         public async Task<IEnumerable<UserTask>> GetAllTasksAsync()
         {
-            return await context.UserTasks.ToListAsync();
+            return await context.UserTasks.Include(task => task.Todo).ToListAsync();
         }
 
         public async Task<IEnumerable<UserTask>> GetTasksAsync(string emailAddress)
         {
             return await context.UserTasks
+                .Include(task => task.Todo)
                 .Where(ut => ut.OwnerEmail.Equals(emailAddress))
                 .ToListAsync();
         }

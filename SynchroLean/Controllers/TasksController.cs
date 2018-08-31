@@ -37,12 +37,7 @@ namespace SynchroLean.Controllers
         /// <returns>A UserTaskResource representing it</returns>
         protected UserTaskResource mapToTaskResource(UserTask task)
         {
-            var mapped = _mapper.Map<UserTaskResource>(task);
-            var todo = task.Todo;
-            mapped.IsCompleted = todo != null && todo.IsCompleted;
-            mapped.CompletionDate = todo != null ? todo.Completed : null;
-            mapped.IsActive = task.IsActive;
-            return mapped;
+            return UserTaskResource.CreateWithMapper(_mapper, task);
         }
 
         // POST api/tasks
