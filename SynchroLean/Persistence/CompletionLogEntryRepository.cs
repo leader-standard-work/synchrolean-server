@@ -24,7 +24,9 @@ namespace SynchroLean.Persistence
         /// <returns></returns>
         public async Task AddLogEntryAsync(CompletionLogEntry completionLogEntry)
         {
-            await context.TaskCompletionLog.AddAsync(completionLogEntry);
+            var entry = await context.TaskCompletionLog.FindAsync(completionLogEntry);
+            if(entry == null)
+                await context.TaskCompletionLog.AddAsync(completionLogEntry);
         }
 
         /// <summary>
