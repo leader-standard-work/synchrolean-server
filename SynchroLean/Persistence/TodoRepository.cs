@@ -77,10 +77,12 @@ namespace SynchroLean.Persistence
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
             //For all other tasks
             DateTime? dueDate = null;
-            if(task.Frequency != Frequency.Daily) dueDate = task.DueDate;
+            if(task.Frequency != Frequency.Daily || task.Frequency != Frequency.Weekly) dueDate = task.DueDate;
             
             var expiry = 
-                task.Frequency == Frequency.Daily ? tomorrow : (DateTime) dueDate.Value.AddDays(1);
+                task.Frequency == Frequency.Daily ? tomorrow 
+                : task.Frequency == Frequency.Weekly ? tomorrow
+                : (DateTime) dueDate.Value.AddDays(1);
             await context.Todos.AddAsync(Todo.FromTask(task, expiry));
         }
 
@@ -157,10 +159,7 @@ namespace SynchroLean.Persistence
                 context.TaskCompletionLog.Add(CompletionLogEntry.FromTodo(expired));
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
-                if (expired.Task.Frequency == Frequency.Weekly)
-                {
-                    expired.Task.DueDate.Value.AddDays(7);
-                } else if (expired.Task.Frequency == Frequency.Monthly)
+                if (expired.Task.Frequency == Frequency.Monthly)
                 {
                     expired.Task.DueDate.Value.AddMonths(1);
                 }

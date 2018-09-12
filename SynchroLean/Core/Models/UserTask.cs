@@ -39,7 +39,7 @@ namespace SynchroLean.Core.Models
         {
             if(this.Frequency == Frequency.NotAvailable)
             {
-                return DateTime.Today == (DateTime) DueDate;
+                return DateTime.Today.Date == Convert.ToDateTime(DueDate.ToString()).Date;;
             } else if(this.Frequency == Frequency.Daily || this.Frequency == Frequency.Weekly) 
             {
                 return 0 < (Weekdays & (1 << (byte)day));

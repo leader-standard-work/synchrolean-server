@@ -389,12 +389,19 @@ namespace SynchroLean.Controllers
             task.Description = userTaskResource.Description;
             task.Weekdays = userTaskResource.Weekdays;
             task.Frequency = userTaskResource.Frequency;
-            task.LastModified = DateTime.Today;
+            task.LastModified = DateTime.Now;
             //Don't change the email associated with the task
             task.TeamId = userTaskResource.TeamId;
             if (userTaskResource.IsDeleted)
             {
                 task.Delete();
+            }
+            if(userTaskResource.Frequency == Frequency.NotAvailable || userTaskResource.Frequency == Frequency.Monthly)
+            {
+                task.DueDate = userTaskResource.DueDate;
+            } else 
+            {
+                task.DueDate = null;
             }
 
             //Refresh the todo list 
