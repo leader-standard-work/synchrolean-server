@@ -389,6 +389,7 @@ namespace SynchroLean.Controllers
             task.Description = userTaskResource.Description;
             task.Weekdays = userTaskResource.Weekdays;
             task.Frequency = userTaskResource.Frequency;
+            task.LastModified = DateTime.Today;
             //Don't change the email associated with the task
             task.TeamId = userTaskResource.TeamId;
             if (userTaskResource.IsDeleted)

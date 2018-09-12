@@ -157,6 +157,13 @@ namespace SynchroLean.Persistence
                 context.TaskCompletionLog.Add(CompletionLogEntry.FromTodo(expired));
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
+                if (expired.Task.Frequency == Frequency.Weekly)
+                {
+                    expired.Task.DueDate.Value.AddDays(7);
+                } else if (expired.Task.Frequency == Frequency.Monthly)
+                {
+                    expired.Task.DueDate.Value.AddMonths(1);
+                }
             }
         }
 
