@@ -22,7 +22,7 @@ namespace SynchroLean
                 await Task.Delay(DateTime.Today.AddDays(1) - DateTime.Now, cancellationToken);
                 
                 // Use this for testing purposes if you can change db externally
-                //await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+                //await Task.Delay(TimeSpan.FromMinutes(3), cancellationToken);
             }
         }
     }

@@ -79,6 +79,7 @@ namespace SynchroLean.Controllers
             // Map object from UserTaskResource into UserTask
             userTaskResource.OwnerEmail = normalizedAddress;
             var userTask = _mapper.Map<UserTask>(userTaskResource);
+            userTask.LastModified = userTask.CreationDate;
 
             // Save userTask to database
             await unitOfWork.UserTaskRepository.AddAsync(userTask);

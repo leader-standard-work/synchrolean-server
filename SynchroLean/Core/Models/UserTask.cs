@@ -24,6 +24,9 @@ namespace SynchroLean.Core.Models
         }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
+        public DateTime? DueDate { get; set; }
+        [Required]
+        public DateTime LastModified { get; set; }
         [Required]
         public string OwnerEmail { get; set; }
         [ForeignKey("OwnerEmail")]
@@ -32,9 +35,18 @@ namespace SynchroLean.Core.Models
         public int? TeamId { get; set; }
         [ForeignKey("TeamId")]
         public virtual Team Team { get; set; }
-        public bool OccursOnDayOfWeek(DayOfWeek day)
+        public bool OccursToday(DayOfWeek day)
         {
-            return this.Frequency != Frequency.Daily || 0 < (Weekdays & (1 << (byte)day));
+            if(this.Frequency == Frequency.NotAvailable)
+            {
+                return DateTime.Today == (DateTime) DueDate;
+            } else if(this.Frequency == Frequency.Daily || this.Frequency == Frequency.Weekly) 
+            {
+                return 0 < (Weekdays & (1 << (byte)day));
+            } else
+            {
+                return DateTime.Today.Day == Convert.ToDateTime(DueDate.ToString()).Day;
+            }
         }
         public virtual Todo Todo { get; set; }
         [NotMapped]

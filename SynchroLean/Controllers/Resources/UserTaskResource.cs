@@ -15,6 +15,8 @@ namespace SynchroLean.Controllers.Resources
         public string Description { get; set; }
         public byte Weekdays { get; set; }
         public DateTime CreationDate { get; set; }
+        public DateTime? DueDate { get; set; }
+        public DateTime? LastModifiedDate { get; set; }
         public bool IsCompleted { get; set; }
         public DateTime? CompletionDate { get; set; }
         public bool IsDeleted { get; set; }
@@ -35,6 +37,7 @@ namespace SynchroLean.Controllers.Resources
             mapped.IsCompleted = todo != null && todo.IsCompleted;
             mapped.CompletionDate = todo != null ? todo.Completed : null;
             mapped.IsActive = task.IsActive;
+            mapped.LastModifiedDate = task.LastModified;
             return mapped;
         }
     }

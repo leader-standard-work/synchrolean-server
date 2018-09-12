@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SynchroLean.Migrations
 {
-    public partial class ReleaseCandidateThree : Migration
+    public partial class ReleaseCandidateSix : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -135,6 +135,8 @@ namespace SynchroLean.Migrations
                     Description = table.Column<string>(nullable: true),
                     Weekdays = table.Column<byte>(nullable: false),
                     CreationDate = table.Column<DateTime>(nullable: false),
+                    DueDate = table.Column<DateTime>(nullable: true),
+                    LastModified = table.Column<DateTime>(nullable: false),
                     OwnerEmail = table.Column<string>(nullable: false),
                     Frequency = table.Column<int>(nullable: false),
                     TeamId = table.Column<int>(nullable: true),

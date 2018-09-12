@@ -157,7 +157,11 @@ namespace SynchroLean.Migrations
 
                     b.Property<string>("Description");
 
+                    b.Property<DateTime?>("DueDate");
+
                     b.Property<int>("Frequency");
+
+                    b.Property<DateTime>("LastModified");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -18,7 +18,7 @@ namespace SynchroLean.Persistence
             this.context = context;
         }
 
-        public async Task AddTodoAsync(int taskId)
+        /*public async Task AddTodoAsync(int taskId)
         {
             var task = await context.UserTasks.Include(ut => ut.Owner).FirstOrDefaultAsync(ut => ut.Id.Equals(taskId));
             if (task == null) return; //invalid task, nothing to do
@@ -40,14 +40,47 @@ namespace SynchroLean.Persistence
             if(ownerNotInTeam) return;
             //Otherwise, go ahead and add it
             var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
-            var endOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1).AddDays(-1);
             var endOfWeek = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
                 .AddDays((int)(DayOfWeek.Saturday) - (int)(DateTime.Now.DayOfWeek) + 1);
+            var endOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1).AddDays(-1);
             var expiry =
                 task.Frequency == Frequency.Monthly ? endOfMonth
                 : task.Frequency == Frequency.Weekly ? endOfWeek
                 : task.Frequency == Frequency.Daily ? tomorrow
                 : DateTime.MaxValue;
+            await context.Todos.AddAsync(Todo.FromTask(task, expiry));
+        }
+        */
+
+        public async Task AddTodoAsync(int taskId)
+        {
+            var task = await context.UserTasks.Include(ut => ut.Owner).FirstOrDefaultAsync(ut => ut.Id.Equals(taskId));
+            if (task == null) return; //invalid task, nothing to do
+            //Task is deleted
+            if (task.IsDeleted) return; //task is deleted, nothing to do
+            //Already in the list
+            var alreadyExists = await context.Todos.AnyAsync(todo => todo.TaskId == taskId);
+            if (alreadyExists) return; //abort
+            //Doesn't apply to us
+            var notToday = !task.OccursToday(DateTime.Today.DayOfWeek);
+            if (notToday) return;
+            //Team that it is assigned to was deleted
+            var team = task.Team;
+            var teamDeleted = team != null && team.IsDeleted;
+            if (teamDeleted) return;
+            //Check that user is in the team
+            var user = task.Owner;
+            var ownerNotInTeam = team != null && !(team.Members.Contains(user));
+            if(ownerNotInTeam) return;
+            //Otherwise, go ahead and add it
+            //For daily tasks
+            var tomorrow = DateTime.Today + TimeSpan.FromDays(1);
+            //For all other tasks
+            DateTime? dueDate = null;
+            if(task.Frequency != Frequency.Daily) dueDate = task.DueDate;
+            
+            var expiry = 
+                task.Frequency == Frequency.Daily ? tomorrow : (DateTime) dueDate.Value.AddDays(1);
             await context.Todos.AddAsync(Todo.FromTask(task, expiry));
         }
 
