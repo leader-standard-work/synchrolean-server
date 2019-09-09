@@ -124,7 +124,7 @@ namespace SynchroLean.Persistence
                 //Check for duplicates.
                 //TODO: This duplicate check is uneccessary. Implement a timer for last rollover.
                 var logEntry = CompletionLogEntry.FromTodo(expired);
-                if (!context.TaskCompletionLog.Contains(logEntry)) context.TaskCompletionLog.Add(logEntry);
+                if (!context.TaskCompletionLog.Where(w => w == logEntry).Any()) context.TaskCompletionLog.Add(logEntry);
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }
