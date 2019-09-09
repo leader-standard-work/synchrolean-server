@@ -113,7 +113,7 @@ namespace SynchroLean.Persistence
         public async Task Clean()
         {
             DateTime threshold = DateTime.Now;
-            var expireds = await 
+            var expireds = await
                 (
                     from todo in context.Todos.Include(todo => todo.Task)
                     where todo.Expires <= threshold
@@ -121,7 +121,10 @@ namespace SynchroLean.Persistence
                 ).ToListAsync();
             foreach(var expired in expireds)
             {
-                context.TaskCompletionLog.Add(CompletionLogEntry.FromTodo(expired));
+                //Check for duplicates.
+                //TODO: This duplicate check is uneccessary. Implement a timer for last rollover.
+                var logEntry = CompletionLogEntry.FromTodo(expired);
+                if (!context.TaskCompletionLog.Contains(logEntry)) context.TaskCompletionLog.Add(logEntry);
                 if (!expired.Task.IsRecurring) expired.Task.Delete();
                 context.Todos.Remove(expired);
             }
