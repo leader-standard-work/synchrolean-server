@@ -272,8 +272,7 @@ namespace SynchroLean.Controllers
             {
                 return NotFound("Account not found!");
             }
-
-
+            
             if (await unitOfWork.UserAccountRepository.GetUserAccountAsync(normalizedAddress) == null)
             {
                 return NotFound("Account not found!");
@@ -291,8 +290,11 @@ namespace SynchroLean.Controllers
             // Check if the task has a team
             var taskTeam = task.Team;
 
+            // Get the owner of the task
+            var taskOwnerEmail = task.OwnerEmail;
+
             // Check if user can see the task
-            var isUsersOwnTask = tokenEmailId == normalizedAddress;
+            var isUsersOwnTask = taskOwnerEmail == normalizedAddress;
             var userPermittedToSeeTeam = task.Team != null && await unitOfWork.TeamPermissionRepository.UserIsPermittedToSeeTeam(tokenEmailId, (int)task.TeamId);
             var userCanSee = isUsersOwnTask || userPermittedToSeeTeam;
 
