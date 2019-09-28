@@ -19,7 +19,7 @@ namespace SynchroLean.Core.Models
         {
             get
             {
-                return this.Frequency == Frequency.NotAvailable;
+                return this.Frequency != Frequency.NotAvailable;
             }
         }
         public byte Weekdays { get; set; }
